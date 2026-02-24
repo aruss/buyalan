@@ -545,3 +545,275 @@ export const sections: Section[] = [
     ],
   },
 ]
+
+export type ConversationChannel = "WhatsApp" | "Telegram" | "SMS"
+
+export type MessageSender = "user" | "agent"
+
+export interface ConversationItem {
+  id: string
+  name: string
+  channel: ConversationChannel
+  lastMessage: string
+  timeLabel: string
+  hasUnread: boolean
+}
+
+export interface MessageItem {
+  id: string
+  conversationId: string
+  sender: MessageSender
+  text: string
+  timeLabel: string
+}
+
+export interface CartItem {
+  id: string
+  name: string
+  variant: string
+  price: number
+  quantity: number
+}
+
+export interface PastOrder {
+  id: string
+  dateLabel: string
+  total: number
+  status: string
+}
+
+export interface ManualAction {
+  id: string
+  label: string
+  action: "upsell" | "payment-link" | "shipping"
+}
+
+export interface CustomerInfo {
+  name: string
+  contact: string
+  lifetimeValue: number
+  tags: string[]
+}
+
+export interface ChatInfo {
+  conversationId: string
+  customer: CustomerInfo
+  cartItems: CartItem[]
+  manualActions: ManualAction[]
+  pastOrders: PastOrder[]
+}
+
+export interface ConversationOverviewData {
+  conversations: ConversationItem[]
+  messages: MessageItem[]
+  chatInfo: ChatInfo[]
+}
+
+export const conversationOverviewData: ConversationOverviewData = {
+  conversations: [
+    {
+      id: "1",
+      name: "+1 555-0101",
+      channel: "WhatsApp",
+      lastMessage: "Is the Pro version in stock?",
+      timeLabel: "10:42 AM",
+      hasUnread: true,
+    },
+    {
+      id: "2",
+      name: "@alex_dev",
+      channel: "Telegram",
+      lastMessage: "Payment completed.",
+      timeLabel: "09:15 AM",
+      hasUnread: false,
+    },
+    {
+      id: "3",
+      name: "+44 7700 900077",
+      channel: "SMS",
+      lastMessage: "When will it ship?",
+      timeLabel: "Yesterday",
+      hasUnread: false,
+    },
+  ],
+  messages: [
+    {
+      id: "m1",
+      conversationId: "1",
+      sender: "user",
+      text: "Hi, I want to order the mechanical keyboard.",
+      timeLabel: "10:40 AM",
+    },
+    {
+      id: "m2",
+      conversationId: "1",
+      sender: "agent",
+      text: "Hello! I can help with that. Do you want tactile or linear switches?",
+      timeLabel: "10:40 AM",
+    },
+    {
+      id: "m3",
+      conversationId: "1",
+      sender: "user",
+      text: "Tactile, please. Is the Pro version in stock?",
+      timeLabel: "10:42 AM",
+    },
+    {
+      id: "m4",
+      conversationId: "2",
+      sender: "agent",
+      text: "Your payment link was confirmed. Thanks for your order.",
+      timeLabel: "09:10 AM",
+    },
+    {
+      id: "m5",
+      conversationId: "2",
+      sender: "user",
+      text: "Payment completed.",
+      timeLabel: "09:15 AM",
+    },
+    {
+      id: "m6",
+      conversationId: "3",
+      sender: "user",
+      text: "When will it ship?",
+      timeLabel: "Yesterday",
+    },
+    {
+      id: "m7",
+      conversationId: "3",
+      sender: "agent",
+      text: "We can ship tomorrow morning once payment is verified.",
+      timeLabel: "Yesterday",
+    },
+  ],
+  chatInfo: [
+    {
+      conversationId: "1",
+      customer: {
+        name: "Unknown User",
+        contact: "+1 555-0101",
+        lifetimeValue: 165.5,
+        tags: ["Returning", "Tech"],
+      },
+      cartItems: [
+        {
+          id: "c1",
+          name: "Mech Keyboard Pro",
+          variant: "Tactile / Black",
+          price: 149.99,
+          quantity: 1,
+        },
+      ],
+      manualActions: [
+        {
+          id: "a1",
+          label: "Trigger Upsell",
+          action: "upsell",
+        },
+        {
+          id: "a2",
+          label: "Send Payment Link",
+          action: "payment-link",
+        },
+        {
+          id: "a3",
+          label: "Schedule Shipping",
+          action: "shipping",
+        },
+      ],
+      pastOrders: [
+        {
+          id: "ORD-882",
+          dateLabel: "Oct 12, 2025",
+          total: 45,
+          status: "Delivered",
+        },
+        {
+          id: "ORD-751",
+          dateLabel: "Aug 04, 2025",
+          total: 120.5,
+          status: "Delivered",
+        },
+      ],
+    },
+    {
+      conversationId: "2",
+      customer: {
+        name: "Alex Dev",
+        contact: "@alex_dev",
+        lifetimeValue: 320.75,
+        tags: ["VIP", "Telegram"],
+      },
+      cartItems: [
+        {
+          id: "c2",
+          name: "Wireless Mouse",
+          variant: "Graphite",
+          price: 79,
+          quantity: 1,
+        },
+      ],
+      manualActions: [
+        {
+          id: "a4",
+          label: "Trigger Upsell",
+          action: "upsell",
+        },
+        {
+          id: "a5",
+          label: "Send Payment Link",
+          action: "payment-link",
+        },
+        {
+          id: "a6",
+          label: "Schedule Shipping",
+          action: "shipping",
+        },
+      ],
+      pastOrders: [
+        {
+          id: "ORD-912",
+          dateLabel: "Jan 03, 2026",
+          total: 99.99,
+          status: "Delivered",
+        },
+      ],
+    },
+    {
+      conversationId: "3",
+      customer: {
+        name: "UK Customer",
+        contact: "+44 7700 900077",
+        lifetimeValue: 58.2,
+        tags: ["SMS", "First-Time"],
+      },
+      cartItems: [],
+      manualActions: [
+        {
+          id: "a7",
+          label: "Trigger Upsell",
+          action: "upsell",
+        },
+        {
+          id: "a8",
+          label: "Send Payment Link",
+          action: "payment-link",
+        },
+        {
+          id: "a9",
+          label: "Schedule Shipping",
+          action: "shipping",
+        },
+      ],
+      pastOrders: [
+        {
+          id: "ORD-644",
+          dateLabel: "Jul 30, 2025",
+          total: 58.2,
+          status: "Delivered",
+        },
+      ],
+    },
+  ],
+}
