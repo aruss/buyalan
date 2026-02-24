@@ -43,8 +43,11 @@ if ($env:DOCKER_REGISTRY) {
     Write-Host "Skipping push (DOCKER_REGISTRY not defined)." -ForegroundColor Yellow
     return 1
 }
-
+        
 # Update version on Coolify vars and Trigger service restart
+Write-Host "Waiting 10 seconds before updating Coolify IMAGE_TAG..." -ForegroundColor Gray
+Start-Sleep -Seconds 10
+    
 
 if ($env:COOLIFY_API_TOKEN -and $env:COOLIFY_BASE_URL -and $env:COOLIFY_SERVICE_UUID) {
     $BaseUrl = $env:COOLIFY_BASE_URL.Trim().TrimEnd('/')
