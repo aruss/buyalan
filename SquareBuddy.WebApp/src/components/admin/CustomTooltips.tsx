@@ -49,8 +49,8 @@ export const CustomTooltip = ({ payload, active }: TooltipProps) => {
         <span
           className={cx(
             parseFloat(percentageDiff) >= 0
-              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-400"
-              : "bg-red-100 text-red-600 dark:bg-red-400/20 dark:text-red-400",
+              ? "bg-gray-100 text-gray-600 dark:bg-gray-400/20 dark:text-gray-400"
+              : "bg-gray-100 text-gray-600 dark:bg-gray-400/20 dark:text-gray-400",
             "rounded px-1.5 py-1 text-xs font-medium",
           )}
         >
@@ -80,7 +80,7 @@ export const CustomTooltip2 = ({
             <span
               className={cx(
                 category === "Quotes"
-                  ? "bg-blue-500 dark:bg-blue-500"
+                  ? "bg-gray-500 dark:bg-gray-500"
                   : "bg-gray-300 dark:bg-gray-700",
                 "w-1 rounded",
               )}

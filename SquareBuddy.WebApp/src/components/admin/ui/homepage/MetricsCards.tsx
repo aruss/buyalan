@@ -14,15 +14,15 @@ const getCategory = (value: number): Category => {
 
 const categoryConfig = {
   red: {
-    activeClass: "bg-red-500 dark:bg-red-500",
+    activeClass: "bg-gray-500 dark:bg-gray-500",
     bars: 1,
   },
   orange: {
-    activeClass: "bg-orange-500 dark:bg-orange-500",
+    activeClass: "bg-gray-500 dark:bg-gray-500",
     bars: 2,
   },
   emerald: {
-    activeClass: "bg-emerald-500 dark:bg-emerald-500",
+    activeClass: "bg-gray-500 dark:bg-gray-500",
     bars: 3,
   },
   gray: {

@@ -16,7 +16,7 @@ export const LandingHero = (): ReactElement => {
                 </p>
                 <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
                     <Link
-                        href="#"
+                        href="/admin"
                         className="w-full rounded-full bg-zinc-900 px-8 py-4 text-lg font-medium text-white transition-all hover:scale-105 hover:bg-zinc-800 sm:w-auto"
                     >
                         Connect Square
