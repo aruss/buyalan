@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/landing/ui/button";
 
 export default function LoginPage(): ReactElement {
     return (

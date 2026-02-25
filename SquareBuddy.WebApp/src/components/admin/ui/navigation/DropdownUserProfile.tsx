@@ -29,7 +29,7 @@ export function DropdownUserProfile({
 }: DropdownUserProfileProps) {
   const [mounted, setMounted] = React.useState(false)
   const { resolvedTheme, theme, setTheme } = useTheme()
-  const selectedTheme = theme ?? resolvedTheme ?? "system"
+  const selectedTheme = theme ?? resolvedTheme ?? "light"
   React.useEffect(() => {
     setMounted(true)
   }, [])

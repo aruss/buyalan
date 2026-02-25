@@ -31,7 +31,7 @@ export function ChatPanel({
   const ChannelIcon = channelIcons[conversation.channel]
 
   return (
-    <section className="flex h-full min-h-0 flex-col bg-white dark:bg-gray-950">
+    <section className="flex h-full min-h-0 flex-col bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 ">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 dark:border-gray-800 dark:bg-gray-925 sm:px-6">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {isMobile ? (
