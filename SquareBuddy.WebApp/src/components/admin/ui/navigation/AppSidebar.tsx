@@ -17,7 +17,7 @@ import {
 } from "@/components/admin/Sidebar"
 import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
-import { BookText, House, PackageSearch } from "lucide-react"
+import { BookText, House, PackageSearch, Settings } from "lucide-react"
 import * as React from "react"
 import { Logo } from "../../../../../public/Logo"
 import { UserProfile } from "./UserProfile"
@@ -26,16 +26,22 @@ import { UserProfile } from "./UserProfile"
 const navigation = [
   {
     name: "Home",
-    href: "#",
+    href: "/admin/home",
     icon: House,
     notifications: false,
     active: false,
   },
   {
     name: "Inbox",
-    href: "#",
+    href: "/admin/inbox",
     icon: PackageSearch,
     notifications: 2,
+    active: false,
+  },
+  {
+    name: "Settings",
+    href: "/admin/settings",
+    icon: Settings,
     active: false,
   },
 ] as const
@@ -103,23 +109,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   
   return (
    <Sidebar {...props} className="bg-gray-50 dark:bg-gray-925">
-      <SidebarHeader className="px-3 py-4">
-        <div className="flex items-center gap-3">
+      <SidebarHeader className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 h-16">
+        <div className="flex items-center gap-3 ">
           <span className="flex size-9 items-center justify-center rounded-md bg-white p-1.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800">
             <Logo className="size-6 text-gray-500 dark:text-gray-500" />
           </span>
           <div>
-            <span className="block text-sm font-semibold text-gray-900 dark:text-gray-50">
-              Innovex Systems
+            <span className="block text-sm font-semibold text-gray-900 dark:text-gray-50">             
+             <div className="text-xl font-bold tracking-tight">Square<span className="text-zinc-500">Buddy</span></div>
             </span>
-            <span className="block text-xs text-gray-900 dark:text-gray-50">
-              Premium Starter Plan
-            </span>
+            
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
+        {/*<SidebarGroup>
           <SidebarGroupContent>
             <Input
               type="search"
@@ -127,14 +131,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="[&>input]:sm:py-1.5"
             />
           </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup className="pt-0">
+        </SidebarGroup> */}
+        <SidebarGroup className="pt-4">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarLink
-                    href="#"
+                    href={item.href}
                     isActive={item.active}
                     icon={item.icon}
                     notifications={item.notifications}
@@ -146,6 +150,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/*
         <div className="px-3">
           <Divider className="my-0 py-0" />
         </div>
@@ -154,7 +160,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu className="space-y-4">
               {navigation2.map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  {/* @CHRIS/SEV: discussion whether to componentize (-> state mgmt) */}
+             
                   <button
                     onClick={() => toggleMenu(item.name)}
                     className={cx(
@@ -198,7 +204,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
+        </SidebarGroup> */}
       </SidebarContent>
       <SidebarFooter>
         <div className="border-t border-gray-200 dark:border-gray-800" />

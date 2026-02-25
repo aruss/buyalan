@@ -29,7 +29,7 @@ const nextConfig = (phase) => {
             return [
                 {
                     source: "/admin",
-                    destination: "/admin/overview",
+                    destination: "/admin/inbox",
                     permanent: true,
                 },
             ]
