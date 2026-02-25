@@ -19,7 +19,7 @@ import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
 import { BookText, House, PackageSearch, Settings } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { useCallback, useState, type ComponentProps } from "react"
+import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react"
 import { Logo } from "../../../../../public/Logo"
 import { UserProfile } from "./UserProfile"
 
@@ -57,10 +57,6 @@ const navigation = [
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const [openMenus, setOpenMenus] = useState<string[]>([
-    navigation[0].name
-  ])
-
   const isActivePath = useCallback(
     (href: string) => {
       if (!pathname) {
@@ -76,6 +72,20 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
     [pathname],
   )
 
+  const activeParentNames = useMemo(() => {
+    return navigation
+      .filter((item) => {
+        if (!item.children) {
+          return false
+        }
+
+        return item.children.some((child) => isActivePath(child.href))
+      })
+      .map((item) => item.name)
+  }, [isActivePath])
+
+  const [openMenus, setOpenMenus] = useState<string[]>(activeParentNames)
+
   const toggleMenu = (name: string) => {
     setOpenMenus((prev: string[]) =>
       prev.includes(name)
@@ -83,6 +93,10 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         : [...prev, name],
     )
   }
+
+  useEffect(() => {
+    setOpenMenus(activeParentNames)
+  }, [activeParentNames])
 
   return (
     <Sidebar {...props} className="bg-gray-50 dark:bg-gray-925">
@@ -150,7 +164,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                           <SidebarMenuItem key={child.name}>
                             <SidebarSubLink
                               href={child.href}
-                              isActive={child.active}
+                              isActive={isActivePath(child.href)}
                             >
                               {child.name}
                             </SidebarSubLink>

@@ -321,9 +321,8 @@ const SidebarLink = forwardRef<
       className={cx(
         "flex items-center justify-between rounded-md p-2 text-base transition hover:bg-gray-200/50 sm:text-sm hover:dark:bg-gray-900",
         "text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-        "data-[active=true]:bg-gray-200/50 data-[active=true]:dark:bg-gray-900",
-        "data-[active=true]:text-gray-900 data-[active=true]:dark:text-gray-50",
-        "data-[active=true]:text-gray-600 data-[active=true]:dark:text-gray-500",
+        "data-[active=true]:bg-white data-[active=true]:text-gray-600 data-[active=true]:shadow data-[active=true]:ring-1 data-[active=true]:ring-gray-200",
+        "data-[active=true]:dark:bg-gray-900 data-[active=true]:dark:text-gray-500 data-[active=true]:dark:ring-gray-800",
         focusRing,
       )}
       {...props}
