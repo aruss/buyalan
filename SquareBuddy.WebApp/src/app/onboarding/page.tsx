@@ -37,7 +37,7 @@ type FormState = {
     teamMembers: string[];
 };
 
-export const OnboardingPage = (): ReactElement => {
+const OnboardingPage = (): ReactElement => {
     const [step, setStep] = useState<OnboardingStep>(1);
     const [formData, setFormData] = useState<FormState>({
         squareConnected: false,

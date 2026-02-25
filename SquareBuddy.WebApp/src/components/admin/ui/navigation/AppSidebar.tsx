@@ -17,14 +17,28 @@ import {
 } from "@/components/admin/Sidebar"
 import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
-import { BookText, House, PackageSearch, Settings } from "lucide-react"
+import { BookText, House, PackageSearch, Settings, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react"
 import { Logo } from "../../../../../public/Logo"
 import { UserProfile } from "./UserProfile"
 
-const navigation = [
-   {
+type NavigationChild = {
+  name: string
+  href: string
+  active: boolean
+}
+
+type NavigationItem = {
+  name: string
+  href: string
+  icon: LucideIcon
+  notifications?: number
+  children?: NavigationChild[]
+}
+
+const navigation: NavigationItem[] = [
+  {
     name: "Inbox",
     href: "/admin/inbox",
     icon: PackageSearch,
@@ -50,10 +64,14 @@ const navigation = [
         href: "/admin/settings/inventory",
         active: false,
       },
+      {
+        name: "Members",
+        href: "/admin/settings/members",
+        active: false,
+      },
     ],
   },
-
-] as const
+]
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()

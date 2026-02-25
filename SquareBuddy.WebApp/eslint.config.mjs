@@ -12,10 +12,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-  ]),
-  devIndicators: {
-    buildActivityPosition: 'bottom-right'  
-  },
+  ])
 ]);
 
 export default eslintConfig;
