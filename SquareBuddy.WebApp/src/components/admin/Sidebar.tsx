@@ -349,7 +349,7 @@ const SidebarGroup = forwardRef<
     <div
       ref={ref}
       data-sidebar="group"
-      className={cx("relative flex w-full min-w-0 flex-col p-3", className)}
+      className={cx("relative flex w-full min-w-0 flex-col p-4", className)}
       {...props}
     />
   )

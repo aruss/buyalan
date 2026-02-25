@@ -1,64 +1,51 @@
 "use client"
 
-import {
-  Drawer,
-  DrawerBody,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/admin/Drawer"
+import { Button } from "@/components/admin/Button"
 import { useIsMobile } from "@/lib/useMobile"
 import { cx } from "@/lib/utils"
+import { ChevronLeft } from "lucide-react"
 import { ChatInfoPanel } from "./chat-info-panel"
 import { ChatPanel } from "./chat-panel"
 import { ConversationListPanel } from "./conversation-list-panel"
-import type { ChatInfo, ConversationOverviewData } from "./types"
 import { useEffect, useMemo, useState } from "react"
+import { chatInfo, ChatInfo, conversations, messages } from "@/data/data"
 
-export interface ConversationOverviewProps {
-  data: ConversationOverviewData
-}
 
-export function ConversationOverview({ data }: ConversationOverviewProps) {
-  const fallbackConversation = data.conversations[0]
-  const fallbackChatInfo = data.chatInfo[0]
 
-  if (!fallbackConversation || !fallbackChatInfo) {
-    return (
-      <section className="p-4 text-sm text-gray-500 dark:text-gray-400">
-        Conversation data is not available.
-      </section>
-    )
-  }
+export function ConversationOverview() {
+  const fallbackConversation = conversations[0]
+  const fallbackChatInfo = chatInfo[0]
 
   const isMobile = useIsMobile()
   const [activeConversationId, setActiveConversationId] = useState(fallbackConversation.id)
   const [searchQuery, setSearchQuery] = useState("")
   const [agentActive, setAgentActive] = useState(true)
-  const [mobileView, setMobileView] = useState<"list" | "chat">("list")
-  const [isInfoDrawerOpen, setIsInfoDrawerOpen] = useState(false)
+  const [mobileView, setMobileView] = useState<"list" | "chat" | "info">("list")
+
 
   const filteredConversations = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
     if (normalizedQuery.length === 0) {
-      return data.conversations
+      return conversations
     }
-    return data.conversations.filter((conversation) => {
+
+    return conversations.filter((conversation) => {
       const haystack = [
         conversation.name,
         conversation.channel,
-        conversation.lastMessage,
+        conversation.lastMsg,
       ]
         .join(" ")
         .toLowerCase()
       return haystack.includes(normalizedQuery)
     })
-  }, [data.conversations, searchQuery])
+  }, [searchQuery])
 
   useEffect(() => {
     const hasActiveConversation = filteredConversations.some((conversation) => {
       return conversation.id === activeConversationId
-    })
+    }); 
+    
     if (!hasActiveConversation && filteredConversations.length > 0) {
       setActiveConversationId(filteredConversations[0].id)
     }
@@ -67,21 +54,20 @@ export function ConversationOverview({ data }: ConversationOverviewProps) {
   useEffect(() => {
     if (!isMobile) {
       setMobileView("list")
-      setIsInfoDrawerOpen(false)
     }
   }, [isMobile])
 
   const activeConversation =
-    data.conversations.find((conversation) => {
+    conversations.find((conversation) => {
       return conversation.id === activeConversationId
     }) ?? fallbackConversation
 
-  const activeMessages = data.messages.filter((message) => {
-    return message.conversationId === activeConversation.id
+  const activeMessages = messages.filter((message) => {
+    return message.convoId === activeConversation.id
   })
 
   const activeChatInfo: ChatInfo =
-    data.chatInfo.find((chatInfo) => {
+    chatInfo.find((chatInfo) => {
       return chatInfo.conversationId === activeConversation.id
     }) ?? fallbackChatInfo
 
@@ -92,6 +78,15 @@ export function ConversationOverview({ data }: ConversationOverviewProps) {
     }
   }
 
+  
+  if (!fallbackConversation || !fallbackChatInfo) {
+    return (
+      <section className="p-4 text-sm text-gray-500 dark:text-gray-400">
+        Conversation data is not available.
+      </section>
+    )
+  }
+  
   return (
     <section
       aria-label="Conversation overview"
@@ -135,7 +130,11 @@ export function ConversationOverview({ data }: ConversationOverviewProps) {
         <div
           className={cx(
             "absolute inset-0 transition-transform duration-300 ease-out",
-            mobileView === "chat" ? "translate-x-0" : "translate-x-full",
+            mobileView === "chat"
+              ? "translate-x-0"
+              : mobileView === "list"
+                ? "translate-x-full"
+                : "-translate-x-full",
           )}
         >
           <ChatPanel
@@ -150,21 +149,39 @@ export function ConversationOverview({ data }: ConversationOverviewProps) {
               setMobileView("list")
             }}
             onOpenInfo={() => {
-              setIsInfoDrawerOpen(true)
+              setMobileView("info")
             }}
           />
         </div>
 
-        <Drawer open={isInfoDrawerOpen} onOpenChange={setIsInfoDrawerOpen}>
-          <DrawerContent className="!inset-y-2 !left-2 !right-auto !mx-0 !w-[88vw] !max-w-sm !p-4 sm:!max-w-sm">
-            <DrawerHeader>
-              <DrawerTitle>Chat Info</DrawerTitle>
-            </DrawerHeader>
-            <DrawerBody className="min-h-0 px-0 pb-0">
+        <div
+          className={cx(
+            "absolute inset-0 transition-transform duration-300 ease-out",
+            mobileView === "info" ? "translate-x-0" : "translate-x-full",
+          )}
+        >
+          <section className="flex h-full min-h-0 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 dark:border-gray-800 dark:bg-gray-925">
+              <Button
+                type="button"
+                variant="ghost"
+                className="!p-2"
+                onClick={() => {
+                  setMobileView("chat")
+                }}
+              >
+                <ChevronLeft className="size-4" aria-hidden="true" />
+                <span className="sr-only">Back to chat</span>
+              </Button>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+                Chat Info
+              </h2>
+            </header>
+            <div className="min-h-0 flex-1">
               <ChatInfoPanel chatInfo={activeChatInfo} />
-            </DrawerBody>
-          </DrawerContent>
-        </Drawer>
+            </div>
+          </section>
+        </div>
       </div>
     </section>
   )

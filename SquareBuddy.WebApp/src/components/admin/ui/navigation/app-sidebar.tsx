@@ -14,6 +14,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarSubLink,
+  useSidebar,
 } from "@/components/admin/Sidebar"
 import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
@@ -73,8 +74,11 @@ const navigation: NavigationItem[] = [
   },
 ]
 
+const SIDEBAR_AUTO_COLLAPSE_BREAKPOINT = 1200
+
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const { isMobile, setOpen } = useSidebar()
   const isActivePath = useCallback(
     (href: string) => {
       if (!pathname) {
@@ -116,10 +120,33 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
     setOpenMenus(activeParentNames)
   }, [activeParentNames])
 
+  useEffect(() => {
+    if (isMobile) {
+      return
+    }
+
+    const mediaQuery = window.matchMedia(
+      `(max-width: ${SIDEBAR_AUTO_COLLAPSE_BREAKPOINT - 1}px)`,
+    )
+
+    const updateSidebarState = (event: MediaQueryListEvent | MediaQueryList) => {
+      if (event.matches) {
+        setOpen(false)
+      }
+    }
+
+    updateSidebarState(mediaQuery)
+    mediaQuery.addEventListener("change", updateSidebarState)
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateSidebarState)
+    }
+  }, [isMobile, setOpen])
+
   return (
     <Sidebar {...props} className="bg-gray-50 dark:bg-gray-925">
       <SidebarHeader className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 h-16">
-        <div className="flex items-center gap-3 ">
+        <div className="flex items-center gap-4 ">
           <span className="flex size-9 items-center justify-center rounded-md bg-white p-1.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800">
             <Logo className="size-6 text-gray-500 dark:text-gray-500" />
           </span>

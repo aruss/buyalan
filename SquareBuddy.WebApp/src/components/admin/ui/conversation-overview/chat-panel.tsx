@@ -1,7 +1,8 @@
 import { Button } from "@/components/admin/Button"
+import { ConversationChannel, ConversationItem, MessageItem } from "@/data/data"
 import { Bot, ChevronLeft, Info, MessageSquare, Phone, Send } from "lucide-react"
 import type { ElementType } from "react"
-import type { ConversationChannel, ConversationItem, MessageItem } from "./types"
+
 
 export interface ChatPanelProps {
   conversation: ConversationItem
@@ -32,7 +33,7 @@ export function ChatPanel({
 
   return (
     <section className="flex h-full min-h-0 flex-col bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 ">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 dark:border-gray-800 dark:bg-gray-925 sm:px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 dark:border-gray-800 dark:bg-gray-925">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {isMobile ? (
             <Button
@@ -80,7 +81,7 @@ export function ChatPanel({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
         <div className="my-3 flex w-full items-center">
           <div className="grow border-t border-gray-200 dark:border-gray-800" />
           <span className="px-4 text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
@@ -101,7 +102,7 @@ export function ChatPanel({
               }
             >
               <div className="mb-1 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-                <span>{message.timeLabel}</span>
+                <span>{message.time}</span>
                 {message.sender === "agent" ? (
                   <Bot className="size-3" aria-hidden="true" />
                 ) : null}

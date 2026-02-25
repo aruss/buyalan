@@ -3,8 +3,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/admin/Sidebar"
-import { AppSidebar } from "@/components/admin/ui/navigation/AppSidebar"
-import { Breadcrumbs } from "@/components/admin/ui/navigation/Breadcrumbs"
+import { AppSidebar } from "@/components/admin/ui/navigation/app-sidebar"
+import { Breadcrumbs } from "@/components/admin/ui/navigation/breadcrumbs"
 import { ThemeProvider } from "next-themes"
 import localFont from "next/font/local"
 import { cookies } from "next/headers"

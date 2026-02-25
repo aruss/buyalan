@@ -39,7 +39,7 @@ export default function RootLayout({
             </div>
 
             <div className="text-sm text-neutral-400">
-              &copy; 2026 SquareBuddy. All rights reserved. Not affiliated with Block, Inc.
+             &nbsp; {/* &copy; 2026 SquareBuddy. All rights reserved. Not affiliated with Block, Inc. */}
             </div>
           </div>
         </div>

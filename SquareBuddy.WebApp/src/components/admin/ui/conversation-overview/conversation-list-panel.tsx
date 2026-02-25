@@ -1,6 +1,6 @@
 import { Input } from "@/components/admin/Input"
+import { ConversationItem } from "@/data/data"
 import { cx } from "@/lib/utils"
-import type { ConversationItem } from "./types"
 
 export interface ConversationListPanelProps {
   conversations: ConversationItem[]
@@ -20,7 +20,7 @@ export function ConversationListPanel({
   return (
     <section className="flex h-full min-h-0 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
       <div className="border-b border-gray-200 p-4 dark:border-gray-800">
-        <h2 className="mb-3 text-base font-semibold text-gray-900 dark:text-gray-50">
+        <h2 className="mb-2 text-base font-semibold text-gray-900 dark:text-gray-50">
           Conversations
         </h2>
         <Input
@@ -58,15 +58,15 @@ export function ConversationListPanel({
                     {conversation.name}
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {conversation.timeLabel}
+                    {conversation.time}
                   </span>
                 </div>
                 <div className="mt-1 flex items-center justify-between gap-2">
                   <span className="truncate text-xs text-gray-500 dark:text-gray-400">
-                    {conversation.lastMessage}
+                    {conversation.lastMsg}
                   </span>
                   <div className="flex items-center gap-2">
-                    {conversation.hasUnread ? (
+                    {conversation.unread ? (
                       <span className="size-1.5 rounded-full bg-gray-900 dark:bg-gray-100" />
                     ) : null}
                     <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
