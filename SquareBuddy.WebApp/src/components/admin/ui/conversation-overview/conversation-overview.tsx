@@ -92,7 +92,7 @@ export function ConversationOverview() {
       aria-label="Conversation overview"
       className="h-[calc(100svh-4rem)] overflow-hidden"
     >
-      <div className="hidden h-full min-h-0 md:grid md:grid-cols-[20rem_minmax(0,1fr)_22rem]">
+      <div className="hidden h-full min-h-0 md:grid md:grid-cols-[20rem_minmax(24rem,1fr)_22rem]">
         <ConversationListPanel
           conversations={filteredConversations}
           activeConversationId={activeConversation.id}

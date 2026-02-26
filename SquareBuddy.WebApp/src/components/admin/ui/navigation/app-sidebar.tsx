@@ -20,7 +20,7 @@ import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
 import { BookText, House, PackageSearch, Settings, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react"
 import { Logo } from "../../../../../public/Logo"
 import { UserProfile } from "./UserProfile"
 
@@ -79,6 +79,7 @@ const SIDEBAR_AUTO_COLLAPSE_BREAKPOINT = 1200
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const { isMobile, setOpen } = useSidebar()
+  const wasBelowAutoCollapseBreakpoint = useRef<boolean | null>(null)
   const isActivePath = useCallback(
     (href: string) => {
       if (!pathname) {
@@ -122,6 +123,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 
   useEffect(() => {
     if (isMobile) {
+      wasBelowAutoCollapseBreakpoint.current = null
       return
     }
 
@@ -129,17 +131,27 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
       `(max-width: ${SIDEBAR_AUTO_COLLAPSE_BREAKPOINT - 1}px)`,
     )
 
-    const updateSidebarState = (event: MediaQueryListEvent | MediaQueryList) => {
-      if (event.matches) {
+    const updateSidebarState = (isBelowAutoCollapseBreakpoint: boolean) => {
+      const wasBelowBreakpoint = wasBelowAutoCollapseBreakpoint.current
+      const hasEnteredAutoCollapseRange =
+        isBelowAutoCollapseBreakpoint && wasBelowBreakpoint !== true
+
+      if (hasEnteredAutoCollapseRange) {
         setOpen(false)
       }
+
+      wasBelowAutoCollapseBreakpoint.current = isBelowAutoCollapseBreakpoint
     }
 
-    updateSidebarState(mediaQuery)
-    mediaQuery.addEventListener("change", updateSidebarState)
+    const onMediaQueryChange = (event: MediaQueryListEvent) => {
+      updateSidebarState(event.matches)
+    }
+
+    updateSidebarState(mediaQuery.matches)
+    mediaQuery.addEventListener("change", onMediaQueryChange)
 
     return () => {
-      mediaQuery.removeEventListener("change", updateSidebarState)
+      mediaQuery.removeEventListener("change", onMediaQueryChange)
     }
   }, [isMobile, setOpen])
 
