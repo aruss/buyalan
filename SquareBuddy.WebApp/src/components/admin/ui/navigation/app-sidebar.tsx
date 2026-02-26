@@ -170,9 +170,6 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         </SidebarGroup> */}
         <SidebarGroup className="pt-4">
           <SidebarGroupContent>
-      
-
-
             <SidebarMenu className="space-y-1">
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
@@ -233,8 +230,8 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 
        
       </SidebarContent>
-      <SidebarFooter>
-        <div className="border-t border-gray-200 dark:border-gray-800" />
+      <div className="border-t border-gray-200 dark:border-gray-800" />
+      <SidebarFooter>        
         <UserProfile />
       </SidebarFooter>
     </Sidebar>

@@ -112,7 +112,7 @@ export function ConversationOverview() {
         <ChatInfoPanel chatInfo={activeChatInfo} />
       </div>
 
-      <div className="relative h-full min-h-0 md:hidden">
+      <div className="relative h-full min-h-0  md:hidden">
         <div
           className={cx(
             "absolute inset-0 transition-transform duration-300 ease-out",
