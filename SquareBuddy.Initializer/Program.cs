@@ -108,6 +108,7 @@ public class Program
             // 1. Register the EXACT same consumers here as you do in your Web API.
             // This allows MassTransit to calculate the required queues and exchanges.
             x.AddConsumer<IncomingMessageConsumer>();
+            x.AddConsumer<OutgoingTelegramMessageConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
             {

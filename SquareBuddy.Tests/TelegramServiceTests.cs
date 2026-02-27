@@ -87,6 +87,79 @@ public class TelegramServiceTests
         await Assert.ThrowsAsync<ApiRequestException>(() => service.RegisterWebhookAsync("12345:token-value"));
     }
 
+    [Fact]
+    public async Task SendMessageAsync_SendsChatIdAndText()
+    {
+        RecordingHandler handler = new((HttpRequestMessage _) =>
+        {
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    "{\"ok\":true,\"result\":{\"message_id\":1,\"date\":1734567890,\"chat\":{\"id\":987654321,\"type\":\"private\"},\"text\":\"Hello from tests\"}}",
+                    Encoding.UTF8,
+                    "application/json")
+            };
+        });
+
+        TelegramService service = CreateService(handler, new Uri("https://squarebuddy.test"));
+
+        await service.SendMessageAsync("12345:token-value", 987654321L, "Hello from tests");
+
+        JsonDocument payload = ParseRequestPayload(handler.LastRequest!);
+        long chatId = payload.RootElement.GetProperty("chat_id").GetInt64();
+        string text = ReadRequiredString(payload.RootElement, "text");
+
+        Assert.Equal(987654321L, chatId);
+        Assert.Equal("Hello from tests", text);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_ThrowsOnEmptyToken()
+    {
+        RecordingHandler handler = new((HttpRequestMessage _) =>
+        {
+            return CreateTelegramSuccessResponse();
+        });
+
+        TelegramService service = CreateService(handler, new Uri("https://squarebuddy.test"));
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.SendMessageAsync("  ", 1234L, "hello"));
+        Assert.Null(handler.LastRequest);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_ThrowsOnEmptyText()
+    {
+        RecordingHandler handler = new((HttpRequestMessage _) =>
+        {
+            return CreateTelegramSuccessResponse();
+        });
+
+        TelegramService service = CreateService(handler, new Uri("https://squarebuddy.test"));
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.SendMessageAsync("12345:token-value", 1234L, "   "));
+        Assert.Null(handler.LastRequest);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_BubblesTelegramApiFailures()
+    {
+        RecordingHandler handler = new((HttpRequestMessage _) =>
+        {
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    "{\"ok\":false,\"error_code\":403,\"description\":\"Forbidden: bot was blocked by the user\"}",
+                    Encoding.UTF8,
+                    "application/json")
+            };
+        });
+
+        TelegramService service = CreateService(handler, new Uri("https://squarebuddy.test"));
+
+        await Assert.ThrowsAsync<ApiRequestException>(() => service.SendMessageAsync("12345:token-value", 1234L, "hello"));
+    }
+
     private static TelegramService CreateService(RecordingHandler handler, Uri baseUrl)
     {
         FakeHttpClientFactory clientFactory = new(handler);

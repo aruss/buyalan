@@ -30,10 +30,12 @@ public static class TwilioWebhookEndpoints
     {
         // TODO: look for the agent by phone number, check if associated subscribtion credits left to handle it. 
         var subscribtionId = Guid.NewGuid();
+        var agentId = Guid.NewGuid(); 
 
-        var message = new IncomingMessage
+        IncomingMessage message = new()
         {
             SubscribtionId = subscribtionId,
+            AgentId = agentId,
             Channel = MessageChannel.SMS,
             Role = MessageRole.Customer,
             Content = input.Body,

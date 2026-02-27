@@ -1,14 +1,17 @@
-﻿namespace SquareBuddy.Consumers;
+namespace SquareBuddy.Consumers;
 
 using MassTransit;
-using MassTransit.Transports;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry;
+using SquareBuddy.Data;
+using SquareBuddy.Data.Entities;
 using SquareBuddy.TelegramIntegration;
 
 public record IncomingMessage
 {
     public Guid SubscribtionId { get; init; }
+
+    public Guid AgentId { get; init; }
 
     public MessageChannel Channel { get; init; }
 
@@ -25,6 +28,8 @@ public record IncomingMessage
 
 public class IncomingMessageConsumer : IConsumer<IncomingMessage>
 {
+    private const string PlaceholderReply = "Thanks, we got your message.";
+
     private readonly ILogger<IncomingMessageConsumer> logger;
     private readonly IPublishEndpoint publishEndpoint;
 
@@ -32,58 +37,98 @@ public class IncomingMessageConsumer : IConsumer<IncomingMessage>
         ILogger<IncomingMessageConsumer> logger,
         IPublishEndpoint publishEndpoint)
     {
-        this.logger = logger;
-        this.publishEndpoint = publishEndpoint; 
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.publishEndpoint = publishEndpoint ?? throw new ArgumentNullException(nameof(publishEndpoint));
     }
 
     public async Task Consume(ConsumeContext<IncomingMessage> context)
     {
-        var message = context.Message;
+        IncomingMessage message = context.Message;
 
         this.logger.LogInformation(
-            "Subscribtion {SubscribtionId} received {Channel} message from {From}",
-            message.SubscribtionId, message.Channel, message.From);
+            "Subscribtion {SubscribtionId} Agent {AgentId} received {Channel} message from {From}",
+            message.SubscribtionId,
+            message.AgentId,
+            message.Channel,
+            message.From);
 
         // Processes the message here ...
-
-        // Pass the cancelation token here 
-
         if (message.Channel == MessageChannel.Telegram)
         {
-            var telegramMessage = new OutgoingTelegramMessage
+            OutgoingTelegramMessage telegramMessage = new()
             {
-
+                SubscribtionId = message.SubscribtionId,
+                AgentId = message.AgentId,
+                Content = PlaceholderReply,
+                To = message.From
             };
 
-            await publishEndpoint.Publish(message);
+            await this.publishEndpoint.Publish(telegramMessage, context.CancellationToken);
         }
     }
 }
 
 public record OutgoingTelegramMessage
 {
+    public Guid SubscribtionId { get; init; }
 
+    public Guid AgentId { get; init; }
+
+    public string Content { get; init; } = string.Empty;
+
+    public string To { get; init; } = string.Empty;
 }
-
 
 public class OutgoingTelegramMessageConsumer : IConsumer<OutgoingTelegramMessage>
 {
     private readonly ILogger<OutgoingTelegramMessageConsumer> logger;
-    private readonly IPublishEndpoint publishEndpoint;
-    private readonly ITelegramService telegramService; 
+    private readonly MainDataContext dbContext;
+    private readonly ITelegramService telegramService;
 
     public OutgoingTelegramMessageConsumer(
         ILogger<OutgoingTelegramMessageConsumer> logger,
         ITelegramService telegramService,
-        IPublishEndpoint publishEndpoint)
+        MainDataContext dbContext)
     {
-        this.logger = logger;
-        this.telegramService = telegramService;
-        this.publishEndpoint = publishEndpoint; 
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.telegramService = telegramService ?? throw new ArgumentNullException(nameof(telegramService));
+        this.dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
     public async Task Consume(ConsumeContext<OutgoingTelegramMessage> context)
     {
+        OutgoingTelegramMessage message = context.Message;
 
+        this.logger.LogInformation(
+            "Sending Telegram outbound message for Subscribtion {SubscribtionId}, Agent {AgentId}",
+            message.SubscribtionId,
+            message.AgentId);
+
+        Agent? agent = await this.dbContext.Agents
+            .SingleOrDefaultAsync(a => a.Id == message.AgentId, context.CancellationToken);
+
+        if (agent is null)
+        {
+            throw new InvalidOperationException(
+                $"Agent '{message.AgentId}' was not found for outgoing Telegram message.");
+        }
+
+        if (string.IsNullOrWhiteSpace(agent.TelegramBotToken))
+        {
+            throw new InvalidOperationException(
+                $"Telegram bot token is not configured for agent '{message.AgentId}'.");
+        }
+
+        if (!long.TryParse(message.To, out long chatId))
+        {
+            throw new FormatException(
+                $"Outgoing Telegram recipient '{message.To}' is not a valid numeric chat id.");
+        }
+
+        await this.telegramService.SendMessageAsync(
+            agent.TelegramBotToken,
+            chatId,
+            message.Content,
+            context.CancellationToken);
     }
 }

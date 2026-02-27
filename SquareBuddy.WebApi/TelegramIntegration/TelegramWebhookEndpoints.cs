@@ -3,8 +3,11 @@ namespace SquareBuddy.TelegramIntegration;
 using MassTransit;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SquareBuddy;
 using SquareBuddy.Consumers;
+using SquareBuddy.Data;
+using SquareBuddy.Data.Entities;
 
 public static class TelegramWebhookEndpoints
 {
@@ -24,6 +27,7 @@ public static class TelegramWebhookEndpoints
             [FromRoute] string botToken,
             [FromBody] Telegram.Bot.Types.Update input, 
             IPublishEndpoint publishEndpoint,
+            MainDataContext dbContext,
             CancellationToken ct)
     {
         // Filter for text messages; silently acknowledge other update types to prevent Telegram retry loops
@@ -32,13 +36,22 @@ public static class TelegramWebhookEndpoints
             return TypedResults.Ok();
         }
 
+        Agent? agent = await dbContext.Agents
+            .SingleOrDefaultAsync(a => a.TelegramBotToken == botToken, ct);
+
+        if (agent is null)
+        {
+            return TypedResults.NotFound();
+        }
+
         // Telegram tokens follow the format: {BotId}:{Secret}
         string botId = botToken.Split(':')[0];
 
-        var message = new IncomingMessage
+        IncomingMessage message = new()
         {
-            SubscribtionId = default, // Assign resolved Guid based on botToken lookup
-            Channel = MessageChannel.Telegram, // Assuming addition to your enum
+            SubscribtionId = agent.SubscriptionId,
+            AgentId = agent.Id,
+            Channel = MessageChannel.Telegram,
             Role = MessageRole.Customer,
             Content = text,
             From = input.Message.From?.Id.ToString() ?? string.Empty,

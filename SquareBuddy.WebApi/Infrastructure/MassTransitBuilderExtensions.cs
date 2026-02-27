@@ -12,6 +12,7 @@ public static class MassTransitBuilderExtensions
         {
             x.SetKebabCaseEndpointNameFormatter();
             x.AddConsumer<IncomingMessageConsumer>();
+            x.AddConsumer<OutgoingTelegramMessageConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
             {
