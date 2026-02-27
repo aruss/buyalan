@@ -1,28 +1,55 @@
 namespace ShelfBuddy.WebApi.Identity;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using ShelfBuddy.Data.Entities;
+using ShelfBuddy.Data;
 using System.Linq;
 using System.Security.Claims;
 
 public static class IdentityEndpoints
 {
+    private const string DefaultReturnUrl = "/admin";
+    private const string OnboardingReturnUrl = "/onboarding";
+
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var routeGroup = endpoints
+        RouteGroupBuilder routeGroup = endpoints
             .MapGroup("/auth")
             .WithTags("Auth");
 
         routeGroup
+            .MapGet("/providers", GetExternalLoginProvidersAsync)
+            .Produces<GetExternalLoginProvidersResult>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .AllowAnonymous();
+
+        routeGroup
+            .MapGet("/external/{provider}/start", StartExternalLoginAsync)
+            .Produces(StatusCodes.Status302Found)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .AllowAnonymous();
+
+        routeGroup
+            .MapGet("/external/callback", CompleteExternalLoginAsync)
+            .Produces(StatusCodes.Status302Found)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .AllowAnonymous();
+
+        // NOTE: email/password logins are not used yet
+        /*routeGroup
             .MapPost("/login", LoginAsync)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status500InternalServerError)
-            .AllowAnonymous();
+            .AllowAnonymous();*/
 
         routeGroup
             .MapGet("/me", GetCurrentUserAsync)
@@ -41,20 +68,155 @@ public static class IdentityEndpoints
         return endpoints;
     }
 
+    private static async Task<Ok<GetExternalLoginProvidersResult>> GetExternalLoginProvidersAsync(
+        SignInManager<ApplicationUser> signInManager)
+    {
+        IEnumerable<AuthenticationScheme> schemes = await signInManager.GetExternalAuthenticationSchemesAsync();
+
+        ExternalLoginProviderItem[] providers = schemes
+            .Select(static scheme => new ExternalLoginProviderItem(
+                scheme.Name,
+                scheme.DisplayName ?? scheme.Name))
+            .OrderBy(static provider => provider.DisplayName)
+            .ToArray();
+
+        GetExternalLoginProvidersResult result = new(providers);
+        return TypedResults.Ok(result);
+    }
+
+    private static async Task<Results<ChallengeHttpResult, NotFound>> StartExternalLoginAsync(
+        [FromRoute] string provider,
+        [FromQuery] string? returnUrl,
+        SignInManager<ApplicationUser> signInManager)
+    {
+        string? providerScheme = await ResolveProviderSchemeNameAsync(provider, signInManager);
+
+        if (providerScheme is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        string safeReturnUrl = NormalizeReturnUrl(returnUrl);
+        string callbackUrl = QueryHelpers.AddQueryString("/auth/external/callback", "returnUrl", safeReturnUrl);
+        AuthenticationProperties properties = signInManager.ConfigureExternalAuthenticationProperties(providerScheme, callbackUrl);
+
+        return TypedResults.Challenge(properties, [providerScheme]);
+    }
+
+    private static async Task<RedirectHttpResult> CompleteExternalLoginAsync(
+        [FromQuery] string? returnUrl,
+        [FromQuery] string? remoteError,
+        SignInManager<ApplicationUser> signInManager,
+        UserManager<ApplicationUser> userManager,
+        MainDataContext dbContext)
+    {
+        string safeReturnUrl = NormalizeReturnUrl(returnUrl);
+
+        if (!string.IsNullOrWhiteSpace(remoteError))
+        {
+            return TypedResults.Redirect(WithError(safeReturnUrl, "external_provider_error"));
+        }
+
+        ExternalLoginInfo? externalLoginInfo = await signInManager.GetExternalLoginInfoAsync();
+
+        if (externalLoginInfo is null)
+        {
+            return TypedResults.Redirect(WithError(safeReturnUrl, "external_login_info_missing"));
+        }
+
+        ApplicationUser? existingUser = await userManager.FindByLoginAsync(
+            externalLoginInfo.LoginProvider,
+            externalLoginInfo.ProviderKey);
+
+        if (existingUser is not null)
+        {
+            if (!await signInManager.CanSignInAsync(existingUser))
+            {
+                return TypedResults.Redirect(WithError(safeReturnUrl, "user_not_allowed"));
+            }
+
+            if (await userManager.IsLockedOutAsync(existingUser))
+            {
+                return TypedResults.Redirect(WithError(safeReturnUrl, "user_locked_out"));
+            }
+
+            bool existingUserOnboarded = await IsOnboardedAsync(existingUser.Id, dbContext);
+            await SignInWithOnboardingClaimAsync(signInManager, existingUser, existingUserOnboarded);
+            string existingUserRedirect = ResolvePostLoginRedirectTarget(safeReturnUrl, existingUserOnboarded);
+            return TypedResults.Redirect(existingUserRedirect);
+        }
+
+        string? emailClaim = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+
+        if (string.IsNullOrWhiteSpace(emailClaim))
+        {
+            return TypedResults.Redirect(WithError(safeReturnUrl, "email_claim_missing"));
+        }
+
+        if (!IsExternalEmailVerified(externalLoginInfo.Principal))
+        {
+            return TypedResults.Redirect(WithError(safeReturnUrl, "external_email_not_verified"));
+        }
+
+        string normalizedEmail = emailClaim.Trim();
+        ApplicationUser? applicationUser = await userManager.FindByEmailAsync(normalizedEmail);
+        bool isOnboarded = false;
+
+        if (applicationUser is null)
+        {
+            applicationUser = new ApplicationUser
+            {
+                Email = normalizedEmail,
+                UserName = normalizedEmail,
+                EmailConfirmed = true,
+                DisplayName = ResolveDisplayName(externalLoginInfo.Principal, normalizedEmail)
+            };
+
+            IdentityResult createUserResult = await userManager.CreateAsync(applicationUser);
+
+            if (!createUserResult.Succeeded)
+            {
+                return TypedResults.Redirect(WithError(safeReturnUrl, "user_create_failed"));
+            }
+        }
+        else
+        {
+            bool isLocalEmailConfirmed = await userManager.IsEmailConfirmedAsync(applicationUser);
+            if (!isLocalEmailConfirmed)
+            {
+                return TypedResults.Redirect(WithError(safeReturnUrl, "local_email_not_confirmed"));
+            }
+
+            isOnboarded = await IsOnboardedAsync(applicationUser.Id, dbContext);
+        }
+
+        IdentityResult addLoginResult = await userManager.AddLoginAsync(applicationUser, externalLoginInfo);
+
+        if (!addLoginResult.Succeeded)
+        {
+            return TypedResults.Redirect(WithError(safeReturnUrl, "external_login_link_failed"));
+        }
+
+        isOnboarded = await IsOnboardedAsync(applicationUser.Id, dbContext);
+        await SignInWithOnboardingClaimAsync(signInManager, applicationUser, isOnboarded);
+        string callbackRedirect = ResolvePostLoginRedirectTarget(safeReturnUrl, isOnboarded);
+        return TypedResults.Redirect(callbackRedirect);
+    }
+
     private static async Task<Results<EmptyHttpResult, SignInHttpResult, ProblemHttpResult>> LoginAsync(
         [FromBody] LoginInput login,
         [FromQuery] bool? useCookies,
         [FromQuery] bool? useSessionCookies,
         SignInManager<ApplicationUser> signInManager)
     {
-        var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
-        var isPersistent = (useCookies == true) && (useSessionCookies != true);
+        bool useCookieScheme = (useCookies == true) || (useSessionCookies == true);
+        bool isPersistent = (useCookies == true) && (useSessionCookies != true);
 
-        signInManager.AuthenticationScheme = useCookieScheme ?
-            IdentityConstants.ApplicationScheme :
-            IdentityConstants.BearerScheme;
+        signInManager.AuthenticationScheme = useCookieScheme
+            ? IdentityConstants.ApplicationScheme
+            : IdentityConstants.BearerScheme;
 
-        var result = await signInManager.PasswordSignInAsync(
+        Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(
             login.Email,
             login.Password,
             isPersistent,
@@ -67,12 +229,6 @@ public static class IdentityEndpoints
                 statusCode: StatusCodes.Status401Unauthorized);
         }
 
-        // If using Cookies, we return Empty (200 OK) as the cookie is set in headers.
-        if (useCookieScheme)
-        {
-            return TypedResults.Empty;
-        }
-
         return TypedResults.Empty;
     }
 
@@ -80,24 +236,21 @@ public static class IdentityEndpoints
         ClaimsPrincipal user,
         UserManager<ApplicationUser> userManager)
     {
-        // 1. Get UserId from Claims directly (Fastest check)
-        var userId = userManager.GetUserId(user);
+        string? userId = userManager.GetUserId(user);
 
         if (userId == null)
         {
             return TypedResults.Unauthorized();
         }
 
-        // 2. Optimized Fetch: Use FindByIdAsync
-        var applicationUser = await userManager.FindByIdAsync(userId);
+        ApplicationUser? applicationUser = await userManager.FindByIdAsync(userId);
 
         if (applicationUser == null)
         {
             return TypedResults.Unauthorized();
         }
 
-        // 3. Get Roles
-        var roles = await userManager.GetRolesAsync(applicationUser);
+        IList<string> roles = await userManager.GetRolesAsync(applicationUser);
 
         return TypedResults.Ok(new CurrentUserResult(
             applicationUser.Id,
@@ -109,9 +262,66 @@ public static class IdentityEndpoints
 
     private static async Task<Ok> LogoutAsync(SignInManager<ApplicationUser> signInManager)
     {
-        // SignOutAsync clears the cookie. It has no effect on Bearer tokens (client-side deletion).
         await signInManager.SignOutAsync();
         return TypedResults.Ok();
+    }
+
+    private static async Task<string?> ResolveProviderSchemeNameAsync(
+        string provider,
+        SignInManager<ApplicationUser> signInManager)
+    {
+        IEnumerable<AuthenticationScheme> schemes = await signInManager.GetExternalAuthenticationSchemesAsync();
+        AuthenticationScheme? matchingScheme = schemes
+            .FirstOrDefault(scheme => string.Equals(
+                scheme.Name,
+                provider,
+                StringComparison.OrdinalIgnoreCase));
+
+        return matchingScheme?.Name;
+    }
+
+    internal static string NormalizeReturnUrl(string? returnUrl)
+    {
+        if (string.IsNullOrWhiteSpace(returnUrl))
+        {
+            return DefaultReturnUrl;
+        }
+
+        string trimmedReturnUrl = returnUrl.Trim();
+
+        if (!trimmedReturnUrl.StartsWith('/'))
+        {
+            return DefaultReturnUrl;
+        }
+
+        if (trimmedReturnUrl.StartsWith("//", StringComparison.Ordinal))
+        {
+            return DefaultReturnUrl;
+        }
+
+        if (Uri.TryCreate(trimmedReturnUrl, UriKind.Absolute, out _))
+        {
+            return DefaultReturnUrl;
+        }
+
+        return trimmedReturnUrl;
+    }
+
+    private static string WithError(string returnUrl, string error)
+    {
+        return QueryHelpers.AddQueryString(returnUrl, "authError", error);
+    }
+
+    private static string ResolveDisplayName(ClaimsPrincipal principal, string fallbackEmail)
+    {
+        string? displayName = principal.FindFirstValue("name");
+
+        if (!string.IsNullOrWhiteSpace(displayName))
+        {
+            return displayName.Trim();
+        }
+
+        return fallbackEmail;
     }
 
     private static string ResolveDisplayName(ApplicationUser user)
@@ -127,5 +337,56 @@ public static class IdentityEndpoints
         }
 
         return user.Email ?? string.Empty;
+    }
+
+    internal static bool IsExternalEmailVerified(ClaimsPrincipal principal)
+    {
+        string[] verificationClaimTypes =
+        [
+            "email_verified",
+            "verified_email",
+            "urn:google:email_verified"
+        ];
+
+        foreach (string claimType in verificationClaimTypes)
+        {
+            string? verificationValue = principal.FindFirstValue(claimType);
+            if (string.IsNullOrWhiteSpace(verificationValue))
+            {
+                continue;
+            }
+
+            if (string.Equals(verificationValue, "true", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(verificationValue, "1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(verificationValue, "yes", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    internal static string ResolvePostLoginRedirectTarget(string safeReturnUrl, bool isOnboarded)
+    {
+        return isOnboarded ? safeReturnUrl : OnboardingReturnUrl;
+    }
+
+    private static async Task<bool> IsOnboardedAsync(Guid userId, MainDataContext dbContext)
+    {
+        bool hasSubscriptionMembership = await dbContext.SubscriptionUsers
+            .AnyAsync(subscriptionUser => subscriptionUser.UserId == userId);
+
+        return hasSubscriptionMembership;
+    }
+
+    private static async Task SignInWithOnboardingClaimAsync(
+        SignInManager<ApplicationUser> signInManager,
+        ApplicationUser user,
+        bool isOnboarded)
+    {
+        // Always stamp onboarding state in the auth cookie so policy checks are deterministic.
+        Claim onboardingClaim = new("onboarded", isOnboarded ? "true" : "false");
+        await signInManager.SignInWithClaimsAsync(user, false, [onboardingClaim]);
     }
 }

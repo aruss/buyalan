@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GenerateStoryStreamData, GenerateStoryStreamResponses, GetAppInfoData, GetAppInfoResponses, GetAuthMeData, GetAuthMeResponses, GetBoardsData, GetBoardsResponses, GetStoriesData, GetStoriesResponses, GetStoryData, GetStoryErrors, GetStoryMetricsData, GetStoryMetricsResponses, GetStoryResponses, GetStoryStreamData, GetStoryStreamResponses, PostAuthLoginData, PostAuthLoginResponses, PostAuthLogoutData, PostAuthLogoutResponses, UpdateBoardData, UpdateBoardErrors, UpdateBoardResponses } from './types.gen';
+import type { GetAgentsByAgentIdConversationsByConversationIdMessagesData, GetAgentsByAgentIdConversationsByConversationIdMessagesErrors, GetAgentsByAgentIdConversationsByConversationIdMessagesResponses, GetAgentsByAgentIdConversationsData, GetAgentsByAgentIdConversationsErrors, GetAgentsByAgentIdConversationsResponses, GetAppInfoData, GetAppInfoResponses, GetAuthExternalByProviderStartData, GetAuthExternalByProviderStartErrors, GetAuthExternalCallbackData, GetAuthExternalCallbackErrors, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetAuthProvidersData, GetAuthProvidersErrors, GetAuthProvidersResponses, IngestTextData, IngestTextErrors, IngestTextResponses, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadErrors, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponses, PatchAgentsByAgentIdConversationsByConversationIdReadData, PatchAgentsByAgentIdConversationsByConversationIdReadErrors, PatchAgentsByAgentIdConversationsByConversationIdReadResponses, PostAuthLogoutData, PostAuthLogoutErrors, PostAuthLogoutResponses, PostWebhooksTelegramByBotTokenData, PostWebhooksTelegramByBotTokenErrors, PostWebhooksTelegramByBotTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -20,10 +20,8 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 
 export const getAppInfo = <ThrowOnError extends boolean = false>(options?: Options<GetAppInfoData, ThrowOnError>) => (options?.client ?? client).get<GetAppInfoResponses, unknown, ThrowOnError>({ url: '/', ...options });
 
-export const getBoards = <ThrowOnError extends boolean = false>(options?: Options<GetBoardsData, ThrowOnError>) => (options?.client ?? client).get<GetBoardsResponses, unknown, ThrowOnError>({ url: '/boards', ...options });
-
-export const updateBoard = <ThrowOnError extends boolean = false>(options: Options<UpdateBoardData, ThrowOnError>) => (options.client ?? client).post<UpdateBoardResponses, UpdateBoardErrors, ThrowOnError>({
-    url: '/boards/{boardId}',
+export const postWebhooksTelegramByBotToken = <ThrowOnError extends boolean = false>(options: Options<PostWebhooksTelegramByBotTokenData, ThrowOnError>) => (options.client ?? client).post<PostWebhooksTelegramByBotTokenResponses, PostWebhooksTelegramByBotTokenErrors, ThrowOnError>({
+    url: '/webhooks/telegram/{botToken}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -31,16 +29,8 @@ export const updateBoard = <ThrowOnError extends boolean = false>(options: Optio
     }
 });
 
-export const getStories = <ThrowOnError extends boolean = false>(options?: Options<GetStoriesData, ThrowOnError>) => (options?.client ?? client).get<GetStoriesResponses, unknown, ThrowOnError>({ url: '/stories', ...options });
-
-export const getStoryMetrics = <ThrowOnError extends boolean = false>(options?: Options<GetStoryMetricsData, ThrowOnError>) => (options?.client ?? client).get<GetStoryMetricsResponses, unknown, ThrowOnError>({ url: '/stories/metrics', ...options });
-
-export const getStory = <ThrowOnError extends boolean = false>(options: Options<GetStoryData, ThrowOnError>) => (options.client ?? client).get<GetStoryResponses, GetStoryErrors, ThrowOnError>({ url: '/stories/{storyId}', ...options });
-
-export const getStoryStream = <ThrowOnError extends boolean = false>(options: Options<GetStoryStreamData, ThrowOnError>) => (options.client ?? client).get<GetStoryStreamResponses, unknown, ThrowOnError>({ url: '/stories/{storyId}/_stream', ...options });
-
-export const generateStoryStream = <ThrowOnError extends boolean = false>(options: Options<GenerateStoryStreamData, ThrowOnError>) => (options.client ?? client).post<GenerateStoryStreamResponses, unknown, ThrowOnError>({
-    url: '/stories/_stream',
+export const ingestText = <ThrowOnError extends boolean = false>(options: Options<IngestTextData, ThrowOnError>) => (options.client ?? client).post<IngestTextResponses, IngestTextErrors, ThrowOnError>({
+    url: '/webhooks/twilio/text',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -48,15 +38,20 @@ export const generateStoryStream = <ThrowOnError extends boolean = false>(option
     }
 });
 
-export const postAuthLogin = <ThrowOnError extends boolean = false>(options: Options<PostAuthLoginData, ThrowOnError>) => (options.client ?? client).post<PostAuthLoginResponses, unknown, ThrowOnError>({
-    url: '/auth/login',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
+export const getAuthProviders = <ThrowOnError extends boolean = false>(options?: Options<GetAuthProvidersData, ThrowOnError>) => (options?.client ?? client).get<GetAuthProvidersResponses, GetAuthProvidersErrors, ThrowOnError>({ url: '/auth/providers', ...options });
 
-export const getAuthMe = <ThrowOnError extends boolean = false>(options?: Options<GetAuthMeData, ThrowOnError>) => (options?.client ?? client).get<GetAuthMeResponses, unknown, ThrowOnError>({ url: '/auth/me', ...options });
+export const getAuthExternalByProviderStart = <ThrowOnError extends boolean = false>(options: Options<GetAuthExternalByProviderStartData, ThrowOnError>) => (options.client ?? client).get<unknown, GetAuthExternalByProviderStartErrors, ThrowOnError>({ url: '/auth/external/{provider}/start', ...options });
 
-export const postAuthLogout = <ThrowOnError extends boolean = false>(options?: Options<PostAuthLogoutData, ThrowOnError>) => (options?.client ?? client).post<PostAuthLogoutResponses, unknown, ThrowOnError>({ url: '/auth/logout', ...options });
+export const getAuthExternalCallback = <ThrowOnError extends boolean = false>(options?: Options<GetAuthExternalCallbackData, ThrowOnError>) => (options?.client ?? client).get<unknown, GetAuthExternalCallbackErrors, ThrowOnError>({ url: '/auth/external/callback', ...options });
+
+export const getAuthMe = <ThrowOnError extends boolean = false>(options?: Options<GetAuthMeData, ThrowOnError>) => (options?.client ?? client).get<GetAuthMeResponses, GetAuthMeErrors, ThrowOnError>({ url: '/auth/me', ...options });
+
+export const postAuthLogout = <ThrowOnError extends boolean = false>(options?: Options<PostAuthLogoutData, ThrowOnError>) => (options?.client ?? client).post<PostAuthLogoutResponses, PostAuthLogoutErrors, ThrowOnError>({ url: '/auth/logout', ...options });
+
+export const getAgentsByAgentIdConversations = <ThrowOnError extends boolean = false>(options: Options<GetAgentsByAgentIdConversationsData, ThrowOnError>) => (options.client ?? client).get<GetAgentsByAgentIdConversationsResponses, GetAgentsByAgentIdConversationsErrors, ThrowOnError>({ url: '/agents/{agentId}/conversations', ...options });
+
+export const getAgentsByAgentIdConversationsByConversationIdMessages = <ThrowOnError extends boolean = false>(options: Options<GetAgentsByAgentIdConversationsByConversationIdMessagesData, ThrowOnError>) => (options.client ?? client).get<GetAgentsByAgentIdConversationsByConversationIdMessagesResponses, GetAgentsByAgentIdConversationsByConversationIdMessagesErrors, ThrowOnError>({ url: '/agents/{agentId}/conversations/{conversationId}/messages', ...options });
+
+export const patchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdRead = <ThrowOnError extends boolean = false>(options: Options<PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData, ThrowOnError>) => (options.client ?? client).patch<PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponses, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadErrors, ThrowOnError>({ url: '/agents/{agentId}/conversations/{conversationId}/messages/{messageId}/read', ...options });
+
+export const patchAgentsByAgentIdConversationsByConversationIdRead = <ThrowOnError extends boolean = false>(options: Options<PatchAgentsByAgentIdConversationsByConversationIdReadData, ThrowOnError>) => (options.client ?? client).patch<PatchAgentsByAgentIdConversationsByConversationIdReadResponses, PatchAgentsByAgentIdConversationsByConversationIdReadErrors, ThrowOnError>({ url: '/agents/{agentId}/conversations/{conversationId}/read', ...options });

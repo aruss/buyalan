@@ -16,7 +16,7 @@ public static class ConversationEndpoints
     {
          RouteGroupBuilder routeGroup = routeBuilder
              .MapGroup("/agents/{agentId:guid}/conversations")
-             // .RequireAuthorization()
+             .RequireAuthorization("OnboardedOnly")
              .WithTags("Conversations");
 
          routeGroup

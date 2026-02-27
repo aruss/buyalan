@@ -4,21 +4,31 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:5000/' | (string & {});
 };
 
-export type AgeGroup = number;
-
 export type AppInfo = {
     appName: string;
     appVersion: string;
 };
 
-export type BoardListItem = {
-    id: string;
-    name: string;
-    ageGroup: AgeGroup;
-    voice: null | string;
-    language: string;
-    producerUserPrompt: null | string;
-    evaluatorUserPrompt: null | string;
+export type ConversationListItem = {
+    conversationId: string;
+    participantExternalId: string;
+    channel: MessageChannel;
+    lastMessagePreview: null | string;
+    lastMessageAt: null | string;
+    lastMessageRole: null | MessageRole;
+    unreadCount: number;
+    hasUnread: boolean;
+};
+
+export type ConversationMessageItem = {
+    messageId: string;
+    role: MessageRole;
+    content: string;
+    from: string;
+    to: string;
+    occurredAt: string;
+    isRead: boolean;
+    readAt: null | string;
 };
 
 export type CurrentUserResult = {
@@ -28,84 +38,88 @@ export type CurrentUserResult = {
     roles: Array<string>;
 };
 
-export type CursorListOfBoardListItem = {
-    items?: Array<BoardListItem>;
-    hasNextPage?: boolean;
-    skip?: number | string;
-    take?: number | string;
-};
-
-export type CursorListOfStoryListItem = {
-    items?: Array<StoryListItem>;
-    hasNextPage?: boolean;
-    skip?: number | string;
-    take?: number | string;
-};
-
-export type Figurine = {
-    id?: string;
-    location?: Point;
-};
-
-export type GetStoryMetricsResult = {
-    totalPlaytimeSeconds: number | string;
-    weekPlaytimeSeconds: number | string;
-    storiesCreatedCount: number | string;
-    lastCreatedStoryAt: null | string;
-};
-
-export type GetStoryResult = {
-    id: string;
-    title: string;
-    status: StoryRequestStatus;
-    createdWith: string;
-    duration: number | string;
-    createdAt: string;
-};
-
-export type LoginInput = {
-    email: string;
-    password: string;
-};
-
-export type Point = {
-    x?: number | string;
-    y?: number | string;
-};
-
-export type StoryListItem = {
-    id: string;
-    title: string;
-    status: StoryRequestStatus;
-    createdWith: string;
-    duration: number | string;
-    createdAt: string;
-};
-
-export type StoryRequestStatus = 'Processing' | 'Failed' | 'Completed' | 'Canceled';
-
-export type StreamStoryInput = {
-    boardId?: string;
-    figurines?: Array<Figurine>;
-};
-
-export type UpdateBoardInput = {
+export type ExternalLoginProviderItem = {
     name: string;
-    ageGroup: AgeGroup;
-    voice: null | string;
-    language: string;
-    producerUserPrompt: null | string;
-    evaluatorUserPrompt: null | string;
+    displayName: string;
 };
 
-export type UpdateBoardResult = {
-    id: string;
-    name: string;
-    ageGroup: AgeGroup;
-    voice: null | string;
-    language: string;
-    producerUserPrompt: null | string;
-    evaluatorUserPrompt: null | string;
+export type GetAgentConversationsResult = {
+    items?: Array<ConversationListItem>;
+    hasNextPage?: boolean;
+    skip?: number;
+    take?: number;
+};
+
+export type GetConversationMessagesResult = {
+    items?: Array<ConversationMessageItem>;
+    hasNextPage?: boolean;
+    skip?: number;
+    take?: number;
+};
+
+export type GetExternalLoginProvidersResult = {
+    providers: Array<ExternalLoginProviderItem>;
+};
+
+export type IngestTelegramMessageInput = {
+    message?: null | TelegramMessageInput;
+};
+
+export type IngestTwilioTextInput = {
+    toCountry?: null | string;
+    toState?: null | string;
+    smsMessageSid?: null | string;
+    numMedia?: null | string;
+    toCity?: null | string;
+    fromZip?: null | string;
+    smsSid?: null | string;
+    fromState?: null | string;
+    smsStatus?: null | string;
+    fromCity?: null | string;
+    body?: string;
+    fromCountry?: null | string;
+    to?: string;
+    toZip?: null | string;
+    numSegments?: null | string;
+    messageSid?: null | string;
+    accountSid?: null | string;
+    from?: string;
+    apiVersion?: null | string;
+};
+
+export type MarkConversationMessageReadResult = {
+    messageId: string;
+    isRead: boolean;
+    readAt: null | string;
+    conversationUnreadCount: number;
+};
+
+export type MarkConversationReadResult = {
+    conversationId: string;
+    markedCount: number;
+    conversationUnreadCount: number;
+};
+
+export type MessageChannel = 'WhatsApp' | 'Telegram' | 'SMS';
+
+export type MessageRole = 'Customer' | 'Agent' | 'Operator';
+
+export type ProblemDetails = {
+    type?: null | string;
+    title?: null | string;
+    status?: number;
+    detail?: null | string;
+    instance?: null | string;
+};
+
+export type TelegramMessageInput = {
+    text?: null | string;
+    date?: number;
+    from?: null | TelegramUserInput;
+};
+
+export type TelegramUserInput = {
+    id?: number;
 };
 
 export type GetAppInfoData = {
@@ -124,150 +138,145 @@ export type GetAppInfoResponses = {
 
 export type GetAppInfoResponse = GetAppInfoResponses[keyof GetAppInfoResponses];
 
-export type GetBoardsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/boards';
-};
-
-export type GetBoardsResponses = {
-    /**
-     * OK
-     */
-    200: CursorListOfBoardListItem;
-};
-
-export type GetBoardsResponse = GetBoardsResponses[keyof GetBoardsResponses];
-
-export type UpdateBoardData = {
-    body: UpdateBoardInput;
+export type PostWebhooksTelegramByBotTokenData = {
+    body: IngestTelegramMessageInput;
     path: {
-        boardId: string;
+        botToken: string;
     };
     query?: never;
-    url: '/boards/{boardId}';
+    url: '/webhooks/telegram/{botToken}';
 };
 
-export type UpdateBoardErrors = {
+export type PostWebhooksTelegramByBotTokenErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Unauthorized
+     */
+    401: ProblemDetails;
     /**
      * Not Found
      */
-    404: unknown;
-};
-
-export type UpdateBoardResponses = {
+    404: ProblemDetails;
     /**
-     * OK
+     * Internal Server Error
      */
-    200: UpdateBoardResult;
+    500: ProblemDetails;
 };
 
-export type UpdateBoardResponse = UpdateBoardResponses[keyof UpdateBoardResponses];
+export type PostWebhooksTelegramByBotTokenError = PostWebhooksTelegramByBotTokenErrors[keyof PostWebhooksTelegramByBotTokenErrors];
 
-export type GetStoriesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/stories';
-};
-
-export type GetStoriesResponses = {
-    /**
-     * OK
-     */
-    200: CursorListOfStoryListItem;
-};
-
-export type GetStoriesResponse = GetStoriesResponses[keyof GetStoriesResponses];
-
-export type GetStoryMetricsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/stories/metrics';
-};
-
-export type GetStoryMetricsResponses = {
-    /**
-     * OK
-     */
-    200: GetStoryMetricsResult;
-};
-
-export type GetStoryMetricsResponse = GetStoryMetricsResponses[keyof GetStoryMetricsResponses];
-
-export type GetStoryData = {
-    body?: never;
-    path: {
-        storyId: string;
-    };
-    query?: never;
-    url: '/stories/{storyId}';
-};
-
-export type GetStoryErrors = {
-    /**
-     * Not Found
-     */
-    404: unknown;
-};
-
-export type GetStoryResponses = {
-    /**
-     * OK
-     */
-    200: GetStoryResult;
-};
-
-export type GetStoryResponse = GetStoryResponses[keyof GetStoryResponses];
-
-export type GetStoryStreamData = {
-    body?: never;
-    path: {
-        storyId: string;
-    };
-    query?: never;
-    url: '/stories/{storyId}/_stream';
-};
-
-export type GetStoryStreamResponses = {
+export type PostWebhooksTelegramByBotTokenResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type GenerateStoryStreamData = {
-    body: StreamStoryInput;
+export type IngestTextData = {
+    body: IngestTwilioTextInput;
     path?: never;
     query?: never;
-    url: '/stories/_stream';
+    url: '/webhooks/twilio/text';
 };
 
-export type GenerateStoryStreamResponses = {
+export type IngestTextErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Unauthorized
+     */
+    401: ProblemDetails;
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type IngestTextError = IngestTextErrors[keyof IngestTextErrors];
+
+export type IngestTextResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type PostAuthLoginData = {
-    body: LoginInput;
+export type GetAuthProvidersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/providers';
+};
+
+export type GetAuthProvidersErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type GetAuthProvidersError = GetAuthProvidersErrors[keyof GetAuthProvidersErrors];
+
+export type GetAuthProvidersResponses = {
+    /**
+     * OK
+     */
+    200: GetExternalLoginProvidersResult;
+};
+
+export type GetAuthProvidersResponse = GetAuthProvidersResponses[keyof GetAuthProvidersResponses];
+
+export type GetAuthExternalByProviderStartData = {
+    body?: never;
+    path: {
+        provider: string;
+    };
+    query?: {
+        returnUrl?: string;
+    };
+    url: '/auth/external/{provider}/start';
+};
+
+export type GetAuthExternalByProviderStartErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type GetAuthExternalByProviderStartError = GetAuthExternalByProviderStartErrors[keyof GetAuthExternalByProviderStartErrors];
+
+export type GetAuthExternalCallbackData = {
+    body?: never;
     path?: never;
     query?: {
-        useCookies?: boolean;
-        useSessionCookies?: boolean;
+        returnUrl?: string;
+        remoteError?: string;
     };
-    url: '/auth/login';
+    url: '/auth/external/callback';
 };
 
-export type PostAuthLoginResponses = {
+export type GetAuthExternalCallbackErrors = {
     /**
-     * OK
+     * Internal Server Error
      */
-    200: unknown;
+    500: ProblemDetails;
 };
+
+export type GetAuthExternalCallbackError = GetAuthExternalCallbackErrors[keyof GetAuthExternalCallbackErrors];
 
 export type GetAuthMeData = {
     body?: never;
@@ -275,6 +284,23 @@ export type GetAuthMeData = {
     query?: never;
     url: '/auth/me';
 };
+
+export type GetAuthMeErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Unauthorized
+     */
+    401: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type GetAuthMeError = GetAuthMeErrors[keyof GetAuthMeErrors];
 
 export type GetAuthMeResponses = {
     /**
@@ -292,9 +318,176 @@ export type PostAuthLogoutData = {
     url: '/auth/logout';
 };
 
+export type PostAuthLogoutErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Unauthorized
+     */
+    401: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type PostAuthLogoutError = PostAuthLogoutErrors[keyof PostAuthLogoutErrors];
+
 export type PostAuthLogoutResponses = {
     /**
      * OK
      */
     200: unknown;
 };
+
+export type GetAgentsByAgentIdConversationsData = {
+    body?: never;
+    path: {
+        agentId: string;
+    };
+    query?: {
+        skip?: number;
+        take?: number;
+    };
+    url: '/agents/{agentId}/conversations';
+};
+
+export type GetAgentsByAgentIdConversationsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type GetAgentsByAgentIdConversationsError = GetAgentsByAgentIdConversationsErrors[keyof GetAgentsByAgentIdConversationsErrors];
+
+export type GetAgentsByAgentIdConversationsResponses = {
+    /**
+     * OK
+     */
+    200: GetAgentConversationsResult;
+};
+
+export type GetAgentsByAgentIdConversationsResponse = GetAgentsByAgentIdConversationsResponses[keyof GetAgentsByAgentIdConversationsResponses];
+
+export type GetAgentsByAgentIdConversationsByConversationIdMessagesData = {
+    body?: never;
+    path: {
+        agentId: string;
+        conversationId: string;
+    };
+    query?: {
+        skip?: number;
+        take?: number;
+    };
+    url: '/agents/{agentId}/conversations/{conversationId}/messages';
+};
+
+export type GetAgentsByAgentIdConversationsByConversationIdMessagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type GetAgentsByAgentIdConversationsByConversationIdMessagesError = GetAgentsByAgentIdConversationsByConversationIdMessagesErrors[keyof GetAgentsByAgentIdConversationsByConversationIdMessagesErrors];
+
+export type GetAgentsByAgentIdConversationsByConversationIdMessagesResponses = {
+    /**
+     * OK
+     */
+    200: GetConversationMessagesResult;
+};
+
+export type GetAgentsByAgentIdConversationsByConversationIdMessagesResponse = GetAgentsByAgentIdConversationsByConversationIdMessagesResponses[keyof GetAgentsByAgentIdConversationsByConversationIdMessagesResponses];
+
+export type PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData = {
+    body?: never;
+    path: {
+        agentId: string;
+        conversationId: string;
+        messageId: string;
+    };
+    query?: never;
+    url: '/agents/{agentId}/conversations/{conversationId}/messages/{messageId}/read';
+};
+
+export type PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadError = PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadErrors[keyof PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadErrors];
+
+export type PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponses = {
+    /**
+     * OK
+     */
+    200: MarkConversationMessageReadResult;
+};
+
+export type PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponse = PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponses[keyof PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponses];
+
+export type PatchAgentsByAgentIdConversationsByConversationIdReadData = {
+    body?: never;
+    path: {
+        agentId: string;
+        conversationId: string;
+    };
+    query?: never;
+    url: '/agents/{agentId}/conversations/{conversationId}/read';
+};
+
+export type PatchAgentsByAgentIdConversationsByConversationIdReadErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+    /**
+     * Internal Server Error
+     */
+    500: ProblemDetails;
+};
+
+export type PatchAgentsByAgentIdConversationsByConversationIdReadError = PatchAgentsByAgentIdConversationsByConversationIdReadErrors[keyof PatchAgentsByAgentIdConversationsByConversationIdReadErrors];
+
+export type PatchAgentsByAgentIdConversationsByConversationIdReadResponses = {
+    /**
+     * OK
+     */
+    200: MarkConversationReadResult;
+};
+
+export type PatchAgentsByAgentIdConversationsByConversationIdReadResponse = PatchAgentsByAgentIdConversationsByConversationIdReadResponses[keyof PatchAgentsByAgentIdConversationsByConversationIdReadResponses];

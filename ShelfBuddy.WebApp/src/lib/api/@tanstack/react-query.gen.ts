@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { generateStoryStream, getAppInfo, getAuthMe, getBoards, getStories, getStory, getStoryMetrics, getStoryStream, type Options, postAuthLogin, postAuthLogout, updateBoard } from '../sdk.gen';
-import type { GenerateStoryStreamData, GetAppInfoData, GetAppInfoResponse, GetAuthMeData, GetAuthMeResponse, GetBoardsData, GetBoardsResponse, GetStoriesData, GetStoriesResponse, GetStoryData, GetStoryMetricsData, GetStoryMetricsResponse, GetStoryResponse, GetStoryStreamData, PostAuthLoginData, PostAuthLogoutData, UpdateBoardData, UpdateBoardResponse } from '../types.gen';
+import { getAgentsByAgentIdConversations, getAgentsByAgentIdConversationsByConversationIdMessages, getAppInfo, getAuthExternalByProviderStart, getAuthExternalCallback, getAuthMe, getAuthProviders, ingestText, type Options, patchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdRead, patchAgentsByAgentIdConversationsByConversationIdRead, postAuthLogout, postWebhooksTelegramByBotToken } from '../sdk.gen';
+import type { GetAgentsByAgentIdConversationsByConversationIdMessagesData, GetAgentsByAgentIdConversationsByConversationIdMessagesError, GetAgentsByAgentIdConversationsByConversationIdMessagesResponse, GetAgentsByAgentIdConversationsData, GetAgentsByAgentIdConversationsError, GetAgentsByAgentIdConversationsResponse, GetAppInfoData, GetAppInfoResponse, GetAuthExternalByProviderStartData, GetAuthExternalByProviderStartError, GetAuthExternalCallbackData, GetAuthExternalCallbackError, GetAuthMeData, GetAuthMeError, GetAuthMeResponse, GetAuthProvidersData, GetAuthProvidersError, GetAuthProvidersResponse, IngestTextData, IngestTextError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdReadData, PatchAgentsByAgentIdConversationsByConversationIdReadError, PatchAgentsByAgentIdConversationsByConversationIdReadResponse, PostAuthLogoutData, PostAuthLogoutError, PostWebhooksTelegramByBotTokenData, PostWebhooksTelegramByBotTokenError } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -54,25 +54,10 @@ export const getAppInfoOptions = (options?: Options<GetAppInfoData>) => queryOpt
     queryKey: getAppInfoQueryKey(options)
 });
 
-export const getBoardsQueryKey = (options?: Options<GetBoardsData>) => createQueryKey('getBoards', options);
-
-export const getBoardsOptions = (options?: Options<GetBoardsData>) => queryOptions<GetBoardsResponse, DefaultError, GetBoardsResponse, ReturnType<typeof getBoardsQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getBoards({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getBoardsQueryKey(options)
-});
-
-export const updateBoardMutation = (options?: Partial<Options<UpdateBoardData>>): UseMutationOptions<UpdateBoardResponse, DefaultError, Options<UpdateBoardData>> => {
-    const mutationOptions: UseMutationOptions<UpdateBoardResponse, DefaultError, Options<UpdateBoardData>> = {
+export const postWebhooksTelegramByBotTokenMutation = (options?: Partial<Options<PostWebhooksTelegramByBotTokenData>>): UseMutationOptions<unknown, PostWebhooksTelegramByBotTokenError, Options<PostWebhooksTelegramByBotTokenData>> => {
+    const mutationOptions: UseMutationOptions<unknown, PostWebhooksTelegramByBotTokenError, Options<PostWebhooksTelegramByBotTokenData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await updateBoard({
+            const { data } = await postWebhooksTelegramByBotToken({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -83,70 +68,10 @@ export const updateBoardMutation = (options?: Partial<Options<UpdateBoardData>>)
     return mutationOptions;
 };
 
-export const getStoriesQueryKey = (options?: Options<GetStoriesData>) => createQueryKey('getStories', options);
-
-export const getStoriesOptions = (options?: Options<GetStoriesData>) => queryOptions<GetStoriesResponse, DefaultError, GetStoriesResponse, ReturnType<typeof getStoriesQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getStories({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getStoriesQueryKey(options)
-});
-
-export const getStoryMetricsQueryKey = (options?: Options<GetStoryMetricsData>) => createQueryKey('getStoryMetrics', options);
-
-export const getStoryMetricsOptions = (options?: Options<GetStoryMetricsData>) => queryOptions<GetStoryMetricsResponse, DefaultError, GetStoryMetricsResponse, ReturnType<typeof getStoryMetricsQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getStoryMetrics({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getStoryMetricsQueryKey(options)
-});
-
-export const getStoryQueryKey = (options: Options<GetStoryData>) => createQueryKey('getStory', options);
-
-export const getStoryOptions = (options: Options<GetStoryData>) => queryOptions<GetStoryResponse, DefaultError, GetStoryResponse, ReturnType<typeof getStoryQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getStory({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getStoryQueryKey(options)
-});
-
-export const getStoryStreamQueryKey = (options: Options<GetStoryStreamData>) => createQueryKey('getStoryStream', options);
-
-export const getStoryStreamOptions = (options: Options<GetStoryStreamData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getStoryStreamQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getStoryStream({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getStoryStreamQueryKey(options)
-});
-
-export const generateStoryStreamMutation = (options?: Partial<Options<GenerateStoryStreamData>>): UseMutationOptions<unknown, DefaultError, Options<GenerateStoryStreamData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<GenerateStoryStreamData>> = {
+export const ingestTextMutation = (options?: Partial<Options<IngestTextData>>): UseMutationOptions<unknown, IngestTextError, Options<IngestTextData>> => {
+    const mutationOptions: UseMutationOptions<unknown, IngestTextError, Options<IngestTextData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await generateStoryStream({
+            const { data } = await ingestText({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -157,23 +82,54 @@ export const generateStoryStreamMutation = (options?: Partial<Options<GenerateSt
     return mutationOptions;
 };
 
-export const postAuthLoginMutation = (options?: Partial<Options<PostAuthLoginData>>): UseMutationOptions<unknown, DefaultError, Options<PostAuthLoginData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostAuthLoginData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postAuthLogin({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
+export const getAuthProvidersQueryKey = (options?: Options<GetAuthProvidersData>) => createQueryKey('getAuthProviders', options);
+
+export const getAuthProvidersOptions = (options?: Options<GetAuthProvidersData>) => queryOptions<GetAuthProvidersResponse, GetAuthProvidersError, GetAuthProvidersResponse, ReturnType<typeof getAuthProvidersQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAuthProviders({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAuthProvidersQueryKey(options)
+});
+
+export const getAuthExternalByProviderStartQueryKey = (options: Options<GetAuthExternalByProviderStartData>) => createQueryKey('getAuthExternalByProviderStart', options);
+
+export const getAuthExternalByProviderStartOptions = (options: Options<GetAuthExternalByProviderStartData>) => queryOptions<unknown, GetAuthExternalByProviderStartError, unknown, ReturnType<typeof getAuthExternalByProviderStartQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAuthExternalByProviderStart({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAuthExternalByProviderStartQueryKey(options)
+});
+
+export const getAuthExternalCallbackQueryKey = (options?: Options<GetAuthExternalCallbackData>) => createQueryKey('getAuthExternalCallback', options);
+
+export const getAuthExternalCallbackOptions = (options?: Options<GetAuthExternalCallbackData>) => queryOptions<unknown, GetAuthExternalCallbackError, unknown, ReturnType<typeof getAuthExternalCallbackQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAuthExternalCallback({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAuthExternalCallbackQueryKey(options)
+});
 
 export const getAuthMeQueryKey = (options?: Options<GetAuthMeData>) => createQueryKey('getAuthMe', options);
 
-export const getAuthMeOptions = (options?: Options<GetAuthMeData>) => queryOptions<GetAuthMeResponse, DefaultError, GetAuthMeResponse, ReturnType<typeof getAuthMeQueryKey>>({
+export const getAuthMeOptions = (options?: Options<GetAuthMeData>) => queryOptions<GetAuthMeResponse, GetAuthMeError, GetAuthMeResponse, ReturnType<typeof getAuthMeQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getAuthMe({
             ...options,
@@ -186,10 +142,68 @@ export const getAuthMeOptions = (options?: Options<GetAuthMeData>) => queryOptio
     queryKey: getAuthMeQueryKey(options)
 });
 
-export const postAuthLogoutMutation = (options?: Partial<Options<PostAuthLogoutData>>): UseMutationOptions<unknown, DefaultError, Options<PostAuthLogoutData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostAuthLogoutData>> = {
+export const postAuthLogoutMutation = (options?: Partial<Options<PostAuthLogoutData>>): UseMutationOptions<unknown, PostAuthLogoutError, Options<PostAuthLogoutData>> => {
+    const mutationOptions: UseMutationOptions<unknown, PostAuthLogoutError, Options<PostAuthLogoutData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postAuthLogout({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getAgentsByAgentIdConversationsQueryKey = (options: Options<GetAgentsByAgentIdConversationsData>) => createQueryKey('getAgentsByAgentIdConversations', options);
+
+export const getAgentsByAgentIdConversationsOptions = (options: Options<GetAgentsByAgentIdConversationsData>) => queryOptions<GetAgentsByAgentIdConversationsResponse, GetAgentsByAgentIdConversationsError, GetAgentsByAgentIdConversationsResponse, ReturnType<typeof getAgentsByAgentIdConversationsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAgentsByAgentIdConversations({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAgentsByAgentIdConversationsQueryKey(options)
+});
+
+export const getAgentsByAgentIdConversationsByConversationIdMessagesQueryKey = (options: Options<GetAgentsByAgentIdConversationsByConversationIdMessagesData>) => createQueryKey('getAgentsByAgentIdConversationsByConversationIdMessages', options);
+
+export const getAgentsByAgentIdConversationsByConversationIdMessagesOptions = (options: Options<GetAgentsByAgentIdConversationsByConversationIdMessagesData>) => queryOptions<GetAgentsByAgentIdConversationsByConversationIdMessagesResponse, GetAgentsByAgentIdConversationsByConversationIdMessagesError, GetAgentsByAgentIdConversationsByConversationIdMessagesResponse, ReturnType<typeof getAgentsByAgentIdConversationsByConversationIdMessagesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAgentsByAgentIdConversationsByConversationIdMessages({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAgentsByAgentIdConversationsByConversationIdMessagesQueryKey(options)
+});
+
+export const patchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadMutation = (options?: Partial<Options<PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData>>): UseMutationOptions<PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadError, Options<PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData>> => {
+    const mutationOptions: UseMutationOptions<PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadError, Options<PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await patchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdRead({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const patchAgentsByAgentIdConversationsByConversationIdReadMutation = (options?: Partial<Options<PatchAgentsByAgentIdConversationsByConversationIdReadData>>): UseMutationOptions<PatchAgentsByAgentIdConversationsByConversationIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdReadError, Options<PatchAgentsByAgentIdConversationsByConversationIdReadData>> => {
+    const mutationOptions: UseMutationOptions<PatchAgentsByAgentIdConversationsByConversationIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdReadError, Options<PatchAgentsByAgentIdConversationsByConversationIdReadData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await patchAgentsByAgentIdConversationsByConversationIdRead({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
