@@ -29,7 +29,7 @@ public static class TwilioWebhookEndpoints
             CancellationToken ct)
     {
         // TODO: look for the agent by phone number, check if associated subscribtion credits left to handle it. 
-        var subscribtionId = Guid.NewGuid(); // TODO: get real subscribtion id
+        var subscribtionId = Guid.NewGuid();
 
         var message = new IncomingMessage
         {
