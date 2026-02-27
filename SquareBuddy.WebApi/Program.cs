@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.CookiePolicy;
+using SquareBuddy.Shared;
 using SquareBuddy.WebApi.Core;
 using SquareBuddy.WebApi.Identity;
 using SquareBuddy.WebApi.Infrastructure;
@@ -14,8 +15,9 @@ builder.AddAiServices();
 builder.AddDatabaseServices();
 builder.AddIdentityServices();
 builder.AddMinioServices();
+builder.AddMassTransitServices(); 
 builder.AddCoreServices();
-
+builder.AddTelegram();
 
 if (builder.Environment.IsDevelopment())
 {
@@ -55,10 +57,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapInfoEndpoint("StoryBaord"); 
+app.MapInfoEndpoint("SquareBuddy"); 
 app.MapHealthChecks();
-app.MapBoardEndpoints();
-app.MapStoryEndpoints();
+app.MapTwilioWebhookEndpoints();
+app.MapTelegramWebhookEndpoints(); 
 app.MapAuthEndpoints();
 
 if (app.Environment.IsDevelopment())

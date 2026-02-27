@@ -29,7 +29,3 @@ Initializer service that applies EF Core migrations, seeds the admin user, and e
 run it from solution root
 	
 	dotnet ef dbcontext optimize --project SquareBuddy.Data --startup-project SquareBuddy.Initializer --output-dir CompiledModels --namespace SquareBuddy.Data.CompiledModels
-
-
-**Architecture Decisions**
-- TBD (tracked here for future ADR-style notes)

@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SquareBuddy.Shared\SquareBuddy.Shared.csproj" />
-    <ProjectReference Include="..\SquareBuddy.Data\SquareBuddy.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +26,7 @@
     <PackageReference Include="Polly.Core" Version="8.6.5" />
     <PackageReference Include="Minio" Version="7.0.0" />
     <PackageReference Include="NetEscapades.Configuration.Yaml" Version="3.1.0" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,11 +2,18 @@
 
 using System.Text.Json.Serialization;
 
-[JsonConverter(typeof(JsonStringEnumConverter<StoryRequestStatus>))]
-public enum StoryRequestStatus
+[JsonConverter(typeof(JsonStringEnumConverter<MessageChannel>))]
+public enum MessageChannel
 {
-    Processing = 0,
-    Failed = 1,
-    Completed = 2,
-    Canceled = 3,
+    WhatsApp,
+    Telegram,
+    SMS
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<MessageRole>))]
+public enum MessageRole
+{
+    Customer,
+    Agent,
+    Operator,
 }

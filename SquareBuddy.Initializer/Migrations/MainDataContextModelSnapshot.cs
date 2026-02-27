@@ -37,9 +37,9 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id")
-                        .HasName("sb_pk_sb_data_protection_keys");
+                        .HasName("srbd_pk_srbd_data_protection_keys");
 
-                    b.ToTable("sb_data_protection_keys");
+                    b.ToTable("srbd_data_protection_keys");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -60,12 +60,12 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id")
-                        .HasName("sb_pk_sb_asp_net_role_claims");
+                        .HasName("srbd_pk_srbd_asp_net_role_claims");
 
                     b.HasIndex("RoleId")
-                        .HasDatabaseName("sb_ix_sb_asp_net_role_claims_role_id");
+                        .HasDatabaseName("srbd_ix_srbd_asp_net_role_claims_role_id");
 
-                    b.ToTable("sb_asp_net_role_claims", (string)null);
+                    b.ToTable("srbd_asp_net_role_claims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -86,12 +86,12 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id")
-                        .HasName("sb_pk_sb_asp_net_user_claims");
+                        .HasName("srbd_pk_srbd_asp_net_user_claims");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("sb_ix_sb_asp_net_user_claims_user_id");
+                        .HasDatabaseName("srbd_ix_srbd_asp_net_user_claims_user_id");
 
-                    b.ToTable("sb_asp_net_user_claims", (string)null);
+                    b.ToTable("srbd_asp_net_user_claims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -109,12 +109,12 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("LoginProvider", "ProviderKey")
-                        .HasName("sb_pk_sb_asp_net_user_logins");
+                        .HasName("srbd_pk_srbd_asp_net_user_logins");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("sb_ix_sb_asp_net_user_logins_user_id");
+                        .HasDatabaseName("srbd_ix_srbd_asp_net_user_logins_user_id");
 
-                    b.ToTable("sb_asp_net_user_logins", (string)null);
+                    b.ToTable("srbd_asp_net_user_logins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -126,12 +126,12 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("UserId", "RoleId")
-                        .HasName("sb_pk_sb_asp_net_user_roles");
+                        .HasName("srbd_pk_srbd_asp_net_user_roles");
 
                     b.HasIndex("RoleId")
-                        .HasDatabaseName("sb_ix_sb_asp_net_user_roles_role_id");
+                        .HasDatabaseName("srbd_ix_srbd_asp_net_user_roles_role_id");
 
-                    b.ToTable("sb_asp_net_user_roles", (string)null);
+                    b.ToTable("srbd_asp_net_user_roles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -149,9 +149,60 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("UserId", "LoginProvider", "Name")
-                        .HasName("sb_pk_sb_asp_net_user_tokens");
+                        .HasName("srbd_pk_srbd_asp_net_user_tokens");
 
-                    b.ToTable("sb_asp_net_user_tokens", (string)null);
+                    b.ToTable("srbd_asp_net_user_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("SquareBuddy.Data.Entities.Agent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BasePromptRaw")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BasePromptSanitized")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TelegramBotToken")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TwilioPhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id")
+                        .HasName("srbd_pk_srbd_agents");
+
+                    b.HasIndex("SubscriptionId")
+                        .HasDatabaseName("srbd_ix_srbd_agents_subscription_id");
+
+                    b.HasIndex("TelegramBotToken")
+                        .HasDatabaseName("srbd_ix_srbd_agents_telegram_bot_token")
+                        .HasFilter("\"TelegramBotToken\" IS NOT NULL");
+
+                    b.HasIndex("TwilioPhoneNumber")
+                        .HasDatabaseName("srbd_ix_srbd_agents_twilio_phone_number")
+                        .HasFilter("\"TwilioPhoneNumber\" IS NOT NULL");
+
+                    b.ToTable("srbd_agents");
                 });
 
             modelBuilder.Entity("SquareBuddy.Data.Entities.ApplicationRole", b =>
@@ -173,13 +224,13 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id")
-                        .HasName("sb_pk_sb_asp_net_roles");
+                        .HasName("srbd_pk_srbd_asp_net_roles");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("sb_role_name_index");
+                        .HasDatabaseName("srbd_role_name_index");
 
-                    b.ToTable("sb_asp_net_roles", (string)null);
+                    b.ToTable("srbd_asp_net_roles", (string)null);
                 });
 
             modelBuilder.Entity("SquareBuddy.Data.Entities.ApplicationUser", b =>
@@ -246,91 +297,16 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id")
-                        .HasName("sb_pk_sb_asp_net_users");
+                        .HasName("srbd_pk_srbd_asp_net_users");
 
                     b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("sb_email_index");
+                        .HasDatabaseName("srbd_email_index");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("sb_user_name_index");
+                        .HasDatabaseName("srbd_user_name_index");
 
-                    b.ToTable("sb_asp_net_users", (string)null);
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.Board", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("SubscriptionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id")
-                        .HasName("sb_pk_sb_boards");
-
-                    b.HasIndex("SubscriptionId")
-                        .HasDatabaseName("sb_ix_sb_boards_subscription_id");
-
-                    b.ToTable("sb_boards");
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.BoardConfig", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("AgeGroup")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("BoardId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("EvaluatorUserPrompt")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EvaluatorUserPromptCompiled")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Language")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProducerUserPrompt")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProducerUserPromptCompiled")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Voice")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id")
-                        .HasName("sb_pk_sb_board_configs");
-
-                    b.HasIndex("BoardId", "CreatedAt")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("sb_ix_sb_board_configs_board_id_created_at");
-
-                    b.ToTable("sb_board_configs");
+                    b.ToTable("srbd_asp_net_users", (string)null);
                 });
 
             modelBuilder.Entity("SquareBuddy.Data.Entities.CreditTransaction", b =>
@@ -358,110 +334,16 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id")
-                        .HasName("sb_pk_sb_credit_transactions");
+                        .HasName("srbd_pk_srbd_credit_transactions");
 
                     b.HasIndex("StripeEventId")
                         .IsUnique()
-                        .HasDatabaseName("sb_ix_sb_credit_transactions_stripe_event_id");
+                        .HasDatabaseName("srbd_ix_srbd_credit_transactions_stripe_event_id");
 
                     b.HasIndex("SubscriptionId")
-                        .HasDatabaseName("sb_ix_sb_credit_transactions_subscription_id");
+                        .HasDatabaseName("srbd_ix_srbd_credit_transactions_subscription_id");
 
-                    b.ToTable("sb_credit_transactions");
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.StoryRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BoardId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ConfigId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedWith")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Duration")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Input")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("SceneGraph")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id")
-                        .HasName("sb_pk_sb_story_requests");
-
-                    b.HasIndex("ConfigId")
-                        .HasDatabaseName("sb_ix_sb_story_requests_config_id");
-
-                    b.HasIndex("Status")
-                        .HasDatabaseName("sb_ix_sb_story_requests_status");
-
-                    b.HasIndex("BoardId", "CreatedAt")
-                        .HasDatabaseName("sb_ix_sb_story_requests_board_id_created_at");
-
-                    b.ToTable("sb_story_requests");
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.StoryRequestChunk", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AudioObjectKey")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Sequence")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("StoryRequestId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id")
-                        .HasName("sb_pk_sb_story_request_chunks");
-
-                    b.HasIndex("StoryRequestId")
-                        .HasDatabaseName("sb_ix_sb_story_request_chunks_story_request_id");
-
-                    b.HasIndex("StoryRequestId", "Sequence")
-                        .IsUnique()
-                        .HasDatabaseName("sb_ix_sb_story_request_chunks_story_request_id_sequence");
-
-                    b.ToTable("sb_story_request_chunks");
+                    b.ToTable("srbd_credit_transactions");
                 });
 
             modelBuilder.Entity("SquareBuddy.Data.Entities.Subscription", b =>
@@ -495,9 +377,9 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id")
-                        .HasName("sb_pk_sb_subscriptions");
+                        .HasName("srbd_pk_srbd_subscriptions");
 
-                    b.ToTable("sb_subscriptions");
+                    b.ToTable("srbd_subscriptions");
                 });
 
             modelBuilder.Entity("SquareBuddy.Data.Entities.SubscriptionUser", b =>
@@ -518,12 +400,12 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("SubscriptionId", "UserId")
-                        .HasName("sb_pk_sb_subscription_users");
+                        .HasName("srbd_pk_srbd_subscription_users");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("sb_ix_sb_subscription_users_user_id");
+                        .HasDatabaseName("srbd_ix_srbd_subscription_users_user_id");
 
-                    b.ToTable("sb_subscription_users");
+                    b.ToTable("srbd_subscription_users");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -533,7 +415,7 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_asp_net_role_claims_asp_net_roles_role_id");
+                        .HasConstraintName("srbd_fk_srbd_asp_net_role_claims_asp_net_roles_role_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -543,7 +425,7 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_asp_net_user_claims_asp_net_users_user_id");
+                        .HasConstraintName("srbd_fk_srbd_asp_net_user_claims_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -553,7 +435,7 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_asp_net_user_logins_asp_net_users_user_id");
+                        .HasConstraintName("srbd_fk_srbd_asp_net_user_logins_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -563,14 +445,14 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_asp_net_user_roles_asp_net_roles_role_id");
+                        .HasConstraintName("srbd_fk_srbd_asp_net_user_roles_asp_net_roles_role_id");
 
                     b.HasOne("SquareBuddy.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_asp_net_user_roles_asp_net_users_user_id");
+                        .HasConstraintName("srbd_fk_srbd_asp_net_user_roles_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -580,31 +462,19 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_asp_net_user_tokens_asp_net_users_user_id");
+                        .HasConstraintName("srbd_fk_srbd_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
-            modelBuilder.Entity("SquareBuddy.Data.Entities.Board", b =>
+            modelBuilder.Entity("SquareBuddy.Data.Entities.Agent", b =>
                 {
                     b.HasOne("SquareBuddy.Data.Entities.Subscription", "Subscription")
-                        .WithMany("Boards")
+                        .WithMany("Agents")
                         .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_boards_subscriptions_subscription_id");
+                        .HasConstraintName("srbd_fk_srbd_agents_subscriptions_subscription_id");
 
                     b.Navigation("Subscription");
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.BoardConfig", b =>
-                {
-                    b.HasOne("SquareBuddy.Data.Entities.Board", "Board")
-                        .WithMany("Configs")
-                        .HasForeignKey("BoardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("sb_fk_sb_board_configs_sb_boards_board_id");
-
-                    b.Navigation("Board");
                 });
 
             modelBuilder.Entity("SquareBuddy.Data.Entities.CreditTransaction", b =>
@@ -614,42 +484,9 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_credit_transactions_subscriptions_subscription_id");
+                        .HasConstraintName("srbd_fk_srbd_credit_transactions_subscriptions_subscription_id");
 
                     b.Navigation("Subscription");
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.StoryRequest", b =>
-                {
-                    b.HasOne("SquareBuddy.Data.Entities.Board", "Board")
-                        .WithMany("Stories")
-                        .HasForeignKey("BoardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("sb_fk_sb_story_requests_sb_boards_board_id");
-
-                    b.HasOne("SquareBuddy.Data.Entities.BoardConfig", "Config")
-                        .WithMany("Stories")
-                        .HasForeignKey("ConfigId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("sb_fk_sb_story_requests_sb_board_configs_config_id");
-
-                    b.Navigation("Board");
-
-                    b.Navigation("Config");
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.StoryRequestChunk", b =>
-                {
-                    b.HasOne("SquareBuddy.Data.Entities.StoryRequest", "StoryRequest")
-                        .WithMany("Chunks")
-                        .HasForeignKey("StoryRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("sb_fk_sb_story_request_chunks_sb_story_requests_story_request_id");
-
-                    b.Navigation("StoryRequest");
                 });
 
             modelBuilder.Entity("SquareBuddy.Data.Entities.SubscriptionUser", b =>
@@ -659,14 +496,14 @@ namespace SquareBuddy.Initializer.Migrations
                         .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_subscription_users_sb_subscriptions_subscription_id");
+                        .HasConstraintName("srbd_fk_srbd_subscription_users_srbd_subscriptions_subscription_id");
 
                     b.HasOne("SquareBuddy.Data.Entities.ApplicationUser", "User")
                         .WithMany("SubscriptionUsers")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("sb_fk_sb_subscription_users_sb_asp_net_users_user_id");
+                        .HasConstraintName("srbd_fk_srbd_subscription_users_srbd_asp_net_users_user_id");
 
                     b.Navigation("Subscription");
 
@@ -678,26 +515,9 @@ namespace SquareBuddy.Initializer.Migrations
                     b.Navigation("SubscriptionUsers");
                 });
 
-            modelBuilder.Entity("SquareBuddy.Data.Entities.Board", b =>
-                {
-                    b.Navigation("Configs");
-
-                    b.Navigation("Stories");
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.BoardConfig", b =>
-                {
-                    b.Navigation("Stories");
-                });
-
-            modelBuilder.Entity("SquareBuddy.Data.Entities.StoryRequest", b =>
-                {
-                    b.Navigation("Chunks");
-                });
-
             modelBuilder.Entity("SquareBuddy.Data.Entities.Subscription", b =>
                 {
-                    b.Navigation("Boards");
+                    b.Navigation("Agents");
 
                     b.Navigation("SubscriptionUsers");
                 });

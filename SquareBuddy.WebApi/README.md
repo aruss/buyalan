@@ -1,6 +1,6 @@
 ﻿# SquareBuddy.WebApi
 
-Backend API for SquareBuddy. Provides auth, story streaming, and core board endpoints.
+Backend API for SquareBuddy. Provides auth, webhooks, and core endpoints.
 
 **Tech Stack**
 - ASP.NET Core (.NET 10, Minimal APIs)

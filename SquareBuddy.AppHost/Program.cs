@@ -10,6 +10,13 @@ builder.Configuration
 builder.Configuration.AddEnvFile("./.env");
 builder.Configuration.AddEnvironmentVariables();
 
+string? ngrokDomain = builder.Configuration["NGROK_DOMAIN"];
+string publicBaseUrl = ngrokDomain ?? "http://localhost:5000";
+
+string telegramSecretToken = builder.Configuration["TELEGRAM_SECRET_TOKEN"] 
+    ?? throw new InvalidOperationException("TELEGRAM_SECRET_TOKEN is missing in host configuration.");
+
+
 #endregion
 
 #region Infrastructure: Postgres
@@ -26,30 +33,22 @@ var postgres = builder.AddPostgres("postgresql")
     )
     .WithLifetime(ContainerLifetime.Persistent);
 
-var litellmDb = postgres.AddDatabase("litellmdb");
+var litellmDb = postgres.AddDatabase("rabbitmqdb");
 
 var squarebuddyDb = postgres.AddDatabase("squarebuddydb");
 
 #endregion
 
-#region Infrastructure: MinIO
+#region Infrastructure: RabbitMQ
 
-// Default credentials for local development
-var minioUser = "minioadmin";
-var minioPass = "minioadmin";
 
-// Use generic AddContainer since the specific hosting package is unavailable
-var minio = builder.AddContainer("minio", "quay.io/minio/minio")
-    .WithContainerName("squarebuddy-minio")
+var rabbitUser = builder.AddParameter("RabbitUser", "admin");
+var rabbitPass = builder.AddParameter("RabbitPass", "admin", secret: true);
+
+var rabbitmq = builder.AddRabbitMQ("rabbitmq", userName: rabbitUser, password: rabbitPass)
+    .WithContainerName("squarebuddy-rabbitmq")
     .WithProjectName("squarebuddy")
-    .WithHttpEndpoint(targetPort: 9000, port: 9000, name: "api")
-    .WithHttpEndpoint(targetPort: 9001, port: 9001, name: "console")
-    .WithEnvironment("MINIO_ROOT_USER", minioUser)
-    .WithEnvironment("MINIO_ROOT_PASSWORD", minioPass)
-    .WithEnvironment("OTEL_SERVICE_NAME", "minio")
-    .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", "http://host.docker.internal:4317")
-    .WithEnvironment("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc")
-    .WithArgs("server", "/data", "--console-address", ":9001")
+    .WithManagementPlugin()
     .WithLifetime(ContainerLifetime.Persistent);
 
 #endregion
@@ -91,44 +90,57 @@ var adminEmail = builder.Configuration["ADMIN_EMAIL"]
         ?? throw new InvalidOperationException("ADMIN_EMAIL is missing in host configuration.");
 
 var adminPassword = builder.Configuration["ADMIN_PASSWORD"]
-        ?? throw new InvalidOperationException("ADMIN_PASSWORD is missing in host configuration."); 
+        ?? throw new InvalidOperationException("ADMIN_PASSWORD is missing in host configuration.");
 
 // Run database migrations and minio bucket setup before starting the main app
 var initializer = builder.AddProject<Projects.SquareBuddy_Initializer>("initializer")
     .WithReference(squarebuddyDb) // Injects the connection string
-    .WithEnvironment("MINIO_ENDPOINT", minio.GetEndpoint("api"))
-    .WithEnvironment("MINIO_ACCESS_KEY", minioUser)
-    .WithEnvironment("MINIO_SECRET_KEY", minioPass)
     .WithEnvironment("ADMIN_EMAIL", adminEmail)
     .WithEnvironment("ADMIN_PASSWORD", adminPassword)
     .WithEnvironment("DOTNET_ENVIRONMENT", "Development")
+    .WithEnvironment("PUBLIC_BASE_URL", publicBaseUrl)
+    .WithEnvironment("TELEGRAM_SECRET_TOKEN", telegramSecretToken)
+    .WithReference(rabbitmq)
     .WaitFor(postgres)
-    .WaitFor(minio);
+    .WaitFor(rabbitmq); 
 
 #endregion 
 
 #region Application: Web API
-
-// Background Vite watcher for the frontend
-/* var vite = builder.AddExecutable("vite", "npm.cmd", "../SquareBuddy.WebApi", "run", "watch")
-    .WithOtlpExporter();*/
 
 // Main Web API Project
 var webapi = builder.AddProject<Projects.SquareBuddy_WebApi>("webapi")
     .WithExternalHttpEndpoints()
     .WithEnvironment("LITELLM_ENDPOINT", litellm.GetEndpoint("api"))
     .WithEnvironment("LITELLM_API_KEY", litellmMasterKey)
-    .WithEnvironment("MINIO_ENDPOINT", minio.GetEndpoint("api"))
-    .WithEnvironment("MINIO_ACCESS_KEY", minioUser)
-    .WithEnvironment("MINIO_SECRET_KEY", minioPass)
     .WithEnvironment("DOTNET_ENVIRONMENT", "Development")
     .WithEnvironment("SWAGGER_ENABLED", "true")
+    .WithEnvironment("PUBLIC_BASE_URL", publicBaseUrl)
+    .WithEnvironment("TELEGRAM_SECRET_TOKEN", telegramSecretToken)
+    .WithReference(rabbitmq)
     .WithReference(squarebuddyDb)
     .WaitFor(postgres)
-   //  .WaitFor(vite)
     .WaitFor(litellm)
-    .WaitFor(minio)
+    .WaitFor(rabbitmq)
     .WaitForCompletion(initializer);
+
+#endregion
+
+#region Infrastructure: ngrok
+
+if (!String.IsNullOrEmpty(ngrokDomain))
+{
+    string ngrokAuthToken = builder.Configuration["NGROK_AUTHTOKEN"]
+        ?? throw new InvalidOperationException("NGROK_AUTHTOKEN is missing in host configuration.");
+
+    builder.AddContainer("ngrok", "ngrok/ngrok")
+        .WithContainerName("squarebuddy-ngrok")
+        .WithProjectName("squarebuddy")
+        .WithEnvironment("NGROK_AUTHTOKEN", ngrokAuthToken)
+        .WithHttpEndpoint(targetPort: 4040, port: 4040, name: "inspect")
+        .WithArgs("http", $"--url={ngrokDomain}", "--log=stdout", "http://host.docker.internal:5000")
+        .WaitFor(webapi);
+}
 
 #endregion
 

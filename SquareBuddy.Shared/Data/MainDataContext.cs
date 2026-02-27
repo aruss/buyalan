@@ -1,5 +1,4 @@
 ﻿namespace SquareBuddy.Data;
-SquareBuddySquareBuddy
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -16,21 +15,15 @@ public class MainDataContext :
 
     }
 
-    public DbSet<Board> Boards => Set<Board>();
+    public DbSet<Subscription> Subscriptions { get; set; } = null!;
 
-    public DbSet<BoardConfig> BoardConfigs => Set<BoardConfig>();
+    public DbSet<SubscriptionUser> SubscriptionUsers { get; set; } = null!;
 
-    public DbSet<StoryRequest> StoryRequests => Set<StoryRequest>();
-
-    public DbSet<StoryRequestChunk> StoryRequestChunks => Set<StoryRequestChunk>();
-
-    public DbSet<Subscription> Subscriptions => Set<Subscription>();
-
-    public DbSet<SubscriptionUser> SubscriptionUsers => Set<SubscriptionUser>();
-
-    public DbSet<CreditTransaction> CreditTransactions => Set<CreditTransaction>();
+    public DbSet<CreditTransaction> CreditTransactions { get; set; } = null!;
 
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
+
+    public DbSet<Agent> Agents { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -88,7 +81,7 @@ public class MainDataContext :
             entity.Property(e => e.TopUpCreditBalance).IsRequired();
 
             entity
-                .HasMany(e => e.Boards)
+                .HasMany(e => e.Agents)
                 .WithOne(e => e.Subscription)
                 .HasForeignKey(e => e.SubscriptionId)
                 .IsRequired()
@@ -113,126 +106,25 @@ public class MainDataContext :
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        builder.Entity<Board>(entity =>
+        builder.Entity<Agent>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
 
-            entity
-                .HasMany(e => e.Stories)
-                .WithOne(e => e.Board)
-                .HasForeignKey(e => e.BoardId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.Description).IsRequired(false);
+            entity.Property(e => e.BasePromptRaw).IsRequired(false);
+            entity.Property(e => e.BasePromptSanitized).IsRequired(false);
 
-            entity
-                .HasMany(e => e.Configs)
-                .WithOne(e => e.Board)
-                .HasForeignKey(e => e.BoardId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+            entity.Property(e => e.TwilioPhoneNumber).IsRequired(false);
+            entity.Property(e => e.TelegramBotToken).IsRequired(false);
 
-        builder.Entity<BoardConfig>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.AgeGroup).IsRequired();
-            entity.Property(e => e.Language).IsRequired();
-            entity.Property(e => e.Voice);
-            entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired();
-            entity.Property(e => e.ProducerUserPrompt);
-            entity.Property(e => e.EvaluatorUserPrompt);
-            entity.Property(e => e.ProducerUserPromptCompiled);
-            entity.Property(e => e.EvaluatorUserPromptCompiled);
+            entity.HasIndex(e => e.TelegramBotToken)
+                .HasFilter("\"TelegramBotToken\" IS NOT NULL");
 
-            entity
-                .HasMany(e => e.Stories)
-                .WithOne(e => e.Config)
-                .HasForeignKey(e => e.ConfigId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity
-                .HasIndex(e => new { e.BoardId, e.CreatedAt }) // Composite Index
-                .IsDescending(false, true); // Sort CreatedAt Descending
-        });
-
-        builder.Entity<StoryRequest>(entity =>
-        {
-            // entity.ToTable($"{Constants.TablePrefix}_stories");
-            entity.HasKey(e => e.Id);
-
-            entity
-                .Property(e => e.Status)
-                .IsRequired();
-
-            entity
-                .Property(e => e.Input)
-                .HasColumnType("text")
-                .IsRequired();
-
-            entity
-                .Property(e => e.SceneGraph)
-                .HasColumnType("text")
-                .IsRequired();
-
-            entity
-                .Property(e => e.Title)
-                .HasColumnType("text")
-                .IsRequired();
-
-            entity
-                .Property(e => e.CreatedWith)
-                .HasColumnType("text")
-                .IsRequired();
-
-            entity
-                .Property(e => e.Duration)
-                .HasColumnType("integer")
-                .IsRequired();
-
-            entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired();
-
-            entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => new { e.BoardId, e.CreatedAt });
-
-            entity
-                .HasMany(e => e.Chunks)
-                .WithOne(e => e.StoryRequest)
-                .HasForeignKey(e => e.StoryRequestId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // This explicitly tells EF Core (even in AOT) that no shadow properties exist,
-            // preventing it from trying to build a dynamic factory.
-            entity.Ignore("TempId"); // Dummy ignore to ensure metadata is touched
-        });
-
-        builder.Entity<StoryRequestChunk>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Sequence).IsRequired();
-
-            entity
-                .Property(e => e.Text)
-                .HasColumnType("text")
-                .IsRequired();
-
-            entity
-                .Property(e => e.AudioObjectKey)
-                .HasColumnType("text")
-                .IsRequired();
-
-            entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired();
-
-            entity.HasIndex(e => e.StoryRequestId);
-            entity.HasIndex(e => new { e.StoryRequestId, e.Sequence }).IsUnique();
+            entity.HasIndex(e => e.TwilioPhoneNumber)
+                .HasFilter("\"TwilioPhoneNumber\" IS NOT NULL");
         });
 
         // Apply postgres nameing convetion to all table names and primary keys and indexes 

@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.DataProtection;
+﻿using MassTransit;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Minio;
-using Minio.DataModel.Args;
 using Npgsql;
 using Polly;
 using Polly.Retry;
@@ -14,13 +13,15 @@ using SquareBuddy;
 using SquareBuddy.Configuration;
 using SquareBuddy.Data;
 using SquareBuddy.Data.Entities;
+using SquareBuddy.Shared;
+using SquareBuddy.Shared.Consumers;
 
 public class Program
 {
-    private static readonly Guid AdminUserId = Guid.Parse("06d51587-a7f0-45b6-a27d-a04850a597cd");
-    private static readonly Guid SubscriptionId = Guid.Parse("37721905-a317-44bf-b9ca-c2defcab11ea");
-    private static readonly Guid BoardId = Guid.Parse("37f68864-9557-4cf7-adac-53eb909be65a");
-    private static readonly Guid BoardConfigId = Guid.Parse("d2290da0-79fc-422d-add2-81164bd9fcad");
+    private static readonly Guid AdminUserId = Guid.Parse("52299db7-d2bc-4ab3-9dc5-d9dadd40c37d");
+    private static readonly Guid SubscriptionId = Guid.Parse("81c0b65c-1325-48a3-9389-2369173dff7a");
+    private static readonly Guid AgentId = Guid.Parse("b4099979-fceb-41e1-bfb6-135f3ccb1701");
+    private static readonly string TelegramBotToken = "7592736264:AAGpsXEe03dUe3O5WWCjDYtemWmpwvCoFVE";
 
     private static async Task<int> Main(string[] args)
     {
@@ -31,6 +32,8 @@ public class Program
             .AddEnvironmentVariables();
 
         builder.Services.AddServiceDiscovery();
+        AppOptions appOptions = builder.Configuration.TryGetAppOptions();
+        builder.Services.AddSingleton(appOptions);
 
         #region Database and Migrations 
 
@@ -95,22 +98,31 @@ public class Program
 
         #endregion
 
-        #region Minio
+        #region RabbitMQ
 
-        MinioOptions minioOptions = builder.Configuration.TryGetMinioOptions();
-
-        builder.Services.AddScoped(sp =>
+        builder.Services.AddMassTransit(x =>
         {
-            Uri endpoint = minioOptions.Endpoint!;
+            x.SetKebabCaseEndpointNameFormatter();
 
-            return new MinioClient()
-                .WithEndpoint(endpoint.Authority)
-                .WithCredentials(minioOptions.AccessKey, minioOptions.SecretKey)
-                .WithSSL(endpoint.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
-                .Build();
+            // 1. Register the EXACT same consumers here as you do in your Web API.
+            // This allows MassTransit to calculate the required queues and exchanges.
+            x.AddConsumer<IncomingMessageConsumer>();
+
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq");
+                cfg.Host(rabbitConnectionString);
+
+                // 2. The magic flag: Tells MassTransit NOT to start consuming messages
+                cfg.DeployTopologyOnly = true;
+
+                cfg.ConfigureEndpoints(context);
+            });
         });
 
         #endregion
+
+        builder.AddTelegram();
 
         var host = builder.Build();
 
@@ -145,28 +157,7 @@ public class Program
 
             await SeedAdminUserAsync(services, adminEmail, adminPassword, token);
 
-            // 3. MinIO Initialization
-            var minio = services.GetRequiredService<IMinioClient>();
-            Console.WriteLine($"Checking bucket '{minioOptions.Bucket}'...");
-
-            bool found = await minio.BucketExistsAsync(
-                new BucketExistsArgs().WithBucket(minioOptions.Bucket),
-                token
-            );
-
-            if (!found)
-            {
-                Console.WriteLine($"Bucket '{minioOptions.Bucket}' not found. Creating...");
-                await minio.MakeBucketAsync(
-                    new MakeBucketArgs().WithBucket(minioOptions.Bucket),
-                    token
-                );
-                Console.WriteLine($"Bucket '{minioOptions.Bucket}' created.");
-            }
-            else
-            {
-                Console.WriteLine($"Bucket '{minioOptions.Bucket}' already exists.");
-            }
+            await DeployRabbitMqTopology(services);
 
             // 4. Seed default dev data 
             await SeedBasicData(services, token);
@@ -175,7 +166,24 @@ public class Program
         Console.WriteLine("Migrations complete.");
         return 0;
     }
-    
+
+    private static async Task DeployRabbitMqTopology(IServiceProvider services)
+    {
+        var busControl = services.GetRequiredService<IBusControl>();
+
+        try
+        {
+            // This connects to RabbitMQ, creates all exchanges/queues/bindings, and returns
+            await busControl.DeployAsync();
+            Console.WriteLine("RabbitMQ Topology successfully deployed.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to deploy RabbitMQ Topology: {ex.Message}");
+            throw;
+        }
+    }
+
     private static async Task SeedAdminUserAsync(
            IServiceProvider services,
            string adminEmail,
@@ -206,29 +214,25 @@ public class Program
         }
     }
 
-    private static async Task SeedBasicData(IServiceProvider services,  CancellationToken cancellationToken)
+    private static async Task SeedBasicData(IServiceProvider services, CancellationToken ct)
     {
         var dbContext = services.GetRequiredService<MainDataContext>();
+        var telegramService = services.GetRequiredService<ITelegramService>();
+
+        await telegramService.RegisterWebhookAsync(TelegramBotToken, ct);
 
         if (dbContext.Subscriptions.Any())
         {
             return;
         }
 
-        var board = new Board
+        var agent = new Agent
         {
-            Id = Program.BoardId,
-            Name = "Default Board",
-            SubscriptionId = Program.SubscriptionId,
+            Id = Program.AgentId,
+            Name = "Alan",
+            Description = "Sales agent for propane partners",
+            TelegramBotToken = TelegramBotToken
         };
-
-        board.Configs.Add(new BoardConfig
-        {
-            Id = Program.BoardConfigId,
-            BoardId = Program.BoardId,
-            AgeGroup = AgeGroup.OneToThree,
-            Language = "de",
-        });
 
         var subscription = new Subscription
         {
@@ -237,18 +241,18 @@ public class Program
             TopUpCreditBalance = 0,
         };
 
-        subscription.Boards.Add(board);
-
+        subscription.Agents.Add(agent);
 
         subscription.SubscriptionUsers.Add(new SubscriptionUser
         {
             UserId = Program.AdminUserId,
             SubscriptionId = Program.SubscriptionId,
             Role = SubscriptionUserRole.Owner
-        }); 
+        });
 
         dbContext.Subscriptions.Add(subscription);
-        await dbContext.SaveChangesAsync(); 
+        await dbContext.SaveChangesAsync();
+
     }
 }
 

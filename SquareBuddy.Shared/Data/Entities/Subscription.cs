@@ -7,7 +7,7 @@ public class Subscription : IEntityWithId, IEntityWithAudit
 {
     public Guid Id { get; set; }
 
-    public ICollection<Board> Boards { get; set; } = new List<Board>();
+    public ICollection<Agent> Agents { get; set; } = new List<Agent>();
 
     public ICollection<SubscriptionUser> SubscriptionUsers { get; set; } = new List<SubscriptionUser>();
 
