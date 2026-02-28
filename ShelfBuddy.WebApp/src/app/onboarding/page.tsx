@@ -38,11 +38,13 @@ type FormState = {
     teamMembers: string[];
 };
 
+const getRandomName = (names = ["Liam", "Olivia", "Noah", "Emma", "Oliver", "Ava", "Elijah", "Alan", "Charlotte", "William", "Sophia"]) => names[Math.floor(Math.random() * names.length)];
+
 const OnboardingPage = (): ReactElement => {
     const [step, setStep] = useState<OnboardingStep>(1);
     const [formData, setFormData] = useState<FormState>({
         squareConnected: false,
-        agentName: "",
+        agentName: getRandomName(),
         agentPersonality: "balanced",
         channels: {
             whatsapp: "",
@@ -102,6 +104,8 @@ const OnboardingPage = (): ReactElement => {
         setStep(5); // Success state
     };
 
+    
+
     return (
 
         <div>
@@ -135,14 +139,18 @@ const OnboardingPage = (): ReactElement => {
                                 className="flex items-center justify-center gap-2"
                             >
                                 <LinkIcon size={18} />
-                                Connect SquareUp Account
+                                Connect Square Account
                             </PrimaryActionButton>
-                            <SecondaryActionButton
-                                onClick={skipStep}
-                                fullWidth
+
+                        </div>
+                        <div>
+                            <button
+                                onClick={nextStep}
+                                className="text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors underline underline-offset-4"
                             >
                                 Skip for now
-                            </SecondaryActionButton>
+                            </button>
+                            <div className="text-xs pt-4 text-slate-400">Square must be linked for everything to work properly.</div>
                         </div>
                     </div>
                 )}
@@ -169,9 +177,9 @@ const OnboardingPage = (): ReactElement => {
                                     autoFocus
                                 />
                             </div>
-                            
+
                             <div className="space-y-2">
-                               <div className="flex items-center gap-2 font-semibold text-slate-900">
+                                <div className="flex items-center gap-2 font-semibold text-slate-900">
                                     Agent Personality
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -290,8 +298,9 @@ const OnboardingPage = (): ReactElement => {
                                 onClick={nextStep}
                                 className="text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors underline underline-offset-4"
                             >
-                                Skip channel setup
+                                Skip for now
                             </button>
+                            <div className="text-xs pt-4 text-slate-400">At least one channel must be configured for everything to work properly.</div>
                         </div>
                     </div>
                 )}
