@@ -18,6 +18,8 @@ public class AppOptionsTests
         Assert.Equal(new Uri("https://shelfbuddy.test"), appOptions.PublicBaseUrl);
         Assert.Null(appOptions.GoogleClientId);
         Assert.Null(appOptions.GoogleClientSecret);
+        Assert.Null(appOptions.SquareClientId);
+        Assert.Null(appOptions.SquareClientSecret);
     }
 
     [Fact]
@@ -89,6 +91,52 @@ public class AppOptionsTests
             configuration.TryGetAppOptions());
 
         Assert.Contains("PUBLIC_BASE_URL", exception.Message);
+    }
+
+    [Fact]
+    public void TryGetAppOptions_WhenBothSquareCredentialsExist_ReturnsTrimmedSquareCredentials()
+    {
+        IConfiguration configuration = CreateConfiguration(new Dictionary<string, string?>
+        {
+            ["PUBLIC_BASE_URL"] = "https://shelfbuddy.test",
+            ["SQUARE_CLIENT_ID"] = "  square-client-id  ",
+            ["SQUARE_CLIENT_SECRET"] = "  square-client-secret  "
+        });
+
+        AppOptions appOptions = configuration.TryGetAppOptions();
+
+        Assert.Equal("square-client-id", appOptions.SquareClientId);
+        Assert.Equal("square-client-secret", appOptions.SquareClientSecret);
+    }
+
+    [Fact]
+    public void TryGetAppOptions_WhenOnlySquareClientIdExists_ThrowsInvalidOperationException()
+    {
+        IConfiguration configuration = CreateConfiguration(new Dictionary<string, string?>
+        {
+            ["PUBLIC_BASE_URL"] = "https://shelfbuddy.test",
+            ["SQUARE_CLIENT_ID"] = "square-client-id"
+        });
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            configuration.TryGetAppOptions());
+
+        Assert.Contains("SQUARE_CLIENT_ID and SQUARE_CLIENT_SECRET", exception.Message);
+    }
+
+    [Fact]
+    public void TryGetAppOptions_WhenOnlySquareClientSecretExists_ThrowsInvalidOperationException()
+    {
+        IConfiguration configuration = CreateConfiguration(new Dictionary<string, string?>
+        {
+            ["PUBLIC_BASE_URL"] = "https://shelfbuddy.test",
+            ["SQUARE_CLIENT_SECRET"] = "square-client-secret"
+        });
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            configuration.TryGetAppOptions());
+
+        Assert.Contains("SQUARE_CLIENT_ID and SQUARE_CLIENT_SECRET", exception.Message);
     }
 
     private static IConfiguration CreateConfiguration(IDictionary<string, string?> values)

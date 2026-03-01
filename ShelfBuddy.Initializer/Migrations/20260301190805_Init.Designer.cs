@@ -12,7 +12,7 @@ using ShelfBuddy.Data;
 namespace ShelfBuddy.Initializer.Migrations
 {
     [DbContext(typeof(MainDataContext))]
-    [Migration("20260226233015_Init")]
+    [Migration("20260301190805_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -163,12 +163,6 @@ namespace ShelfBuddy.Initializer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("BasePromptRaw")
-                        .HasColumnType("text");
-
-                    b.Property<string>("BasePromptSanitized")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -177,6 +171,15 @@ namespace ShelfBuddy.Initializer.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Personality")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PersonalityPromptRaw")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PersonalityPromptSanitized")
                         .HasColumnType("text");
 
                     b.Property<Guid>("SubscriptionId")
@@ -191,6 +194,9 @@ namespace ShelfBuddy.Initializer.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("WhatsappNumber")
+                        .HasColumnType("text");
+
                     b.HasKey("Id")
                         .HasName("srbd_pk_srbd_agents");
 
@@ -204,6 +210,10 @@ namespace ShelfBuddy.Initializer.Migrations
                     b.HasIndex("TwilioPhoneNumber")
                         .HasDatabaseName("srbd_ix_srbd_agents_twilio_phone_number")
                         .HasFilter("\"TwilioPhoneNumber\" IS NOT NULL");
+
+                    b.HasIndex("WhatsappNumber")
+                        .HasDatabaseName("srbd_ix_srbd_agents_whatsapp_number")
+                        .HasFilter("\"WhatsappNumber\" IS NOT NULL");
 
                     b.ToTable("srbd_agents");
                 });
@@ -312,6 +322,115 @@ namespace ShelfBuddy.Initializer.Migrations
                     b.ToTable("srbd_asp_net_users", (string)null);
                 });
 
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastMessagePreview")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("LastMessageRole")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ParticipantExternalId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("UnreadCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id")
+                        .HasName("srbd_pk_srbd_conversations");
+
+                    b.HasIndex("AgentId", "UnreadCount")
+                        .HasDatabaseName("srbd_ix_srbd_conversations_agent_id_unread_count");
+
+                    b.HasIndex("AgentId", "LastMessageAt", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("srbd_ix_srbd_conversations_agent_id_last_message_at_id");
+
+                    b.HasIndex("AgentId", "ParticipantExternalId", "Channel")
+                        .IsUnique()
+                        .HasDatabaseName("srbd_ix_srbd_conversations_agent_id_participant_external_id_channel");
+
+                    b.ToTable("srbd_conversations");
+                });
+
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.ConversationMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("From")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id")
+                        .HasName("srbd_pk_srbd_conversation_messages");
+
+                    b.HasIndex("AgentId")
+                        .HasDatabaseName("srbd_ix_srbd_conversation_messages_agent_id");
+
+                    b.HasIndex("ConversationId", "IsRead", "Role")
+                        .HasDatabaseName("srbd_ix_srbd_conversation_messages_conversation_id_is_read_role");
+
+                    b.HasIndex("ConversationId", "OccurredAt", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("srbd_ix_srbd_conversation_messages_conversation_id_occurred_at_id");
+
+                    b.ToTable("srbd_conversation_messages");
+                });
+
             modelBuilder.Entity("ShelfBuddy.Data.Entities.CreditTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -383,6 +502,98 @@ namespace ShelfBuddy.Initializer.Migrations
                         .HasName("srbd_pk_srbd_subscriptions");
 
                     b.ToTable("srbd_subscriptions");
+                });
+
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.SubscriptionOnboardingState", b =>
+                {
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CurrentStep")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("PrimaryAgentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("SubscriptionId")
+                        .HasName("srbd_pk_srbd_subscription_onboarding_states");
+
+                    b.HasIndex("PrimaryAgentId")
+                        .HasDatabaseName("srbd_ix_srbd_subscription_onboarding_states_primary_agent_id");
+
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique()
+                        .HasDatabaseName("srbd_ix_srbd_subscription_onboarding_states_subscription_id");
+
+                    b.ToTable("srbd_subscription_onboarding_states");
+                });
+
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.SubscriptionSquareConnection", b =>
+                {
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AccessTokenExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ConnectedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DisconnectedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EncryptedAccessToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedRefreshToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SquareMerchantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("SubscriptionId")
+                        .HasName("srbd_pk_srbd_subscription_square_connections");
+
+                    b.HasIndex("ConnectedByUserId")
+                        .HasDatabaseName("srbd_ix_srbd_subscription_square_connections_connected_by_user_id");
+
+                    b.HasIndex("SquareMerchantId")
+                        .HasDatabaseName("srbd_ix_srbd_subscription_square_connections_square_merchant_id");
+
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique()
+                        .HasDatabaseName("srbd_ix_srbd_subscription_square_connections_subscription_id");
+
+                    b.ToTable("srbd_subscription_square_connections");
                 });
 
             modelBuilder.Entity("ShelfBuddy.Data.Entities.SubscriptionUser", b =>
@@ -480,6 +691,39 @@ namespace ShelfBuddy.Initializer.Migrations
                     b.Navigation("Subscription");
                 });
 
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.Conversation", b =>
+                {
+                    b.HasOne("ShelfBuddy.Data.Entities.Agent", "Agent")
+                        .WithMany()
+                        .HasForeignKey("AgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("srbd_fk_srbd_conversations_srbd_agents_agent_id");
+
+                    b.Navigation("Agent");
+                });
+
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.ConversationMessage", b =>
+                {
+                    b.HasOne("ShelfBuddy.Data.Entities.Agent", "Agent")
+                        .WithMany()
+                        .HasForeignKey("AgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("srbd_fk_srbd_conversation_messages_srbd_agents_agent_id");
+
+                    b.HasOne("ShelfBuddy.Data.Entities.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("srbd_fk_srbd_conversation_messages_srbd_conversations_conversation_id");
+
+                    b.Navigation("Agent");
+
+                    b.Navigation("Conversation");
+                });
+
             modelBuilder.Entity("ShelfBuddy.Data.Entities.CreditTransaction", b =>
                 {
                     b.HasOne("ShelfBuddy.Data.Entities.Subscription", "Subscription")
@@ -488,6 +732,47 @@ namespace ShelfBuddy.Initializer.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("srbd_fk_srbd_credit_transactions_subscriptions_subscription_id");
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.SubscriptionOnboardingState", b =>
+                {
+                    b.HasOne("ShelfBuddy.Data.Entities.Agent", "PrimaryAgent")
+                        .WithMany()
+                        .HasForeignKey("PrimaryAgentId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("srbd_fk_srbd_subscription_onboarding_states_srbd_agents_primary_agen~");
+
+                    b.HasOne("ShelfBuddy.Data.Entities.Subscription", "Subscription")
+                        .WithOne("OnboardingState")
+                        .HasForeignKey("ShelfBuddy.Data.Entities.SubscriptionOnboardingState", "SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("srbd_fk_srbd_subscription_onboarding_states_srbd_subscriptions_subs~");
+
+                    b.Navigation("PrimaryAgent");
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.SubscriptionSquareConnection", b =>
+                {
+                    b.HasOne("ShelfBuddy.Data.Entities.ApplicationUser", "ConnectedByUser")
+                        .WithMany()
+                        .HasForeignKey("ConnectedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("srbd_fk_srbd_subscription_square_connections_srbd_asp_net_users_con~");
+
+                    b.HasOne("ShelfBuddy.Data.Entities.Subscription", "Subscription")
+                        .WithOne("SquareConnection")
+                        .HasForeignKey("ShelfBuddy.Data.Entities.SubscriptionSquareConnection", "SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("srbd_fk_srbd_subscription_square_connections_srbd_subscriptions_sub~");
+
+                    b.Navigation("ConnectedByUser");
 
                     b.Navigation("Subscription");
                 });
@@ -518,9 +803,18 @@ namespace ShelfBuddy.Initializer.Migrations
                     b.Navigation("SubscriptionUsers");
                 });
 
+            modelBuilder.Entity("ShelfBuddy.Data.Entities.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("ShelfBuddy.Data.Entities.Subscription", b =>
                 {
                     b.Navigation("Agents");
+
+                    b.Navigation("OnboardingState");
+
+                    b.Navigation("SquareConnection");
 
                     b.Navigation("SubscriptionUsers");
                 });

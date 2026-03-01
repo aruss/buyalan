@@ -11,6 +11,10 @@ public class Subscription : IEntityWithId, IEntityWithAudit
 
     public ICollection<SubscriptionUser> SubscriptionUsers { get; set; } = new List<SubscriptionUser>();
 
+    public SubscriptionSquareConnection? SquareConnection { get; set; }
+
+    public SubscriptionOnboardingState? OnboardingState { get; set; }
+
     public string? StripeCustomerId { get; set; }
 
     public string? StripeSubscriptionId { get; set; }

@@ -3,6 +3,8 @@
 using Minio;
 using ShelfBuddy.Configuration;
 using ShelfBuddy.Core.Conversations;
+using ShelfBuddy.SquareIntegration;
+using ShelfBuddy.TelegramIntegration;
 
 public static class CoreBuilderExtensions
 {
@@ -13,6 +15,9 @@ public static class CoreBuilderExtensions
 
         // ... add here busines services, repositories, etc.
         builder.Services.AddScoped<IConversationStore, ConversationStore>();
+
+        builder.AddTelegramServices();
+        builder.AddSquareServices();
 
         return builder;
     }

@@ -140,7 +140,7 @@ public class Program
 
         #endregion
 
-        builder.AddTelegram();
+        builder.AddTelegramServices();
 
         var host = builder.Build();
 

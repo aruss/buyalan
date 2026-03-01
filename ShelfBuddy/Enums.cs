@@ -17,3 +17,11 @@ public enum MessageRole
     Agent,
     Operator,
 }
+
+[JsonConverter(typeof(JsonStringEnumConverter<AgentPersonality>))]
+public enum AgentPersonality
+{
+    Casual,
+    Balanced,
+    Business,
+}

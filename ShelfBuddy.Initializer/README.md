@@ -18,6 +18,7 @@ Initializer service that applies EF Core migrations, seeds the admin user, regis
 **Operational Notes**
 - Reads connection string `shelfbuddy` and `ADMIN_EMAIL` / `ADMIN_PASSWORD` from configuration.
 - Uses separate Polly resilience pipelines per startup lane and runs DB and RabbitMQ setup concurrently.
+- M8 schema now includes `subscription_square_connections` and `subscription_onboarding_states`; initializer migration runs are expected to create/update these tables.
 
 
 **Create new migration**

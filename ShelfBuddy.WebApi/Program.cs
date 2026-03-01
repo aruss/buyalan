@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using ShelfBuddy;
+using ShelfBuddy.Identity;
 using ShelfBuddy.TelegramIntegration;
 using ShelfBuddy.WebApi.Core;
 using ShelfBuddy.WebApi.Identity;
@@ -21,7 +22,7 @@ builder.AddIdentityServices();
 builder.AddMinioServices();
 builder.AddMassTransitServices(); 
 builder.AddCoreServices();
-builder.AddTelegram();
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalProblemExceptionHandler>();
 builder.Services.Configure<RouteHandlerOptions>(options =>

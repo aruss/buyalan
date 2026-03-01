@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 
 public static class TelegramBuilderExtensions
 {
-    public static TBuilder AddTelegram<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    public static TBuilder AddTelegramServices<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         TelegramOptions options = builder.Configuration.TryGetTelegramOptions();
         builder.Services.AddSingleton(options);

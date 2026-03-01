@@ -43,3 +43,4 @@ junk
 hosttrace.txt
 .dotnet
 .out
+.nuget

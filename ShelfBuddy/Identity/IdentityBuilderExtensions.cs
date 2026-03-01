@@ -1,4 +1,4 @@
-namespace ShelfBuddy.WebApi.Identity;
+namespace ShelfBuddy.Identity;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -110,7 +110,7 @@ public static class IdentityBuilderExtensions
 
                 options.ClientId = appOptions.SquareClientId;
                 options.ClientSecret = appOptions.SquareClientSecret;
-                options.CallbackPath = "/auth/providers/microsoft/callback";
+                options.CallbackPath = "/auth/providers/square/callback";
                 options.SignInScheme = IdentityConstants.ExternalScheme;
 
                 options.AuthorizationEndpoint = $"{squareBaseUrl}/oauth2/authorize";
@@ -121,7 +121,7 @@ public static class IdentityBuilderExtensions
 
                 // Map Square JSON object to standard ASP.NET Core Identity Claims
                 options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
-                options.ClaimActions.MapJsonKey(ClaimTypes.Email, "main_email");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Email, "owner_email");
                 options.ClaimActions.MapJsonKey("name", "business_name");
 
                 options.Events.OnRedirectToAuthorizationEndpoint = context =>
@@ -147,17 +147,34 @@ public static class IdentityBuilderExtensions
 
                     using var response = await context.Backchannel
                         .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+
                     response.EnsureSuccessStatusCode();
+
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        var squareProfile = await response.Content.ReadAsStringAsync();
+                    }
 
                     using var document = await JsonDocument
                         .ParseAsync(await response.Content.ReadAsStreamAsync(context.HttpContext.RequestAborted));
+
                     JsonElement merchant = document.RootElement.GetProperty("merchant");
 
                     context.RunClaimActions(merchant);
 
                     // Synthesize the email_verified claim to satisfy existing IsExternalEmailVerified validation in IdentityEndpoints
-                    if (merchant.TryGetProperty("main_email", out _))
+                    if (merchant.TryGetProperty("owner_email", out JsonElement ownerEmailElement) &&
+                        ownerEmailElement.ValueKind == JsonValueKind.String &&
+                        !string.IsNullOrWhiteSpace(ownerEmailElement.GetString()))
                     {
+                        context.Identity?.AddClaim(new Claim("email_verified", "true"));
+                    }
+                    else if (merchant.TryGetProperty("main_email", out JsonElement mainEmailElement) &&
+                             mainEmailElement.ValueKind == JsonValueKind.String &&
+                             !string.IsNullOrWhiteSpace(mainEmailElement.GetString()))
+                    {
+                        // Fallback for payloads that still emit main_email.
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.Email, mainEmailElement.GetString()!));
                         context.Identity?.AddClaim(new Claim("email_verified", "true"));
                     }
                 };

@@ -1,4 +1,4 @@
-namespace ShelfBuddy.WebApi.Identity;
+namespace ShelfBuddy.Identity;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;

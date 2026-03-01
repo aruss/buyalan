@@ -1,7 +1,13 @@
 namespace ShelfBuddy.Tests;
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
-using ShelfBuddy.WebApi.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using ShelfBuddy.Identity;
 using System.Text.Json;
 
 public class IdentityBuilderExtensionsTests
@@ -46,5 +52,55 @@ public class IdentityBuilderExtensionsTests
 
         Assert.Equal(expectedFound, found);
         Assert.Equal(expectedValue, result);
+    }
+
+    [Fact]
+    public async Task AddIdentityServices_WhenSquareCredentialsMissing_DoesNotRegisterSquareScheme()
+    {
+        IServiceProvider services = BuildServices(new Dictionary<string, string?>
+        {
+            ["PUBLIC_BASE_URL"] = "https://shelfbuddy.test"
+        });
+
+        IAuthenticationSchemeProvider schemeProvider = services.GetRequiredService<IAuthenticationSchemeProvider>();
+        IEnumerable<AuthenticationScheme> allSchemes = await schemeProvider.GetAllSchemesAsync();
+
+        Assert.DoesNotContain(allSchemes, scheme => string.Equals(scheme.Name, "square", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task AddIdentityServices_WhenSquareCredentialsPresent_RegistersSquareSchemeWithExpectedCallbackAndScope()
+    {
+        IServiceProvider services = BuildServices(new Dictionary<string, string?>
+        {
+            ["PUBLIC_BASE_URL"] = "https://shelfbuddy.test",
+            ["SQUARE_CLIENT_ID"] = "sandbox-client-id",
+            ["SQUARE_CLIENT_SECRET"] = "square-client-secret"
+        });
+
+        IAuthenticationSchemeProvider schemeProvider = services.GetRequiredService<IAuthenticationSchemeProvider>();
+        IEnumerable<AuthenticationScheme> allSchemes = await schemeProvider.GetAllSchemesAsync();
+        AuthenticationScheme squareScheme = Assert.Single(
+            allSchemes,
+            scheme => string.Equals(scheme.Name, "square", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Equal("Square", squareScheme.DisplayName);
+
+        IOptionsMonitor<OAuthOptions> optionsMonitor = services.GetRequiredService<IOptionsMonitor<OAuthOptions>>();
+        OAuthOptions squareOptions = optionsMonitor.Get("square");
+
+        Assert.Equal("/auth/providers/square/callback", squareOptions.CallbackPath.Value);
+        Assert.Contains("MERCHANT_PROFILE_READ", squareOptions.Scope);
+    }
+
+    private static IServiceProvider BuildServices(IDictionary<string, string?> configurationValues)
+    {
+        HostApplicationBuilder builder = Host.CreateApplicationBuilder();
+
+        builder.Configuration.AddInMemoryCollection(configurationValues);
+        builder.AddIdentityServices();
+
+        IHost host = builder.Build();
+        return host.Services;
     }
 }

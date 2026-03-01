@@ -15,14 +15,15 @@ public class Agent : IEntityWithId, IEntityWithAudit
 
     public string? Description { get; set; }
 
-    public string? BasePromptRaw { get; set; }
+    public AgentPersonality? Personality { get; set; }
 
-    public string? BasePromptSanitized { get; set; }
+    public string? PersonalityPromptRaw { get; set; }
+
+    public string? PersonalityPromptSanitized { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
-
 
     // twilio
     public string? TwilioPhoneNumber { get; set; } = null!;
@@ -30,4 +31,6 @@ public class Agent : IEntityWithId, IEntityWithAudit
     // telegram 
     public string? TelegramBotToken { get; set; } = null!;
 
+    // whatsapp
+    public string? WhatsappNumber { get; set; } = null!;
 }

@@ -1,6 +1,7 @@
 ﻿namespace ShelfBuddy.Configuration;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 public static class AppOptionsConfigurationExtensions
 {
@@ -14,6 +15,7 @@ public static class AppOptionsConfigurationExtensions
             throw ConfigurationErrors.Invalid("PUBLIC_BASE_URL");
         }
 
+
         AppOptions options = new()
         {
             PublicBaseUrl = endpoint,
@@ -23,8 +25,28 @@ public static class AppOptionsConfigurationExtensions
             SquareClientSecret = NormalizeOptional(configuration["SQUARE_CLIENT_SECRET"])
         };
 
-        AppOptionsValidator.Validate(options);
+        ValidatePair(
+            options.GoogleClientId,
+            options.GoogleClientSecret,
+            "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must both be set or both be missing");
+
+        ValidatePair(
+            options.SquareClientId,
+            options.SquareClientSecret,
+            "SQUARE_CLIENT_ID and SQUARE_CLIENT_SECRET must both be set or both be missing");
+
         return options;
+    }
+
+    private static void ValidatePair(string? firstValue, string? secondValue, string errorMessage)
+    {
+        bool hasFirstValue = !string.IsNullOrWhiteSpace(firstValue);
+        bool hasSecondValue = !string.IsNullOrWhiteSpace(secondValue);
+
+        if (hasFirstValue != hasSecondValue)
+        {
+            throw ConfigurationErrors.Invalid(errorMessage);
+        }
     }
 
     private static string? NormalizeOptional(string? value)
@@ -49,18 +71,4 @@ public record AppOptions
     public string? SquareClientId { get; init; }
 
     public string? SquareClientSecret { get; init; }
-}
-
-public static class AppOptionsValidator
-{
-    public static void Validate(AppOptions options)
-    {
-        bool hasGoogleClientId = !string.IsNullOrWhiteSpace(options.GoogleClientId);
-        bool hasGoogleClientSecret = !string.IsNullOrWhiteSpace(options.GoogleClientSecret);
-
-        if (hasGoogleClientId != hasGoogleClientSecret)
-        {
-            throw ConfigurationErrors.Invalid("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must both be set or both be missing");
-        }
-    }
 }

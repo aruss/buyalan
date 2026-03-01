@@ -57,9 +57,9 @@ Align Square external authentication with the working Google `/auth` flow, estab
 - `SQUARE_CLIENT_SECRET`
 
 ### Validation rules
-- [ ] If both Square keys are missing: valid (Square disabled).
-- [ ] If one key is present and the other missing: invalid startup configuration.
-- [ ] If both keys are present: valid (Square enabled).
+- [x] If both Square keys are missing: valid (Square disabled).
+- [x] If one key is present and the other missing: invalid startup configuration.
+- [x] If both keys are present: valid (Square enabled).
 
 ## HTTP Surface
 
@@ -69,9 +69,9 @@ Align Square external authentication with the working Google `/auth` flow, estab
 - `GET /auth/external-callback`
 
 Square-specific behavior:
-- [ ] Provider name is `square`.
-- [ ] Callback path is `/auth/providers/square/callback`.
-- [ ] Callback completion returns through `/auth/external-callback`.
+- [x] Provider name is `square`.
+- [x] Callback path is `/auth/providers/square/callback`.
+- [x] Callback completion returns through `/auth/external-callback`.
 
 ### Onboarding connect endpoint(s)
 - [ ] Add/extend onboarding route to start full-scope Square authorization for a subscription.
@@ -95,25 +95,25 @@ Square-specific behavior:
 ## Data Model
 
 ### New entity: `SubscriptionSquareConnection`
-- [ ] `SubscriptionId` (FK -> `Subscription`, unique)
-- [ ] `SquareMerchantId`
-- [ ] `EncryptedAccessToken`
-- [ ] `EncryptedRefreshToken`
-- [ ] `AccessTokenExpiresAtUtc`
-- [ ] `Scopes`
-- [ ] `ConnectedByUserId` (FK -> `ApplicationUser`)
-- [ ] `CreatedAt`
-- [ ] `UpdatedAt`
-- [ ] Optional lifecycle fields as needed (`DisconnectedAtUtc`, status flags)
+- [x] `SubscriptionId` (FK -> `Subscription`, unique)
+- [x] `SquareMerchantId`
+- [x] `EncryptedAccessToken`
+- [x] `EncryptedRefreshToken`
+- [x] `AccessTokenExpiresAtUtc`
+- [x] `Scopes`
+- [x] `ConnectedByUserId` (FK -> `ApplicationUser`)
+- [x] `CreatedAt`
+- [x] `UpdatedAt`
+- [x] Optional lifecycle fields as needed (`DisconnectedAtUtc`, status flags)
 
 ### New entity: `SubscriptionOnboardingState`
-- [ ] `SubscriptionId` (FK -> `Subscription`, unique)
-- [ ] `Status` (`Draft`, `InProgress`, `Completed`)
-- [ ] `CurrentStep` (big onboarding step pointer)
-- [ ] `PrimaryAgentId` (nullable FK -> `Agent`)
-- [ ] `StartedAt`
-- [ ] `UpdatedAt`
-- [ ] `CompletedAt` (nullable)
+- [x] `SubscriptionId` (FK -> `Subscription`, unique)
+- [x] `Status` (`Draft`, `InProgress`, `Completed`)
+- [x] `CurrentStep` (big onboarding step pointer)
+- [x] `PrimaryAgentId` (nullable FK -> `Agent`)
+- [x] `StartedAt`
+- [x] `UpdatedAt`
+- [x] `CompletedAt` (nullable)
 
 ## Onboarding State Machine (Authoritative)
 
@@ -183,58 +183,58 @@ Square-specific behavior:
 - Claim must be refreshed on login and after finalize.
 
 ### Index/constraints
-- [ ] Unique index on `SubscriptionId` for 1:1 square connection cardinality.
-- [ ] Index on `SquareMerchantId`.
-- [ ] Unique index on `SubscriptionOnboardingState.SubscriptionId`.
+- [x] Unique index on `SubscriptionId` for 1:1 square connection cardinality.
+- [x] Index on `SquareMerchantId`.
+- [x] Unique index on `SubscriptionOnboardingState.SubscriptionId`.
 
 ### `Agent` extensions
-- [ ] Add `Personality` field.
+- [x] Add `Personality` field.
 - [ ] Add/confirm the three channel fields used by onboarding channels step:
-  - [ ] `TwilioPhoneNumber` (existing)
-  - [ ] `TelegramBotToken` (existing)
-  - [ ] `WhatsappNumber` (new)
+  - [x] `TwilioPhoneNumber` (existing)
+  - [x] `TelegramBotToken` (existing)
+  - [x] `WhatsappNumber` (new)
 
 ## Service Design
 
 ### New module
-- [ ] Create `ShelfBuddy/SquareIntegration` folder.
-- [ ] Add `ISquareTokenService` + implementation in `ShelfBuddy` project.
+- [x] Create `ShelfBuddy/SquareIntegration` folder.
+- [x] Add `ISquareTokenService` + implementation in `ShelfBuddy` project.
 
 ### `ISquareTokenService` responsibilities
-- [ ] Store tokens from successful Square connect/login callback.
-- [ ] Return valid access token for a given `SubscriptionId`.
-- [ ] Refresh access token when expired or near expiry.
-- [ ] Rotate refresh token when Square returns a new one.
-- [ ] Return typed failures for revoked/invalid/reauthorize-required states.
+- [x] Store tokens from successful Square connect/login callback.
+- [x] Return valid access token for a given `SubscriptionId`.
+- [x] Refresh access token when expired or near expiry.
+- [x] Rotate refresh token when Square returns a new one.
+- [x] Return typed failures for revoked/invalid/reauthorize-required states.
 
 ### Security requirements
-- [ ] Do not expose tokens in API responses.
-- [ ] Do not place tokens in redirect query strings.
-- [ ] Encrypt token values at rest.
+- [x] Do not expose tokens in API responses.
+- [x] Do not place tokens in redirect query strings.
+- [x] Encrypt token values at rest.
 - [ ] Keep least-privilege scope model through two-step consent.
 
 ## Gate A: Square Auth Foundation (Config + Provider Parity)
-- [ ] Add Square pair validation in `AppOptionsValidator`.
-- [ ] Ensure Square provider registration is conditional and consistent with Google pair behavior.
-- [ ] Fix Square callback path to `/auth/providers/square/callback`.
-- [ ] Keep `/auth/providers/{provider}/authorize` + `/auth/external-callback` flow unchanged and functional for Square login with minimal scope (`MERCHANT_PROFILE_READ`).
+- [x] Add Square pair validation in `AppOptionsValidator`.
+- [x] Ensure Square provider registration is conditional and consistent with Google pair behavior.
+- [x] Fix Square callback path to `/auth/providers/square/callback`.
+- [x] Keep `/auth/providers/{provider}/authorize` + `/auth/external-callback` flow unchanged and functional for Square login with minimal scope (`MERCHANT_PROFILE_READ`).
 
 ## Gate B: Subscription-Scoped Persistence Foundation
-- [ ] Add `SubscriptionSquareConnection` entity and EF configuration.
-- [ ] Add `SubscriptionOnboardingState` entity and EF configuration.
-- [ ] Add `DbSet<SubscriptionSquareConnection>` and `DbSet<SubscriptionOnboardingState>` in `MainDataContext`.
-- [ ] Add constraints/indexes and audit behavior.
-- [ ] Extend `Agent` with `Personality` and channel fields (`TwilioPhoneNumber`, `TelegramBotToken`, `WhatsappNumber`).
-- [ ] Update initializer assumptions/documentation for new schema object.
+- [x] Add `SubscriptionSquareConnection` entity and EF configuration.
+- [x] Add `SubscriptionOnboardingState` entity and EF configuration.
+- [x] Add `DbSet<SubscriptionSquareConnection>` and `DbSet<SubscriptionOnboardingState>` in `MainDataContext`.
+- [x] Add constraints/indexes and audit behavior.
+- [x] Extend `Agent` with `Personality` and channel fields (`TwilioPhoneNumber`, `TelegramBotToken`, `WhatsappNumber`).
+- [x] Update initializer assumptions/documentation for new schema object.
 - [ ] Stop and hand off for migration creation/run from `ShelfBuddy.Initializer` per repository rule.
 
 ## Gate C: Shared Square Token Lifecycle Service
-- [ ] Add `ShelfBuddy/SquareIntegration/ISquareTokenService.cs`.
-- [ ] Add implementation and supporting models/errors.
-- [ ] Implement token storage/read/update against `SubscriptionSquareConnection`.
-- [ ] Add Square OAuth token refresh client logic (`/oauth2/token`).
-- [ ] Implement deterministic typed outcomes for refresh failure/reconnect-required states.
-- [ ] Register services in DI from WebApi composition root.
+- [x] Add `ShelfBuddy/SquareIntegration/ISquareTokenService.cs`.
+- [x] Add implementation and supporting models/errors.
+- [x] Implement token storage/read/update against `SubscriptionSquareConnection`.
+- [x] Add Square OAuth token refresh client logic (`/oauth2/token`).
+- [x] Implement deterministic typed outcomes for refresh failure/reconnect-required states.
+- [x] Register services in DI from WebApi composition root.
 
 ## Gate D: Square Connection Management APIs (Backend)
 - [ ] Add backend endpoint(s) used by Admin Settings to create/connect a `SubscriptionSquareConnection` (UI excluded).
@@ -275,9 +275,9 @@ Square-specific behavior:
 - [ ] Include trace correlation IDs in auth/connect logs.
 
 ## Gate H: Tests
-- [ ] Gate A tests: Square pair validation, provider listing enabled/disabled, square authorize/callback path behavior.
-- [ ] Gate B tests: `SubscriptionSquareConnection` and `SubscriptionOnboardingState` mapping/constraints/indexes, plus `Agent` new field mappings (`Personality`, `TwilioPhoneNumber`, `TelegramBotToken`, `WhatsappNumber`).
-- [ ] Gate C tests: `ISquareTokenService` token store/read, refresh success, refresh token rotation, reconnect-required failures.
+- [x] Gate A tests: Square pair validation, provider listing enabled/disabled, square authorize/callback path behavior.
+- [x] Gate B tests: `SubscriptionSquareConnection` and `SubscriptionOnboardingState` mapping/constraints/indexes, plus `Agent` new field mappings (`Personality`, `TwilioPhoneNumber`, `TelegramBotToken`, `WhatsappNumber`).
+- [x] Gate C tests: `ISquareTokenService` token store/read, refresh success, refresh token rotation, reconnect-required failures.
 - [ ] Gate D tests: subscription connect/disconnect API authorization and deterministic error paths.
 - [ ] Gate E tests: caller path gets valid subscription token and refreshes transparently.
 - [ ] Gate F tests: per-step onboarding endpoints, big onboarding transitions, resumable state, channels persistence, invitation placeholder response, and UX parity checks for existing behavior.

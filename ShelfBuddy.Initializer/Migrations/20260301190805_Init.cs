@@ -201,12 +201,14 @@ namespace ShelfBuddy.Initializer.Migrations
                     SubscriptionId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    BasePromptRaw = table.Column<string>(type: "text", nullable: true),
-                    BasePromptSanitized = table.Column<string>(type: "text", nullable: true),
+                    Personality = table.Column<int>(type: "integer", nullable: true),
+                    PersonalityPromptRaw = table.Column<string>(type: "text", nullable: true),
+                    PersonalityPromptSanitized = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     TwilioPhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    TelegramBotToken = table.Column<string>(type: "text", nullable: true)
+                    TelegramBotToken = table.Column<string>(type: "text", nullable: true),
+                    WhatsappNumber = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -243,6 +245,38 @@ namespace ShelfBuddy.Initializer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "srbd_subscription_square_connections",
+                columns: table => new
+                {
+                    SubscriptionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SquareMerchantId = table.Column<string>(type: "text", nullable: false),
+                    EncryptedAccessToken = table.Column<string>(type: "text", nullable: false),
+                    EncryptedRefreshToken = table.Column<string>(type: "text", nullable: false),
+                    AccessTokenExpiresAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Scopes = table.Column<string>(type: "text", nullable: false),
+                    ConnectedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DisconnectedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("srbd_pk_srbd_subscription_square_connections", x => x.SubscriptionId);
+                    table.ForeignKey(
+                        name: "srbd_fk_srbd_subscription_square_connections_srbd_asp_net_users_con~",
+                        column: x => x.ConnectedByUserId,
+                        principalTable: "srbd_asp_net_users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "srbd_fk_srbd_subscription_square_connections_srbd_subscriptions_sub~",
+                        column: x => x.SubscriptionId,
+                        principalTable: "srbd_subscriptions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "srbd_subscription_users",
                 columns: table => new
                 {
@@ -269,6 +303,96 @@ namespace ShelfBuddy.Initializer.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "srbd_conversations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AgentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ParticipantExternalId = table.Column<string>(type: "text", nullable: false),
+                    Channel = table.Column<int>(type: "integer", nullable: false),
+                    LastMessagePreview = table.Column<string>(type: "text", nullable: true),
+                    LastMessageAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LastMessageRole = table.Column<int>(type: "integer", nullable: true),
+                    UnreadCount = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("srbd_pk_srbd_conversations", x => x.Id);
+                    table.ForeignKey(
+                        name: "srbd_fk_srbd_conversations_srbd_agents_agent_id",
+                        column: x => x.AgentId,
+                        principalTable: "srbd_agents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "srbd_subscription_onboarding_states",
+                columns: table => new
+                {
+                    SubscriptionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CurrentStep = table.Column<string>(type: "text", nullable: false),
+                    PrimaryAgentId = table.Column<Guid>(type: "uuid", nullable: true),
+                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("srbd_pk_srbd_subscription_onboarding_states", x => x.SubscriptionId);
+                    table.ForeignKey(
+                        name: "srbd_fk_srbd_subscription_onboarding_states_srbd_agents_primary_agen~",
+                        column: x => x.PrimaryAgentId,
+                        principalTable: "srbd_agents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "srbd_fk_srbd_subscription_onboarding_states_srbd_subscriptions_subs~",
+                        column: x => x.SubscriptionId,
+                        principalTable: "srbd_subscriptions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "srbd_conversation_messages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ConversationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AgentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    From = table.Column<string>(type: "text", nullable: false),
+                    To = table.Column<string>(type: "text", nullable: false),
+                    OccurredAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
+                    ReadAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("srbd_pk_srbd_conversation_messages", x => x.Id);
+                    table.ForeignKey(
+                        name: "srbd_fk_srbd_conversation_messages_srbd_agents_agent_id",
+                        column: x => x.AgentId,
+                        principalTable: "srbd_agents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "srbd_fk_srbd_conversation_messages_srbd_conversations_conversation_id",
+                        column: x => x.ConversationId,
+                        principalTable: "srbd_conversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "srbd_ix_srbd_agents_subscription_id",
                 table: "srbd_agents",
@@ -285,6 +409,12 @@ namespace ShelfBuddy.Initializer.Migrations
                 table: "srbd_agents",
                 column: "TwilioPhoneNumber",
                 filter: "\"TwilioPhoneNumber\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_agents_whatsapp_number",
+                table: "srbd_agents",
+                column: "WhatsappNumber",
+                filter: "\"WhatsappNumber\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "srbd_ix_srbd_asp_net_role_claims_role_id",
@@ -324,6 +454,39 @@ namespace ShelfBuddy.Initializer.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_conversation_messages_agent_id",
+                table: "srbd_conversation_messages",
+                column: "AgentId");
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_conversation_messages_conversation_id_is_read_role",
+                table: "srbd_conversation_messages",
+                columns: new[] { "ConversationId", "IsRead", "Role" });
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_conversation_messages_conversation_id_occurred_at_id",
+                table: "srbd_conversation_messages",
+                columns: new[] { "ConversationId", "OccurredAt", "Id" },
+                descending: new[] { false, true, true });
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_conversations_agent_id_last_message_at_id",
+                table: "srbd_conversations",
+                columns: new[] { "AgentId", "LastMessageAt", "Id" },
+                descending: new[] { false, true, true });
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_conversations_agent_id_participant_external_id_channel",
+                table: "srbd_conversations",
+                columns: new[] { "AgentId", "ParticipantExternalId", "Channel" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_conversations_agent_id_unread_count",
+                table: "srbd_conversations",
+                columns: new[] { "AgentId", "UnreadCount" });
+
+            migrationBuilder.CreateIndex(
                 name: "srbd_ix_srbd_credit_transactions_stripe_event_id",
                 table: "srbd_credit_transactions",
                 column: "StripeEventId",
@@ -335,6 +498,33 @@ namespace ShelfBuddy.Initializer.Migrations
                 column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_subscription_onboarding_states_primary_agent_id",
+                table: "srbd_subscription_onboarding_states",
+                column: "PrimaryAgentId");
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_subscription_onboarding_states_subscription_id",
+                table: "srbd_subscription_onboarding_states",
+                column: "SubscriptionId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_subscription_square_connections_connected_by_user_id",
+                table: "srbd_subscription_square_connections",
+                column: "ConnectedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_subscription_square_connections_square_merchant_id",
+                table: "srbd_subscription_square_connections",
+                column: "SquareMerchantId");
+
+            migrationBuilder.CreateIndex(
+                name: "srbd_ix_srbd_subscription_square_connections_subscription_id",
+                table: "srbd_subscription_square_connections",
+                column: "SubscriptionId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "srbd_ix_srbd_subscription_users_user_id",
                 table: "srbd_subscription_users",
                 column: "UserId");
@@ -343,9 +533,6 @@ namespace ShelfBuddy.Initializer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "srbd_agents");
-
             migrationBuilder.DropTable(
                 name: "srbd_asp_net_role_claims");
 
@@ -362,10 +549,19 @@ namespace ShelfBuddy.Initializer.Migrations
                 name: "srbd_asp_net_user_tokens");
 
             migrationBuilder.DropTable(
+                name: "srbd_conversation_messages");
+
+            migrationBuilder.DropTable(
                 name: "srbd_credit_transactions");
 
             migrationBuilder.DropTable(
                 name: "srbd_data_protection_keys");
+
+            migrationBuilder.DropTable(
+                name: "srbd_subscription_onboarding_states");
+
+            migrationBuilder.DropTable(
+                name: "srbd_subscription_square_connections");
 
             migrationBuilder.DropTable(
                 name: "srbd_subscription_users");
@@ -374,7 +570,13 @@ namespace ShelfBuddy.Initializer.Migrations
                 name: "srbd_asp_net_roles");
 
             migrationBuilder.DropTable(
+                name: "srbd_conversations");
+
+            migrationBuilder.DropTable(
                 name: "srbd_asp_net_users");
+
+            migrationBuilder.DropTable(
+                name: "srbd_agents");
 
             migrationBuilder.DropTable(
                 name: "srbd_subscriptions");

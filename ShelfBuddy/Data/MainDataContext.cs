@@ -29,6 +29,10 @@ public class MainDataContext :
 
     public DbSet<ConversationMessage> ConversationMessages { get; set; } = null!;
 
+    public DbSet<SubscriptionSquareConnection> SubscriptionSquareConnections { get; set; } = null!;
+
+    public DbSet<SubscriptionOnboardingState> SubscriptionOnboardingStates { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -90,6 +94,20 @@ public class MainDataContext :
                 .HasForeignKey(e => e.SubscriptionId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(e => e.SquareConnection)
+                .WithOne(e => e.Subscription)
+                .HasForeignKey<SubscriptionSquareConnection>(e => e.SubscriptionId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(e => e.OnboardingState)
+                .WithOne(e => e.Subscription)
+                .HasForeignKey<SubscriptionOnboardingState>(e => e.SubscriptionId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<CreditTransaction>(entity =>
@@ -117,18 +135,67 @@ public class MainDataContext :
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
 
+            entity.Property(e => e.Personality).IsRequired(false);
             entity.Property(e => e.Description).IsRequired(false);
-            entity.Property(e => e.BasePromptRaw).IsRequired(false);
-            entity.Property(e => e.BasePromptSanitized).IsRequired(false);
+            entity.Property(e => e.PersonalityPromptRaw).IsRequired(false);
+            entity.Property(e => e.PersonalityPromptSanitized).IsRequired(false);
 
             entity.Property(e => e.TwilioPhoneNumber).IsRequired(false);
             entity.Property(e => e.TelegramBotToken).IsRequired(false);
+            entity.Property(e => e.WhatsappNumber).IsRequired(false);
 
             entity.HasIndex(e => e.TelegramBotToken)
                 .HasFilter("\"TelegramBotToken\" IS NOT NULL");
 
             entity.HasIndex(e => e.TwilioPhoneNumber)
                 .HasFilter("\"TwilioPhoneNumber\" IS NOT NULL");
+
+            entity.HasIndex(e => e.WhatsappNumber)
+                .HasFilter("\"WhatsappNumber\" IS NOT NULL");
+        });
+
+        builder.Entity<SubscriptionSquareConnection>(entity =>
+        {
+            entity.HasKey(e => e.SubscriptionId);
+            entity.Property(e => e.SquareMerchantId).IsRequired();
+            entity.Property(e => e.EncryptedAccessToken).IsRequired();
+            entity.Property(e => e.EncryptedRefreshToken).IsRequired();
+            entity.Property(e => e.AccessTokenExpiresAtUtc).IsRequired();
+            entity.Property(e => e.Scopes).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+            entity.Property(e => e.DisconnectedAtUtc).IsRequired(false);
+
+            entity.HasIndex(e => e.SubscriptionId).IsUnique();
+            entity.HasIndex(e => e.SquareMerchantId);
+
+            entity
+                .HasOne(e => e.ConnectedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ConnectedByUserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<SubscriptionOnboardingState>(entity =>
+        {
+            entity.HasKey(e => e.SubscriptionId);
+            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.CurrentStep).IsRequired();
+            entity.Property(e => e.PrimaryAgentId).IsRequired(false);
+            entity.Property(e => e.StartedAt).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+            entity.Property(e => e.CompletedAt).IsRequired(false);
+
+            entity.HasIndex(e => e.SubscriptionId).IsUnique();
+
+            entity
+                .HasOne(e => e.PrimaryAgent)
+                .WithMany()
+                .HasForeignKey(e => e.PrimaryAgentId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         builder.Entity<Conversation>(entity =>
