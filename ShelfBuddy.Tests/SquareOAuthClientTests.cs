@@ -12,7 +12,7 @@ public class SquareOAuthClientTests
     {
         RoutingHandler handler = new(request =>
         {
-            if (request.Headers.Authorization is { Scheme: "Bearer" })
+            if (IsTokenStatusRequest(request))
             {
                 string tokenStatusPayload = """
                 {
@@ -84,7 +84,7 @@ public class SquareOAuthClientTests
     {
         RoutingHandler handler = new(request =>
         {
-            if (request.Headers.Authorization is { Scheme: "Bearer" })
+            if (IsTokenStatusRequest(request))
             {
                 return new HttpResponseMessage(HttpStatusCode.Unauthorized)
                 {
@@ -134,6 +134,12 @@ public class SquareOAuthClientTests
         {
             Content = new StringContent(payload, Encoding.UTF8, "application/json")
         };
+    }
+
+    private static bool IsTokenStatusRequest(HttpRequestMessage request)
+    {
+        string requestPath = request.RequestUri?.AbsolutePath ?? string.Empty;
+        return requestPath.Contains("/oauth2/token/status", StringComparison.Ordinal);
     }
 
     private sealed class FakeHttpClientFactory : IHttpClientFactory

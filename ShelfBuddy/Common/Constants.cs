@@ -3,7 +3,7 @@ namespace ShelfBuddy;
 public static partial class Constants
 {
     /// <summary>
-    /// Used to prefix table names in EF mappers 
+    /// Used to prefix table names in EF mappers.
     /// </summary>
     public const string TablePrefix = "srbd";
     public const string DefaultDatabaseName = "shelfbuddy";
@@ -17,9 +17,7 @@ public static partial class Constants
     public const int SkipMax = 999;
 
     /// <summary>
-    /// According to email standards (RFC 5321 and RFC 5322), the maximum length of an email address is 320 characters
+    /// According to RFC 5321 and RFC 5322, maximum email length is 320.
     /// </summary>
     public const int EmailMaxLength = 320;
-
-
 }

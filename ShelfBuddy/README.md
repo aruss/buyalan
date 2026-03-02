@@ -9,10 +9,15 @@ Shared library for ShelfBuddy services. Provides common models, configuration he
 - Service discovery + HTTP resilience defaults
 
 **Project Structure**
-- `Models.cs` shared request/response models (story inputs, scene graph)
-- `Constants.cs` shared constants (table prefix, defaults, limits)
-- `Configuration` typed options for MinIO and LiteLLM
-- `Extensions` configuration helpers and service defaults (`AddDefaultServices`, health checks, OTEL)
+- `Messaging` incoming/outgoing message contracts, consumers, conversation store, and messaging DI wiring
+- `Onboarding` onboarding contracts and service logic
+- `Identity` identity/auth helpers and extensions
+- `SquareIntegration` Square OAuth/token/integration services
+- `TelegramIntegration` Telegram client/service/options
+- `Data` EF Core `MainDataContext`, entity contracts, and entities
+- `Common` shared constants, enums, and query/pagination utilities
+- `Configuration` typed options and configuration validation helpers
+- `Extensions` cross-cutting hosting/configuration/string extensions
 
 **Architecture Decisions**
 - TBD (tracked here for future ADR-style notes)

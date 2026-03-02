@@ -1,6 +1,4 @@
-namespace ShelfBuddy.Core.Conversations;
-
-using ShelfBuddy.Consumers;
+namespace ShelfBuddy.Messaging;
 
 public interface IConversationStore
 {

@@ -11,10 +11,9 @@ using Polly;
 using Polly.Retry;
 using ShelfBuddy;
 using ShelfBuddy.Configuration;
-using ShelfBuddy.Consumers;
-using ShelfBuddy.Core.Conversations;
 using ShelfBuddy.Data;
 using ShelfBuddy.Data.Entities;
+using ShelfBuddy.Messaging;
 using ShelfBuddy.TelegramIntegration;
 using System.Net.Http.Headers;
 using System.Text;
@@ -42,7 +41,7 @@ public class Program
         builder.Services.AddServiceDiscovery();
         AppOptions appOptions = builder.Configuration.TryGetAppOptions();
         builder.Services.AddSingleton(appOptions);
-        builder.Services.AddScoped<IConversationStore, ConversationStore>();
+        builder.AddMessagingServices();
 
         #region Database and Migrations 
 

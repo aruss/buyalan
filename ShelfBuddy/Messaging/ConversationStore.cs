@@ -1,7 +1,6 @@
-namespace ShelfBuddy.Core.Conversations;
+namespace ShelfBuddy.Messaging;
 
 using Microsoft.EntityFrameworkCore;
-using ShelfBuddy.Consumers;
 using ShelfBuddy.Data;
 using ShelfBuddy.Data.Entities;
 

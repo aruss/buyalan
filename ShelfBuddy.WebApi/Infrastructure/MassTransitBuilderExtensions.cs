@@ -1,7 +1,7 @@
-﻿namespace ShelfBuddy.WebApi.Infrastructure;
+namespace ShelfBuddy.WebApi.Infrastructure;
 
 using MassTransit;
-using ShelfBuddy.Consumers;
+using ShelfBuddy.Messaging;
 
 public static class MassTransitBuilderExtensions
 {
@@ -16,7 +16,7 @@ public static class MassTransitBuilderExtensions
 
             x.UsingRabbitMq((context, cfg) =>
             {
-                var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq");
+                string? rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq");
                 cfg.Host(rabbitConnectionString);
 
                 // Disable automatic creation since the Initializer handles it

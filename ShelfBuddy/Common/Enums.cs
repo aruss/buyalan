@@ -1,4 +1,4 @@
-﻿namespace ShelfBuddy;
+namespace ShelfBuddy;
 
 using System.Text.Json.Serialization;
 

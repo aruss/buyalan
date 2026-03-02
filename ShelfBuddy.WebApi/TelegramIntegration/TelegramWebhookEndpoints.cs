@@ -5,15 +5,15 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShelfBuddy;
-using ShelfBuddy.Consumers;
 using ShelfBuddy.Data;
 using ShelfBuddy.Data.Entities;
+using ShelfBuddy.Messaging;
 
 public static class TelegramWebhookEndpoints
 {
     public static IEndpointRouteBuilder MapTelegramWebhookEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
-        TelegramOptions options = routeBuilder.ServiceProvider.GetRequiredService<TelegramOptions>(); 
+        TelegramOptions options = routeBuilder.ServiceProvider.GetRequiredService<TelegramOptions>();
 
         routeBuilder
             .MapPost("/webhooks/telegram/{botToken}", IngestTelegramMessage)
@@ -26,13 +26,13 @@ public static class TelegramWebhookEndpoints
 
         return routeBuilder;
     }
-     
+
     private static async Task<Results<Ok, NotFound, UnauthorizedHttpResult, ProblemHttpResult>> IngestTelegramMessage(
-            [FromRoute] string botToken,
-            [FromBody] IngestTelegramMessageInput input,
-            IPublishEndpoint publishEndpoint,
-            MainDataContext dbContext,
-            CancellationToken ct)
+        [FromRoute] string botToken,
+        [FromBody] IngestTelegramMessageInput input,
+        IPublishEndpoint publishEndpoint,
+        MainDataContext dbContext,
+        CancellationToken ct)
     {
         // Filter for text messages; silently acknowledge other update types to prevent Telegram retry loops
         if (input.Message?.Text is not { } text)
@@ -56,7 +56,7 @@ public static class TelegramWebhookEndpoints
 
         IncomingMessage message = new()
         {
-            SubscribtionId = agent.SubscriptionId,
+            SubscriptionId = agent.SubscriptionId,
             AgentId = agent.Id,
             Channel = MessageChannel.Telegram,
             Role = MessageRole.Customer,
