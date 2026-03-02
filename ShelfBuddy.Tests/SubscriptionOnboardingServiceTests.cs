@@ -87,7 +87,7 @@ public class SubscriptionOnboardingServiceTests
     }
 
     [Fact]
-    public async Task UpdateProfileAsync_WhenSquareMissing_ReturnsSquareConnectCurrentStep()
+    public async Task UpdateProfileAsync_WhenSquareMissing_AllowsProgressToChannels()
     {
         MainDataContext dbContext = CreateContext();
         Guid subscriptionId = Guid.NewGuid();
@@ -108,11 +108,11 @@ public class SubscriptionOnboardingServiceTests
 
         UpdateSubscriptionOnboardingStepResult.Success success =
             Assert.IsType<UpdateSubscriptionOnboardingStepResult.Success>(result);
-        Assert.Equal("square_connect", success.State.CurrentStep);
+        Assert.Equal("channels", success.State.CurrentStep);
     }
 
     [Fact]
-    public async Task UpdateChannelsAsync_WhenSquareMissing_ReturnsSquareConnectCurrentStep()
+    public async Task UpdateChannelsAsync_WhenSquareMissing_AdvancesToFinalize()
     {
         MainDataContext dbContext = CreateContext();
         Guid subscriptionId = Guid.NewGuid();
@@ -142,7 +142,7 @@ public class SubscriptionOnboardingServiceTests
 
         UpdateSubscriptionOnboardingStepResult.Success channelsSuccess =
             Assert.IsType<UpdateSubscriptionOnboardingStepResult.Success>(channelsResult);
-        Assert.Equal("square_connect", channelsSuccess.State.CurrentStep);
+        Assert.Equal("finalize", channelsSuccess.State.CurrentStep);
     }
 
     [Fact]

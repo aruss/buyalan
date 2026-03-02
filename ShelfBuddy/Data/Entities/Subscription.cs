@@ -15,8 +15,6 @@ public class Subscription : IEntityWithId, IEntityWithAudit
 
     public SubscriptionOnboardingState? OnboardingState { get; set; }
 
-    public ICollection<SubscriptionOnboardingStepState> OnboardingStepStates { get; set; } = new List<SubscriptionOnboardingStepState>();
-
     public string? StripeCustomerId { get; set; }
 
     public string? StripeSubscriptionId { get; set; }

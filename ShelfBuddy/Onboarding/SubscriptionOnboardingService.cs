@@ -11,11 +11,6 @@ using Telegram.Bot.Exceptions;
 
 public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingService
 {
-    static SubscriptionOnboardingService()
-    {
-        ValidateStepDefinitions();
-    }
-
     private static readonly OnboardingStepDefinition[] StepDefinitions =
     [
         new("square_connect", true, []),
@@ -34,6 +29,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         "ORDERS_WRITE",
         "PAYMENTS_WRITE"
     ];
+
     private const int TelegramWebhookMaxAttempts = 3;
     private const string StepStatusNotStarted = "not_started";
     private const string StepStatusInProgress = "in_progress";
@@ -44,6 +40,11 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
     private readonly MainDataContext dbContext;
     private readonly ITelegramService telegramService;
     private readonly ILogger<SubscriptionOnboardingService> logger;
+
+    static SubscriptionOnboardingService()
+    {
+        ValidateStepDefinitions();
+    }
 
     public SubscriptionOnboardingService(
         MainDataContext dbContext,
@@ -250,6 +251,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
 
         SubscriptionOnboardingState onboardingState = await this.GetOrCreateStateAsync(subscriptionId, cancellationToken);
         OnboardingComputation computed = await this.ComputeStateAsync(subscriptionId, cancellationToken);
+
         OnboardingStepComputation? invitationsStep = computed.StepStates.SingleOrDefault(item =>
             string.Equals(item.Definition.Name, "invitations", StringComparison.Ordinal));
 
@@ -259,12 +261,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return new UpdateSubscriptionOnboardingStepResult.Failure("onboarding_invitations_blocked");
         }
 
-        SubscriptionOnboardingStepState invitationState = await this.GetOrCreateStepStateAsync(subscriptionId, "invitations", cancellationToken);
-        invitationState.Status = StepStatusCompleted;
-        invitationState.CompletedAt = DateTime.UtcNow;
-        invitationState.SkippedAt = null;
-
-        onboardingState.CurrentStep = computed.CurrentStep;
+        onboardingState.CurrentStep = "finalize";
         if (onboardingState.Status == SubscriptionOnboardingStatus.Draft)
         {
             onboardingState.Status = SubscriptionOnboardingStatus.InProgress;
@@ -293,11 +290,6 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         {
             return new UpdateSubscriptionOnboardingStepResult.Failure("onboarding_finalize_incomplete");
         }
-
-        SubscriptionOnboardingStepState finalizeState = await this.GetOrCreateStepStateAsync(subscriptionId, "finalize", cancellationToken);
-        finalizeState.Status = StepStatusCompleted;
-        finalizeState.CompletedAt = DateTime.UtcNow;
-        finalizeState.SkippedAt = null;
 
         onboardingState.Status = SubscriptionOnboardingStatus.Completed;
         onboardingState.CurrentStep = "finalize";
@@ -336,10 +328,25 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         }
 
         SubscriptionOnboardingState onboardingState = await this.GetOrCreateStateAsync(subscriptionId, cancellationToken);
-        SubscriptionOnboardingStepState stepState = await this.GetOrCreateStepStateAsync(subscriptionId, definition.Name, cancellationToken);
-        stepState.Status = StepStatusSkipped;
-        stepState.SkippedAt = DateTime.UtcNow;
-        stepState.CompletedAt = null;
+        OnboardingComputation computed = await this.ComputeStateAsync(subscriptionId, cancellationToken);
+
+        OnboardingStepComputation? stepComputation = computed.StepStates.SingleOrDefault(item =>
+            string.Equals(item.Definition.Name, definition.Name, StringComparison.Ordinal));
+
+        if (stepComputation is not null &&
+            string.Equals(stepComputation.Status, StepStatusBlocked, StringComparison.Ordinal))
+        {
+            return new UpdateSubscriptionOnboardingStepResult.Failure("step_skip_blocked");
+        }
+
+        int currentStepIndex = GetStepIndex(onboardingState.CurrentStep);
+        int targetStepIndex = GetStepIndex(definition.Name);
+
+        if (targetStepIndex >= currentStepIndex)
+        {
+            string nextStep = ResolveNextStepAfterIndex(targetStepIndex, computed.StepStates);
+            onboardingState.CurrentStep = nextStep;
+        }
 
         if (onboardingState.Status == SubscriptionOnboardingStatus.Draft)
         {
@@ -365,8 +372,6 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         onboardingState.CompletedAt = computed.Status == SubscriptionOnboardingStatus.Completed
             ? onboardingState.CompletedAt ?? DateTime.UtcNow
             : null;
-
-        await this.UpsertComputedStepStatesAsync(subscriptionId, computed.StepStates, cancellationToken);
 
         await this.dbContext.SaveChangesAsync(cancellationToken);
         return BuildStateResult(computed);
@@ -415,80 +420,6 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         return onboardingState;
     }
 
-    private async Task<SubscriptionOnboardingStepState> GetOrCreateStepStateAsync(
-        Guid subscriptionId,
-        string step,
-        CancellationToken cancellationToken)
-    {
-        SubscriptionOnboardingStepState? existingState = await this.dbContext.SubscriptionOnboardingStepStates
-            .SingleOrDefaultAsync(
-                item =>
-                    item.SubscriptionId == subscriptionId &&
-                    item.Step == step,
-                cancellationToken);
-
-        if (existingState is not null)
-        {
-            return existingState;
-        }
-
-        SubscriptionOnboardingStepState stepState = new()
-        {
-            SubscriptionId = subscriptionId,
-            Step = step,
-            Status = StepStatusNotStarted
-        };
-
-        this.dbContext.SubscriptionOnboardingStepStates.Add(stepState);
-        return stepState;
-    }
-
-    private async Task UpsertComputedStepStatesAsync(
-        Guid subscriptionId,
-        IReadOnlyCollection<OnboardingStepComputation> stepStates,
-        CancellationToken cancellationToken)
-    {
-        List<SubscriptionOnboardingStepState> existingStepStates = await this.dbContext.SubscriptionOnboardingStepStates
-            .Where(item => item.SubscriptionId == subscriptionId)
-            .ToListAsync(cancellationToken);
-
-        Dictionary<string, SubscriptionOnboardingStepState> existingByStep = existingStepStates
-            .ToDictionary(item => item.Step, StringComparer.Ordinal);
-
-        foreach (OnboardingStepComputation computedStep in stepStates)
-        {
-            if (!existingByStep.TryGetValue(computedStep.Definition.Name, out SubscriptionOnboardingStepState? persistedStep))
-            {
-                persistedStep = new SubscriptionOnboardingStepState
-                {
-                    SubscriptionId = subscriptionId,
-                    Step = computedStep.Definition.Name
-                };
-
-                this.dbContext.SubscriptionOnboardingStepStates.Add(persistedStep);
-                existingByStep[persistedStep.Step] = persistedStep;
-            }
-
-            persistedStep.Status = computedStep.Status;
-
-            if (string.Equals(computedStep.Status, StepStatusCompleted, StringComparison.Ordinal))
-            {
-                persistedStep.CompletedAt ??= DateTime.UtcNow;
-                persistedStep.SkippedAt = null;
-            }
-            else if (string.Equals(computedStep.Status, StepStatusSkipped, StringComparison.Ordinal))
-            {
-                persistedStep.SkippedAt ??= DateTime.UtcNow;
-                persistedStep.CompletedAt = null;
-            }
-            else
-            {
-                persistedStep.CompletedAt = null;
-                persistedStep.SkippedAt = null;
-            }
-        }
-    }
-
     private async Task<Agent?> GetPrimaryAgentAsync(
         SubscriptionOnboardingState onboardingState,
         Guid subscriptionId,
@@ -517,85 +448,77 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
 
         Agent? primaryAgent = await this.GetPrimaryAgentAsync(onboardingState, subscriptionId, cancellationToken);
         Guid? primaryAgentId = primaryAgent?.Id;
-        List<SubscriptionOnboardingStepState> persistedStepStates = await this.dbContext.SubscriptionOnboardingStepStates
-            .Where(item => item.SubscriptionId == subscriptionId)
-            .ToListAsync(cancellationToken);
-
-        Dictionary<string, SubscriptionOnboardingStepState> persistedByStep = persistedStepStates
-            .ToDictionary(item => item.Step, StringComparer.Ordinal);
 
         Dictionary<string, bool> completedByStep = new(StringComparer.Ordinal)
         {
             ["square_connect"] = IsSquareConnectComplete(connection),
             ["profile"] = IsProfileComplete(primaryAgent),
             ["channels"] = IsChannelsComplete(primaryAgent),
-            ["invitations"] = IsPersistedCompleted(persistedByStep, "invitations"),
-            ["finalize"] = IsPersistedCompleted(persistedByStep, "finalize") &&
-                onboardingState.Status == SubscriptionOnboardingStatus.Completed &&
-                onboardingState.CompletedAt.HasValue
+            ["invitations"] =
+                onboardingState.Status == SubscriptionOnboardingStatus.Completed ||
+                string.Equals(onboardingState.CurrentStep, "finalize", StringComparison.Ordinal),
+            ["finalize"] = onboardingState.Status == SubscriptionOnboardingStatus.Completed && onboardingState.CompletedAt.HasValue
         };
 
-        List<OnboardingStepComputation> computedSteps = [];
-        foreach (OnboardingStepDefinition definition in StepDefinitions)
+        int configuredCurrentIndex = GetStepIndex(onboardingState.CurrentStep);
+
+        List<OnboardingStepComputation> baseStepStates = [];
+        for (int index = 0; index < StepDefinitions.Length; index++)
         {
-            bool isCompleted = completedByStep.TryGetValue(definition.Name, out bool completionValue) &&
-                completionValue;
+            OnboardingStepDefinition definition = StepDefinitions[index];
+            bool isCompleted = completedByStep.TryGetValue(definition.Name, out bool completion) && completion;
 
             if (isCompleted)
             {
-                computedSteps.Add(new OnboardingStepComputation(definition, StepStatusCompleted));
-                continue;
-            }
-
-            if (IsPersistedSkipped(persistedByStep, definition.Name))
-            {
-                computedSteps.Add(new OnboardingStepComputation(definition, StepStatusSkipped));
+                baseStepStates.Add(new OnboardingStepComputation(definition, StepStatusCompleted));
                 continue;
             }
 
             bool hasSkippedDependency = definition.DependsOn.Any(dependency =>
             {
-                OnboardingStepComputation? dependencyStep = computedSteps.SingleOrDefault(item =>
+                OnboardingStepComputation? dependencyState = baseStepStates.SingleOrDefault(item =>
                     string.Equals(item.Definition.Name, dependency, StringComparison.Ordinal));
 
-                return dependencyStep is not null &&
-                    string.Equals(dependencyStep.Status, StepStatusSkipped, StringComparison.Ordinal);
+                return dependencyState is not null &&
+                    string.Equals(dependencyState.Status, StepStatusSkipped, StringComparison.Ordinal);
             });
 
             if (hasSkippedDependency)
             {
-                computedSteps.Add(new OnboardingStepComputation(definition, StepStatusSkipped));
+                baseStepStates.Add(new OnboardingStepComputation(definition, StepStatusSkipped));
                 continue;
             }
 
-            bool hasBlockedDependency = definition.DependsOn.Any(dependency =>
+            bool hasUnmetDependency = definition.DependsOn.Any(dependency =>
             {
-                OnboardingStepComputation? dependencyStep = computedSteps.SingleOrDefault(item =>
+                OnboardingStepComputation? dependencyState = baseStepStates.SingleOrDefault(item =>
                     string.Equals(item.Definition.Name, dependency, StringComparison.Ordinal));
 
-                return dependencyStep is null ||
-                    !string.Equals(dependencyStep.Status, StepStatusCompleted, StringComparison.Ordinal);
+                return dependencyState is null ||
+                    !string.Equals(dependencyState.Status, StepStatusCompleted, StringComparison.Ordinal);
             });
 
-            if (hasBlockedDependency)
+            if (hasUnmetDependency)
             {
-                computedSteps.Add(new OnboardingStepComputation(definition, StepStatusBlocked));
+                baseStepStates.Add(new OnboardingStepComputation(definition, StepStatusBlocked));
                 continue;
             }
 
-            computedSteps.Add(new OnboardingStepComputation(definition, StepStatusNotStarted));
+            bool shouldMarkSkipped = definition.IsSkippable &&
+                (configuredCurrentIndex > index || HasCompletedLaterStep(index, completedByStep));
+
+            baseStepStates.Add(new OnboardingStepComputation(
+                definition,
+                shouldMarkSkipped ? StepStatusSkipped : StepStatusNotStarted));
         }
 
-        OnboardingStepComputation? currentStepState = computedSteps.FirstOrDefault(item =>
-            string.Equals(item.Status, StepStatusNotStarted, StringComparison.Ordinal));
-
-        string currentStep = currentStepState?.Definition.Name ?? "finalize";
+        string currentStep = ResolveCurrentStep(onboardingState.CurrentStep, baseStepStates);
 
         List<OnboardingStepComputation> normalizedStepStates = [];
-        foreach (OnboardingStepComputation stepState in computedSteps)
+        foreach (OnboardingStepComputation stepState in baseStepStates)
         {
-            if (currentStepState is not null &&
-                string.Equals(stepState.Definition.Name, currentStepState.Definition.Name, StringComparison.Ordinal))
+            if (string.Equals(stepState.Definition.Name, currentStep, StringComparison.Ordinal) &&
+                string.Equals(stepState.Status, StepStatusNotStarted, StringComparison.Ordinal))
             {
                 normalizedStepStates.Add(new OnboardingStepComputation(stepState.Definition, StepStatusInProgress));
                 continue;
@@ -610,10 +533,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             !string.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal));
 
         bool canFinalize = !hasIncompleteRequiredSteps;
-        bool finalizeComplete = normalizedStepStates.Any(item =>
-            string.Equals(item.Definition.Name, "finalize", StringComparison.Ordinal) &&
-            string.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal));
-
+        bool finalizeComplete = completedByStep["finalize"];
         SubscriptionOnboardingStatus status = ResolveStatus(normalizedStepStates, finalizeComplete);
 
         return new OnboardingComputation(
@@ -621,8 +541,63 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             finalizeComplete ? "finalize" : currentStep,
             primaryAgentId,
             canFinalize,
-            finalizeComplete,
             normalizedStepStates);
+    }
+
+    private static bool HasCompletedLaterStep(int stepIndex, IReadOnlyDictionary<string, bool> completedByStep)
+    {
+        for (int index = stepIndex + 1; index < StepDefinitions.Length; index++)
+        {
+            string stepName = StepDefinitions[index].Name;
+            if (completedByStep.TryGetValue(stepName, out bool isCompleted) && isCompleted)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string ResolveCurrentStep(string configuredCurrentStep, IReadOnlyCollection<OnboardingStepComputation> baseStepStates)
+    {
+        OnboardingStepComputation? configured = baseStepStates.SingleOrDefault(item =>
+            string.Equals(item.Definition.Name, configuredCurrentStep, StringComparison.Ordinal));
+
+        if (configured is not null &&
+            (string.Equals(configured.Status, StepStatusNotStarted, StringComparison.Ordinal) ||
+             string.Equals(configured.Status, StepStatusInProgress, StringComparison.Ordinal)))
+        {
+            return configured.Definition.Name;
+        }
+
+        OnboardingStepComputation? nextNotStarted = baseStepStates.FirstOrDefault(item =>
+            string.Equals(item.Status, StepStatusNotStarted, StringComparison.Ordinal));
+
+        return nextNotStarted?.Definition.Name ?? "finalize";
+    }
+
+    private static int GetStepIndex(string step)
+    {
+        int index = Array.FindIndex(
+            StepDefinitions,
+            item => string.Equals(item.Name, step, StringComparison.Ordinal));
+
+        return index < 0 ? 0 : index;
+    }
+
+    private static string ResolveNextStepAfterIndex(int index, IReadOnlyList<OnboardingStepComputation> states)
+    {
+        for (int currentIndex = index + 1; currentIndex < states.Count; currentIndex++)
+        {
+            string status = states[currentIndex].Status;
+            if (string.Equals(status, StepStatusNotStarted, StringComparison.Ordinal) ||
+                string.Equals(status, StepStatusInProgress, StringComparison.Ordinal))
+            {
+                return states[currentIndex].Definition.Name;
+            }
+        }
+
+        return "finalize";
     }
 
     private static bool IsSquareConnectComplete(SubscriptionSquareConnection? connection)
@@ -672,30 +647,6 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         return value.Trim();
     }
 
-    private static bool IsPersistedCompleted(
-        IReadOnlyDictionary<string, SubscriptionOnboardingStepState> persistedByStep,
-        string step)
-    {
-        if (!persistedByStep.TryGetValue(step, out SubscriptionOnboardingStepState? stepState))
-        {
-            return false;
-        }
-
-        return string.Equals(stepState.Status, StepStatusCompleted, StringComparison.Ordinal);
-    }
-
-    private static bool IsPersistedSkipped(
-        IReadOnlyDictionary<string, SubscriptionOnboardingStepState> persistedByStep,
-        string step)
-    {
-        if (!persistedByStep.TryGetValue(step, out SubscriptionOnboardingStepState? stepState))
-        {
-            return false;
-        }
-
-        return string.Equals(stepState.Status, StepStatusSkipped, StringComparison.Ordinal);
-    }
-
     private static OnboardingStepDefinition? GetStepDefinition(string step)
     {
         return StepDefinitions.SingleOrDefault(item =>
@@ -735,16 +686,14 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return SubscriptionOnboardingStatus.Completed;
         }
 
-        bool allNotStarted = steps.All(item =>
-            string.Equals(item.Status, StepStatusNotStarted, StringComparison.Ordinal) ||
-            string.Equals(item.Status, StepStatusBlocked, StringComparison.Ordinal));
+        bool hasProgress = steps.Any(item =>
+            string.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal) ||
+            string.Equals(item.Status, StepStatusSkipped, StringComparison.Ordinal) ||
+            string.Equals(item.Status, StepStatusInProgress, StringComparison.Ordinal));
 
-        if (allNotStarted)
-        {
-            return SubscriptionOnboardingStatus.Draft;
-        }
-
-        return SubscriptionOnboardingStatus.InProgress;
+        return hasProgress
+            ? SubscriptionOnboardingStatus.InProgress
+            : SubscriptionOnboardingStatus.Draft;
     }
 
     private static OnboardingStateResult BuildStateResult(OnboardingComputation computed)
@@ -893,6 +842,5 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         string CurrentStep,
         Guid? PrimaryAgentId,
         bool CanFinalize,
-        bool FinalizeComplete,
         IReadOnlyList<OnboardingStepComputation> StepStates);
 }
