@@ -1,3 +1,4 @@
+import Link from "next/link";
 import "../globals.css";
 import { OnboardingShell } from "./onboarding-shell";
 
@@ -15,7 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="flex flex-col min-h-screen m-0">
         <header className="h-20 flex items-center px-6 shrink-0">
-          <div className="text-xl font-bold tracking-tight">Shelf<span className="text-zinc-500">Buddy</span></div>
+          <Link href="/" className="text-xl font-bold tracking-tight">Shelf<span className="text-zinc-500">Buddy</span></Link>
         </header>
         <main className="flex-1 flex flex-col justify-center">
           <div className="max-w-xl mx-auto text-center p-6 w-full ">

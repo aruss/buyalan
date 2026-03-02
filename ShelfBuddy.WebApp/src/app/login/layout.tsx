@@ -1,5 +1,7 @@
 import Image from 'next/image'
 import "../globals.css";
+import { Logo } from '../../../public/Logo';
+import Link from 'next/link';
 
 
 export const metadata = {
@@ -27,7 +29,7 @@ export default function RootLayout({
             className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay grayscale" />
 
           <div className="relative z-10 flex flex-col justify-between p-12 lg:p-24 w-full">
-            <div className="text-2xl font-bold tracking-tight text-white">Shelf<span className="text-neutral-400">Buddy</span></div>
+            <Link href="/" className="text-2xl font-bold tracking-tight text-white">Shelf<span className="text-neutral-400">Buddy</span></Link>
 
             <div className="max-w-md">
               <h1 className="text-4xl font-extrabold text-white mb-6 leading-tight">
@@ -49,7 +51,7 @@ export default function RootLayout({
 
           {/* Mobile Header (Only visible on small screens) */}
           <header className="h-20 flex items-center px-8 shrink-0 lg:hidden">
-            <div className="text-xl font-bold tracking-tight">Shelf<span className="text-neutral-500">Buddy</span></div>
+            <Link href="/" className="text-xl font-bold tracking-tight">Shelf<span className="text-neutral-500">Buddy</span></Link>
           </header>
 
           {/* Main Login Content */}

@@ -151,7 +151,10 @@ public static class IdentityEndpoints
                     return TypedResults.Redirect(BuildLoginRedirectUrl(safeReturnUrl, "user_locked_out"));
                 }
 
-                bool existingUserOnboarded = await IsOnboardedAsync(existingUser.Id, dbContext);
+                bool existingUserOnboarded = await IsActiveSubscriptionOnboardedAsync(
+                    existingUser.Id,
+                    dbContext,
+                    httpContext.RequestAborted);
                 await SignInWithOnboardingClaimAsync(signInManager, existingUser, existingUserOnboarded);
                 string existingUserRedirect = ResolvePostLoginRedirectTarget(safeReturnUrl, existingUserOnboarded);
                 return TypedResults.Redirect(existingUserRedirect);
@@ -226,7 +229,10 @@ public static class IdentityEndpoints
                     return TypedResults.Redirect(BuildLoginRedirectUrl(safeReturnUrl, "local_email_not_confirmed"));
                 }
 
-                isOnboarded = await IsOnboardedAsync(applicationUser.Id, dbContext);
+                isOnboarded = await IsActiveSubscriptionOnboardedAsync(
+                    applicationUser.Id,
+                    dbContext,
+                    httpContext.RequestAborted);
             }
 
             IdentityResult addLoginResult = await userManager.AddLoginAsync(applicationUser, externalLoginInfo);
@@ -256,7 +262,10 @@ public static class IdentityEndpoints
                 }
             }
 
-            isOnboarded = await IsOnboardedAsync(applicationUser.Id, dbContext);
+            isOnboarded = await IsActiveSubscriptionOnboardedAsync(
+                applicationUser.Id,
+                dbContext,
+                httpContext.RequestAborted);
             await SignInWithOnboardingClaimAsync(signInManager, applicationUser, isOnboarded);
             string callbackRedirect = ResolvePostLoginRedirectTarget(safeReturnUrl, isOnboarded);
             return TypedResults.Redirect(callbackRedirect);
@@ -300,7 +309,8 @@ public static class IdentityEndpoints
     private static async Task<Results<Ok<CurrentUserResult>, UnauthorizedHttpResult>> GetCurrentUserAsync(
         ClaimsPrincipal user,
         UserManager<ApplicationUser> userManager,
-        MainDataContext dbContext)
+        MainDataContext dbContext,
+        CancellationToken cancellationToken)
     {
         string? userId = userManager.GetUserId(user);
 
@@ -317,19 +327,16 @@ public static class IdentityEndpoints
         }
 
         IList<string> roles = await userManager.GetRolesAsync(applicationUser);
-        Guid? activeSubscriptionId = await dbContext.SubscriptionUsers
-            .Where(membership => membership.UserId == applicationUser.Id)
-            .OrderBy(membership => membership.Role)
-            .ThenBy(membership => membership.CreatedAt)
-            .Select(membership => (Guid?)membership.SubscriptionId)
-            .FirstOrDefaultAsync();
+        Guid? activeSubscriptionId = await GetActiveSubscriptionIdAsync(applicationUser.Id, dbContext, cancellationToken);
+        bool isOnboarded = await IsActiveSubscriptionOnboardedAsync(applicationUser.Id, dbContext, cancellationToken);
 
         return TypedResults.Ok(new CurrentUserResult(
             applicationUser.Id,
             applicationUser.Email ?? "",
             ResolveDisplayName(applicationUser),
             roles.ToArray(),
-            activeSubscriptionId
+            activeSubscriptionId,
+            isOnboarded
         ));
     }
 
@@ -503,16 +510,38 @@ public static class IdentityEndpoints
             : authPath;
     }
 
-    private static async Task<bool> IsOnboardedAsync(Guid userId, MainDataContext dbContext)
+    internal static async Task<Guid?> GetActiveSubscriptionIdAsync(
+        Guid userId,
+        MainDataContext dbContext,
+        CancellationToken cancellationToken = default)
     {
-        bool hasCompletedOnboarding = await (
-            from subscriptionUser in dbContext.SubscriptionUsers
-            join onboardingState in dbContext.SubscriptionOnboardingStates
-                on subscriptionUser.SubscriptionId equals onboardingState.SubscriptionId
-            where subscriptionUser.UserId == userId &&
-                  onboardingState.Status == SubscriptionOnboardingStatus.Completed
-            select subscriptionUser.SubscriptionId
-        ).AnyAsync();
+        Guid? activeSubscriptionId = await dbContext.SubscriptionUsers
+            .Where(membership => membership.UserId == userId)
+            .OrderBy(membership => membership.Role)
+            .ThenBy(membership => membership.CreatedAt)
+            .Select(membership => (Guid?)membership.SubscriptionId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return activeSubscriptionId;
+    }
+
+    internal static async Task<bool> IsActiveSubscriptionOnboardedAsync(
+        Guid userId,
+        MainDataContext dbContext,
+        CancellationToken cancellationToken = default)
+    {
+        Guid? activeSubscriptionId = await GetActiveSubscriptionIdAsync(userId, dbContext, cancellationToken);
+        if (!activeSubscriptionId.HasValue)
+        {
+            return false;
+        }
+
+        bool hasCompletedOnboarding = await dbContext.SubscriptionOnboardingStates
+            .AnyAsync(
+                state =>
+                    state.SubscriptionId == activeSubscriptionId.Value &&
+                    state.Status == SubscriptionOnboardingStatus.Completed,
+                cancellationToken);
 
         return hasCompletedOnboarding;
     }

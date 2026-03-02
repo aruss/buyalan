@@ -1,6 +1,9 @@
 namespace ShelfBuddy.Tests;
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using ShelfBuddy.Data;
+using ShelfBuddy.Data.Entities;
 using ShelfBuddy.WebApi.Identity;
 using System.Security.Claims;
 
@@ -107,9 +110,119 @@ public class IdentityEndpointsSecurityTests
             redirectUrl);
     }
 
+    [Fact]
+    public async Task IsActiveSubscriptionOnboardedAsync_WhenActiveIncompleteAndAnotherCompleted_ReturnsFalse()
+    {
+        MainDataContext dbContext = CreateContext();
+        Guid userId = Guid.NewGuid();
+        Guid activeSubscriptionId = Guid.NewGuid();
+        Guid secondarySubscriptionId = Guid.NewGuid();
+
+        SeedUserAndSubscription(dbContext, userId, activeSubscriptionId, SubscriptionUserRole.Owner);
+        SeedUserAndSubscription(dbContext, userId, secondarySubscriptionId, SubscriptionUserRole.Member);
+
+        dbContext.SubscriptionOnboardingStates.Add(new SubscriptionOnboardingState
+        {
+            SubscriptionId = activeSubscriptionId,
+            Status = SubscriptionOnboardingStatus.InProgress,
+            CurrentStep = "square_connect",
+            StartedAt = DateTime.UtcNow
+        });
+
+        dbContext.SubscriptionOnboardingStates.Add(new SubscriptionOnboardingState
+        {
+            SubscriptionId = secondarySubscriptionId,
+            Status = SubscriptionOnboardingStatus.Completed,
+            CurrentStep = "finalize",
+            StartedAt = DateTime.UtcNow,
+            CompletedAt = DateTime.UtcNow
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        bool isOnboarded = await IdentityEndpoints.IsActiveSubscriptionOnboardedAsync(userId, dbContext);
+
+        Assert.False(isOnboarded);
+    }
+
+    [Fact]
+    public async Task IsActiveSubscriptionOnboardedAsync_WhenActiveCompleted_ReturnsTrue()
+    {
+        MainDataContext dbContext = CreateContext();
+        Guid userId = Guid.NewGuid();
+        Guid activeSubscriptionId = Guid.NewGuid();
+        Guid secondarySubscriptionId = Guid.NewGuid();
+
+        SeedUserAndSubscription(dbContext, userId, activeSubscriptionId, SubscriptionUserRole.Owner);
+        SeedUserAndSubscription(dbContext, userId, secondarySubscriptionId, SubscriptionUserRole.Member);
+
+        dbContext.SubscriptionOnboardingStates.Add(new SubscriptionOnboardingState
+        {
+            SubscriptionId = activeSubscriptionId,
+            Status = SubscriptionOnboardingStatus.Completed,
+            CurrentStep = "finalize",
+            StartedAt = DateTime.UtcNow,
+            CompletedAt = DateTime.UtcNow
+        });
+
+        dbContext.SubscriptionOnboardingStates.Add(new SubscriptionOnboardingState
+        {
+            SubscriptionId = secondarySubscriptionId,
+            Status = SubscriptionOnboardingStatus.InProgress,
+            CurrentStep = "square_connect",
+            StartedAt = DateTime.UtcNow
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        bool isOnboarded = await IdentityEndpoints.IsActiveSubscriptionOnboardedAsync(userId, dbContext);
+
+        Assert.True(isOnboarded);
+    }
+
     private static ClaimsPrincipal CreatePrincipal(params Claim[] claims)
     {
         ClaimsIdentity identity = new(claims, "test");
         return new ClaimsPrincipal(identity);
+    }
+
+    private static MainDataContext CreateContext()
+    {
+        DbContextOptions<MainDataContext> options = new DbContextOptionsBuilder<MainDataContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+            .Options;
+
+        return new MainDataContext(options);
+    }
+
+    private static void SeedUserAndSubscription(
+        MainDataContext dbContext,
+        Guid userId,
+        Guid subscriptionId,
+        SubscriptionUserRole role)
+    {
+        bool userExists = dbContext.Users.Any(user => user.Id == userId);
+        if (!userExists)
+        {
+            dbContext.Users.Add(new ApplicationUser
+            {
+                Id = userId,
+                DisplayName = "Identity Test User",
+                UserName = "identity-test@example.com",
+                Email = "identity-test@example.com"
+            });
+        }
+
+        dbContext.Subscriptions.Add(new Subscription
+        {
+            Id = subscriptionId
+        });
+
+        dbContext.SubscriptionUsers.Add(new SubscriptionUser
+        {
+            SubscriptionId = subscriptionId,
+            UserId = userId,
+            Role = role
+        });
     }
 }

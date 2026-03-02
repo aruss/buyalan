@@ -1,7 +1,5 @@
 "use client"
 
-import { Divider } from "@/components/admin/Divider"
-import { Input } from "@/components/admin/Input"
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +21,7 @@ import { usePathname } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react"
 import { Logo } from "../../../../../public/Logo"
 import { UserProfile } from "./UserProfile"
+import Link from "next/link"
 
 type NavigationChild = {
   name: string
@@ -186,7 +185,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           </span>
           <div>
             <span className="block text-sm font-semibold text-gray-900 dark:text-gray-50">
-              <div className="text-xl font-bold tracking-tight">Shelf<span className="text-zinc-500">Buddy</span></div>
+              <Link href="/admin" className="text-xl font-bold tracking-tight">Shelf<span className="text-zinc-500">Buddy</span></Link>
             </span>
 
           </div>
@@ -262,10 +261,10 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-       
+
       </SidebarContent>
       <div className="border-t border-gray-200 dark:border-gray-800" />
-      <SidebarFooter>        
+      <SidebarFooter>
         <UserProfile />
       </SidebarFooter>
     </Sidebar>

@@ -44,3 +44,4 @@ hosttrace.txt
 .dotnet
 .out
 .nuget
+openapi-ts-error*

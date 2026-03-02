@@ -1,0 +1,98 @@
+# ~/.codex/rules/default.rules
+# Allow-only policy: explicitly permit only safe commands.
+
+# -------------------------
+# Git: read-only + safe.directory fix
+# -------------------------
+
+# Allows: git config --global --add safe.directory <PATH>
+prefix_rule(
+  pattern = ["git", "config", "--global", "--add", "safe.directory"],
+  decision = "allow",
+  justification = "Allow setting git safe.directory so read-only git commands can run.",
+)
+
+# Allows: git config --global --get-all safe.directory
+prefix_rule(
+  pattern = ["git", "config", "--global", "--get-all", "safe.directory"],
+  decision = "allow",
+  justification = "Read safe.directory list.",
+)
+
+# Optional (read-only): some workflows query git config values
+prefix_rule(
+  pattern = ["git", "config", "--global", "--list"],
+  decision = "allow",
+  justification = "Read git global config (read-only).",
+)
+prefix_rule(
+  pattern = ["git", "config", "--global", "--get"],
+  decision = "allow",
+  justification = "Read a git global config value (read-only).",
+)
+
+# Read-only inspection
+prefix_rule(pattern = ["git", "status"],    decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "diff"],      decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "log"],       decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "show"],      decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "rev-parse"], decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "cat-file"],  decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "ls-files"],  decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "grep"],      decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "blame"],     decision = "allow", justification = "Read-only")
+prefix_rule(pattern = ["git", "describe"],  decision = "allow", justification = "Read-only")
+
+# Remote read-only queries only (no add/set-url/remove)
+prefix_rule(pattern = ["git", "remote", "-v"], decision = "allow", justification = "Read-only remote listing")
+prefix_rule(pattern = ["git", "remote", "show"], decision = "allow", justification = "Read-only remote details")
+prefix_rule(pattern = ["git", "ls-remote"], decision = "allow", justification = "Read-only remote refs query")
+
+# Optional: allow fetching (downloads only; still blocks push/delete/remote edits)
+# prefix_rule(pattern = ["git", "fetch"], decision = "allow", justification = "Network read: fetch only")
+
+# -------------------------
+# NuGet package downloads
+# -------------------------
+
+# SDK-style projects (recommended): downloads packages from configured feeds
+prefix_rule(
+  pattern = ["dotnet", "restore"],
+  decision = "allow",
+  justification = "Restore NuGet packages (downloads dependencies).",
+)
+
+# Legacy / nuget.exe workflows: downloads packages
+prefix_rule(
+  pattern = ["nuget", "restore"],
+  decision = "allow",
+  justification = "NuGet CLI restore (downloads packages).",
+)
+
+# -------------------------
+# Chrome (for DevTools MCP)
+# -------------------------
+# Prefer tight allow: launch Chrome directly (adjust path if needed).
+prefix_rule(
+  pattern = [r"C:\Program Files\Google\Chrome\Application\chrome.exe"],
+  decision = "allow",
+  justification = "Allow launching Chrome for DevTools MCP.",
+)
+
+# If you have 32-bit Chrome, use this instead (uncomment and comment the Program Files line above):
+# prefix_rule(
+#   pattern = [r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"],
+#   decision = "allow",
+#   justification = "Allow launching Chrome (x86) for DevTools MCP.",
+# )
+
+# Allow running the DevTools MCP server via npx (if you use it)
+prefix_rule(
+  pattern = ["npx", "chrome-devtools-mcp@latest"],
+  decision = "allow",
+  justification = "Run Chrome DevTools MCP server via npx.",
+)
+
+# NOTE:
+# - No "git commit/push/remote set-url/branch delete/etc." is allowed because it's not allowlisted.
+# - dotnet build/test are intentionally NOT allowlisted (they can execute arbitrary build/test code).

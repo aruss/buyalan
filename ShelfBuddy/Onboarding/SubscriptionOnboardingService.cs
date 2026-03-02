@@ -392,7 +392,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
 
         string currentStep = finalizeComplete
             ? "finalize"
-            : ResolveEarliestIncompleteStep(
+            : ResolveCurrentStep(
                 squareConnectComplete,
                 profileComplete,
                 channelsComplete,
@@ -464,7 +464,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         return value.Trim();
     }
 
-    private static string ResolveEarliestIncompleteStep(
+    private static string ResolveCurrentStep(
         bool squareConnectComplete,
         bool profileComplete,
         bool channelsComplete,

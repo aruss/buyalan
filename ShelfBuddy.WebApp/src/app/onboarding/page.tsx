@@ -61,7 +61,13 @@ type StepMessage = {
     text: string;
 };
 
+type OnboardingProfileDraft = {
+    agentName: string;
+    agentPersonality: AgentPersonality;
+};
+
 const E164_LIKE_REGEX = /^\+[1-9]\d{7,14}$/;
+const ONBOARDING_PROFILE_DRAFT_KEY_PREFIX = "onboarding-profile-draft";
 
 const profileSchema = z.object({
     agentName: z.string().trim().min(1, "Agent name is required."),
@@ -131,6 +137,15 @@ const mapApiStepToUiStep = (apiStep: string): OnboardingStep => {
     }
 };
 
+const isSquareConnectedFromState = (state: GetSubscriptionOnboardingStateResult | null, fallback: boolean): boolean => {
+    if (!state) {
+        return fallback;
+    }
+
+    const squareConnectStep = state.steps.find((item) => item.step === "square_connect");
+    return squareConnectStep?.status === "completed";
+};
+
 const resolveApiErrorMessage = (error: unknown, fallback: string): string => {
     if (error && typeof error === "object") {
         const errorRecord = error as Record<string, unknown>;
@@ -160,6 +175,49 @@ const mapPersonalityToApi = (personality: AgentPersonality): ApiAgentPersonality
 };
 
 const getRandomName = (names = ["Liam", "Olivia", "Noah", "Emma", "Oliver", "Ava", "Elijah", "Alan", "Charlotte", "William", "Sophia"]) => names[Math.floor(Math.random() * names.length)];
+
+const getProfileDraftStorageKey = (subscriptionId: string): string => {
+    return `${ONBOARDING_PROFILE_DRAFT_KEY_PREFIX}:${subscriptionId}`;
+};
+
+const readProfileDraft = (subscriptionId: string): OnboardingProfileDraft | null => {
+    if (typeof window === "undefined") {
+        return null;
+    }
+
+    const rawDraft = window.localStorage.getItem(getProfileDraftStorageKey(subscriptionId));
+    if (!rawDraft) {
+        return null;
+    }
+
+    try {
+        const parsedDraft = JSON.parse(rawDraft) as Partial<OnboardingProfileDraft>;
+        if (typeof parsedDraft.agentName !== "string") {
+            return null;
+        }
+
+        if (parsedDraft.agentPersonality !== "casual" &&
+            parsedDraft.agentPersonality !== "balanced" &&
+            parsedDraft.agentPersonality !== "business") {
+            return null;
+        }
+
+        return {
+            agentName: parsedDraft.agentName,
+            agentPersonality: parsedDraft.agentPersonality
+        };
+    } catch {
+        return null;
+    }
+};
+
+const writeProfileDraft = (subscriptionId: string, draft: OnboardingProfileDraft): void => {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    window.localStorage.setItem(getProfileDraftStorageKey(subscriptionId), JSON.stringify(draft));
+};
 
 const OnboardingPage = (): ReactElement => {
     const router = useRouter();
@@ -228,6 +286,16 @@ const OnboardingPage = (): ReactElement => {
         });
     };
 
+    const applyProfileDraft = useCallback((draft: OnboardingProfileDraft): void => {
+        setFormData((prev) => ({
+            ...prev,
+            agentName: draft.agentName,
+            agentPersonality: draft.agentPersonality
+        }));
+        profileForm.setValue("agentName", draft.agentName, { shouldDirty: false });
+        profileForm.setValue("agentPersonality", draft.agentPersonality, { shouldDirty: false });
+    }, [profileForm]);
+
     const loadOnboardingStateAsync = useCallback(async (id: string): Promise<GetSubscriptionOnboardingStateResult> => {
         const onboardingResponse = await getOnboardingSubscriptionsBySubscriptionIdState({
             path: { subscriptionId: id },
@@ -286,12 +354,19 @@ const OnboardingPage = (): ReactElement => {
         formDataRef.current = formData;
     }, [formData]);
 
+    const isSquareConnected = isSquareConnectedFromState(onboardingState, formData.squareConnected);
+
     useEffect(() => {
         let isCancelled = false;
 
         const initializeAsync = async (): Promise<void> => {
             try {
                 if (isSessionLoading) {
+                    return;
+                }
+
+                if (currentUser?.isOnboarded === true) {
+                    router.replace("/admin");
                     return;
                 }
 
@@ -311,6 +386,10 @@ const OnboardingPage = (): ReactElement => {
 
                 setSubscriptionId(activeSubscriptionId);
                 const state = await loadOnboardingStateAsync(activeSubscriptionId);
+                const profileDraft = readProfileDraft(activeSubscriptionId);
+                if (profileDraft) {
+                    applyProfileDraft(profileDraft);
+                }
                 setStep(mapApiStepToUiStep(state.currentStep));
 
                 const squareConnectStatus = searchParams.get("squareConnect");
@@ -342,7 +421,15 @@ const OnboardingPage = (): ReactElement => {
         return () => {
             isCancelled = true;
         };
-    }, [currentUser?.activeSubscriptionId, isSessionLoading, loadOnboardingStateAsync, router, searchParams, sessionErrorMessage]);
+    }, [applyProfileDraft, currentUser?.activeSubscriptionId, isSessionLoading, loadOnboardingStateAsync, router, searchParams, sessionErrorMessage]);
+
+    useEffect(() => {
+        if (step !== 4 || isSquareConnected) {
+            return;
+        }
+
+        router.replace("/admin");
+    }, [isSquareConnected, router, step]);
 
     const nextStep = (): void => {
         setStep((prev) => {
@@ -352,7 +439,7 @@ const OnboardingPage = (): ReactElement => {
 
     const handleSkipWithWarning = (currentStep: OnboardingStep): void => {
         nextStep();
-        setMessage(currentStep, "info", "You can continue, but required setup must be completed before finalizing.");
+        setMessage(currentStep, "info", "Continue setup later. You can always return from the dashboard.");
     };
 
     const handleConnectSquare = async (): Promise<void> => {
@@ -383,11 +470,23 @@ const OnboardingPage = (): ReactElement => {
         const nextValue = e.target.value;
         setFormData({ ...formData, agentName: nextValue });
         profileForm.setValue("agentName", nextValue, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+        if (subscriptionId) {
+            writeProfileDraft(subscriptionId, {
+                agentName: nextValue,
+                agentPersonality: formData.agentPersonality
+            });
+        }
     };
 
     const handlePersonalityChange = (type: AgentPersonality): void => {
         setFormData({ ...formData, agentPersonality: type });
         profileForm.setValue("agentPersonality", type, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+        if (subscriptionId) {
+            writeProfileDraft(subscriptionId, {
+                agentName: formData.agentName,
+                agentPersonality: type
+            });
+        }
     };
 
     const handleMemberChange = (index: number, value: string): void => {
@@ -449,6 +548,17 @@ const OnboardingPage = (): ReactElement => {
             });
 
             const state = await refreshOnboardingStateAsync(subscriptionId);
+            writeProfileDraft(subscriptionId, {
+                agentName: formData.agentName,
+                agentPersonality: formData.agentPersonality
+            });
+
+            if (!isSquareConnectedFromState(state, formData.squareConnected)) {
+                setStep(3);
+                setMessage(2, "info", "Profile saved. Continue with channels or skip for now.");
+                return;
+            }
+
             setStep(mapApiStepToUiStep(state.currentStep));
         } catch (error: unknown) {
             setMessage(2, "error", resolveApiErrorMessage(error, "Unable to save agent profile."));
@@ -499,6 +609,11 @@ const OnboardingPage = (): ReactElement => {
             return;
         }
 
+        if (!isSquareConnected) {
+            router.replace("/admin");
+            return;
+        }
+
         if (validateTeamInputs) {
             const isValid = await teamForm.trigger();
             if (!isValid) {
@@ -536,6 +651,11 @@ const OnboardingPage = (): ReactElement => {
     };
 
     const skipInvites = (): void => {
+        if (!isSquareConnected) {
+            router.replace("/admin");
+            return;
+        }
+
         void runCompleteOnboardingAsync(false);
     };
 
@@ -591,7 +711,7 @@ const OnboardingPage = (): ReactElement => {
                             >
                                 Skip for now
                             </button>
-                            <div className="text-xs pt-4 text-slate-400">Square must be linked for everything to work properly.</div>
+                            <div className="text-xs pt-4 text-slate-400">You can skip now to explore. Connect Square to activate ShelfBuddy.</div>
                             {stepMessages[1] ? (
                                 <div className={`text-xs pt-2 ${stepMessages[1]?.kind === "error" ? "text-red-500" : "text-slate-500"}`}>
                                     {stepMessages[1]?.text}
@@ -777,7 +897,7 @@ const OnboardingPage = (): ReactElement => {
                     </div>
                 )}
 
-                {step === 4 && (
+                {step === 4 && isSquareConnected && (
                     <div className="space-y-8 text-center">
                         <div className="space-y-4">
                             <h2 className="text-3xl font-extrabold tracking-tight">Invite Team.</h2>

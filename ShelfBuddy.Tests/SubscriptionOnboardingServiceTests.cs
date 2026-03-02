@@ -87,6 +87,65 @@ public class SubscriptionOnboardingServiceTests
     }
 
     [Fact]
+    public async Task UpdateProfileAsync_WhenSquareMissing_ReturnsSquareConnectCurrentStep()
+    {
+        MainDataContext dbContext = CreateContext();
+        Guid subscriptionId = Guid.NewGuid();
+        Guid userId = Guid.NewGuid();
+        await SeedSubscriptionMemberAsync(dbContext, subscriptionId, userId);
+
+        SubscriptionOnboardingService service = CreateService(dbContext);
+        CreateSubscriptionOnboardingAgentResult createResult = await service.CreatePrimaryAgentAsync(subscriptionId, userId);
+        CreateSubscriptionOnboardingAgentResult.Success createSuccess =
+            Assert.IsType<CreateSubscriptionOnboardingAgentResult.Success>(createResult);
+
+        UpdateSubscriptionOnboardingStepResult result = await service.UpdateProfileAsync(
+            new UpdateSubscriptionOnboardingProfileInput(
+                createSuccess.AgentId,
+                userId,
+                "Shelf Buddy",
+                AgentPersonality.Balanced));
+
+        UpdateSubscriptionOnboardingStepResult.Success success =
+            Assert.IsType<UpdateSubscriptionOnboardingStepResult.Success>(result);
+        Assert.Equal("square_connect", success.State.CurrentStep);
+    }
+
+    [Fact]
+    public async Task UpdateChannelsAsync_WhenSquareMissing_ReturnsSquareConnectCurrentStep()
+    {
+        MainDataContext dbContext = CreateContext();
+        Guid subscriptionId = Guid.NewGuid();
+        Guid userId = Guid.NewGuid();
+        await SeedSubscriptionMemberAsync(dbContext, subscriptionId, userId);
+
+        SubscriptionOnboardingService service = CreateService(dbContext);
+        CreateSubscriptionOnboardingAgentResult createResult = await service.CreatePrimaryAgentAsync(subscriptionId, userId);
+        CreateSubscriptionOnboardingAgentResult.Success createSuccess =
+            Assert.IsType<CreateSubscriptionOnboardingAgentResult.Success>(createResult);
+
+        UpdateSubscriptionOnboardingStepResult profileResult = await service.UpdateProfileAsync(
+            new UpdateSubscriptionOnboardingProfileInput(
+                createSuccess.AgentId,
+                userId,
+                "Shelf Buddy",
+                AgentPersonality.Business));
+        Assert.IsType<UpdateSubscriptionOnboardingStepResult.Success>(profileResult);
+
+        UpdateSubscriptionOnboardingStepResult channelsResult = await service.UpdateChannelsAsync(
+            new UpdateSubscriptionOnboardingChannelsInput(
+                createSuccess.AgentId,
+                userId,
+                null,
+                "telegram-token",
+                null));
+
+        UpdateSubscriptionOnboardingStepResult.Success channelsSuccess =
+            Assert.IsType<UpdateSubscriptionOnboardingStepResult.Success>(channelsResult);
+        Assert.Equal("square_connect", channelsSuccess.State.CurrentStep);
+    }
+
+    [Fact]
     public async Task FinalizeAsync_WhenAllStepsCompleted_ReturnsCompletedState()
     {
         MainDataContext dbContext = CreateContext();

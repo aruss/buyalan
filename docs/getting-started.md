@@ -8,6 +8,15 @@ This guide describes the fastest local path to run ShelfBuddy and access the cor
 - Node.js and Yarn (for `ShelfBuddy.WebApp`)
 - Docker Desktop (for local infrastructure containers)
 
+## setup git
+
+   git config --global --add safe.directory .
+
+## codex setup 
+
+   codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
+
+
 ## Local Configuration
 
 1. Ensure local environment values are present in `.env` (solution root).
@@ -36,3 +45,4 @@ This starts the Aspire host and orchestrates local services.
 - Configuration contract details: [Configuration Reference](./configuration-reference.md)
 - Integration-specific credential setup: [Square App Setup](./square-app-setup.md)
 - Webhook tunnel setup: [Setup Webhooks](./setup-webhooks.md)
+

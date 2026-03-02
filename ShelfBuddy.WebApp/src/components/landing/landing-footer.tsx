@@ -6,9 +6,9 @@ export const LandingFooter = (): ReactElement => {
         <footer className="border-t border-zinc-800 bg-black py-16 text-white">
             <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 md:grid-cols-4">
                 <div className="md:col-span-2">
-                    <div className="mb-4 text-xl font-bold tracking-tight">
+                    <Link href="/" className="mb-4 text-xl font-bold tracking-tight">
                         Shelf<span className="text-zinc-500">Buddy</span>
-                    </div>
+                    </Link>
                     <p className="mb-6 max-w-sm text-sm text-zinc-500">
                         Empowering Square merchants with autonomous conversational sales.
                     </p>

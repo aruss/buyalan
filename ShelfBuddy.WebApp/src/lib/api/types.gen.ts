@@ -44,6 +44,7 @@ export type CurrentUserResult = {
     displayName: string;
     roles: Array<string>;
     activeSubscriptionId: null | string;
+    isOnboarded: boolean;
 };
 
 export type DeleteSubscriptionSquareConnectionResult = {
@@ -173,10 +174,15 @@ export type StartSubscriptionSquareConnectAuthorizeResult = {
     authorizeUrl: string;
 };
 
+export type TelegramChatInput = {
+    id?: number;
+};
+
 export type TelegramMessageInput = {
     text?: null | string;
     date?: number;
     from?: null | TelegramUserInput;
+    chat?: null | TelegramChatInput;
 };
 
 export type TelegramUserInput = {
