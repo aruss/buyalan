@@ -126,7 +126,7 @@ if (!String.IsNullOrEmpty(ngrokDomain))
     .WithEnvironment("NODE_OPTIONS", "--inspect=0.0.0.0:9229");
 */
 
-if (false)
+if (true)
 {
     // if WebApp run is via yarn/npm, use AddExecutable
     var webapp = builder.AddExecutable("webapp", "yarn.cmd", "../ShelfBuddy.WebApp", "dev")
