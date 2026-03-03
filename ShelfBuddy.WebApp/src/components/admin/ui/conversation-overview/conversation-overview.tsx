@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/admin/Button"
-import { useIsMobile } from "@/lib/useMobile"
+import { useMobileState } from "@/lib/useMobile"
 import { cx } from "@/lib/utils"
 import { ChevronLeft } from "lucide-react"
 import { ChatInfoPanel } from "./chat-info-panel"
@@ -10,18 +10,20 @@ import { ConversationListPanel } from "./conversation-list-panel"
 import { useEffect, useMemo, useState } from "react"
 import { chatInfo, ChatInfo, conversations, messages } from "@/data/data"
 
-
+type MobileView = "list" | "chat" | "info"
 
 export function ConversationOverview() {
-  const fallbackConversation = conversations[0]
-  const fallbackChatInfo = chatInfo[0]
+  const fallbackConversation = conversations[0] ?? null
+  const fallbackChatInfo = chatInfo[0] ?? null
+  const hasRequiredData = fallbackConversation !== null && fallbackChatInfo !== null
 
-  const isMobile = useIsMobile()
-  const [activeConversationId, setActiveConversationId] = useState(fallbackConversation.id)
+  const { isMobile, isResolved } = useMobileState()
+  const [activeConversationId, setActiveConversationId] = useState(() => {
+    return fallbackConversation?.id ?? ""
+  })
   const [searchQuery, setSearchQuery] = useState("")
   const [agentActive, setAgentActive] = useState(true)
-  const [mobileView, setMobileView] = useState<"list" | "chat" | "info">("list")
-
+  const [mobileView, setMobileView] = useState<MobileView>("list")
 
   const filteredConversations = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
@@ -42,34 +44,63 @@ export function ConversationOverview() {
   }, [searchQuery])
 
   useEffect(() => {
+    if (!hasRequiredData) {
+      return
+    }
+
     const hasActiveConversation = filteredConversations.some((conversation) => {
       return conversation.id === activeConversationId
-    }); 
-    
+    })
+
     if (!hasActiveConversation && filteredConversations.length > 0) {
       setActiveConversationId(filteredConversations[0].id)
     }
-  }, [activeConversationId, filteredConversations])
+  }, [activeConversationId, filteredConversations, hasRequiredData])
 
   useEffect(() => {
+    if (!isResolved) {
+      return
+    }
+
     if (!isMobile) {
       setMobileView("list")
     }
-  }, [isMobile])
+  }, [isMobile, isResolved])
 
   const activeConversation =
-    conversations.find((conversation) => {
-      return conversation.id === activeConversationId
-    }) ?? fallbackConversation
+    hasRequiredData
+      ? conversations.find((conversation) => {
+          return conversation.id === activeConversationId
+        }) ?? fallbackConversation
+      : null
 
-  const activeMessages = messages.filter((message) => {
-    return message.convoId === activeConversation.id
-  })
+  const activeMessages = activeConversation
+    ? messages.filter((message) => {
+        return message.convoId === activeConversation.id
+      })
+    : []
 
-  const activeChatInfo: ChatInfo =
-    chatInfo.find((chatInfo) => {
-      return chatInfo.conversationId === activeConversation.id
-    }) ?? fallbackChatInfo
+  const activeChatInfo: ChatInfo | null =
+    activeConversation !== null
+      ? chatInfo.find((chatInfoItem) => {
+          return chatInfoItem.conversationId === activeConversation.id
+        }) ?? fallbackChatInfo
+      : null
+
+  if (!hasRequiredData || activeConversation === null || activeChatInfo === null) {
+    return (
+      <section className="p-4 text-sm text-gray-500 dark:text-gray-400">
+        Conversation data is not available.
+      </section>
+    )
+  }
+
+  if (!isResolved) {
+    return null
+  }
+
+  const resolvedActiveConversation = activeConversation
+  const resolvedActiveChatInfo = activeChatInfo
 
   const onSelectConversation = (conversationId: string) => {
     setActiveConversationId(conversationId)
@@ -78,30 +109,101 @@ export function ConversationOverview() {
     }
   }
 
-  
-  if (!fallbackConversation || !fallbackChatInfo) {
+  if (isMobile) {
     return (
-      <section className="p-4 text-sm text-gray-500 dark:text-gray-400">
-        Conversation data is not available.
+      <section
+        aria-label="Conversation overview"
+        className="h-[calc(100svh-4rem)] overflow-hidden"
+      >
+        <div className="relative h-full min-h-0 overflow-hidden md:hidden">
+          <div
+            className={cx(
+              "absolute inset-0 transition-transform duration-300 ease-out",
+              mobileView === "list" ? "translate-x-0" : "-translate-x-full",
+            )}
+          >
+            <ConversationListPanel
+              conversations={filteredConversations}
+              activeConversationId={resolvedActiveConversation.id}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
+              onSelectConversation={onSelectConversation}
+            />
+          </div>
+          <div
+            className={cx(
+              "absolute inset-0 transition-transform duration-300 ease-out",
+              mobileView === "chat"
+                ? "translate-x-0"
+                : mobileView === "list"
+                  ? "translate-x-full"
+                  : "-translate-x-full",
+            )}
+          >
+            <ChatPanel
+              conversation={resolvedActiveConversation}
+              messages={activeMessages}
+              agentActive={agentActive}
+              isMobile
+              onAgentToggle={() => {
+                setAgentActive((currentValue) => !currentValue)
+              }}
+              onBackToList={() => {
+                setMobileView("list")
+              }}
+              onOpenInfo={() => {
+                setMobileView("info")
+              }}
+            />
+          </div>
+          <div
+            className={cx(
+              "absolute inset-0 transition-transform duration-300 ease-out",
+              mobileView === "info" ? "translate-x-0" : "translate-x-full",
+            )}
+          >
+            <section className="flex h-full min-h-0 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 dark:border-gray-800 dark:bg-gray-925">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="!p-2"
+                  onClick={() => {
+                    setMobileView("chat")
+                  }}
+                >
+                  <ChevronLeft className="size-4" aria-hidden="true" />
+                  <span className="sr-only">Back to chat</span>
+                </Button>
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+                  Chat Info
+                </h2>
+              </header>
+              <div className="min-h-0 flex-1">
+                <ChatInfoPanel chatInfo={resolvedActiveChatInfo} />
+              </div>
+            </section>
+          </div>
+        </div>
       </section>
     )
   }
-  
+
   return (
     <section
       aria-label="Conversation overview"
       className="h-[calc(100svh-4rem)] overflow-hidden md:overflow-x-auto"
     >
-      <div className="hidden h-full min-h-0 md:grid md:grid-cols-[20rem_minmax(24rem,1fr)_22rem]">
+      <div className="h-full min-h-0 grid-cols-[20rem_minmax(24rem,1fr)_22rem] md:grid">
         <ConversationListPanel
           conversations={filteredConversations}
-          activeConversationId={activeConversation.id}
+          activeConversationId={resolvedActiveConversation.id}
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
           onSelectConversation={onSelectConversation}
         />
         <ChatPanel
-          conversation={activeConversation}
+          conversation={resolvedActiveConversation}
           messages={activeMessages}
           agentActive={agentActive}
           isMobile={false}
@@ -109,79 +211,7 @@ export function ConversationOverview() {
             setAgentActive((currentValue) => !currentValue)
           }}
         />
-        <ChatInfoPanel chatInfo={activeChatInfo} />
-      </div>
-
-      <div className="relative h-full min-h-0  md:hidden">
-        <div
-          className={cx(
-            "absolute inset-0 transition-transform duration-300 ease-out",
-            mobileView === "list" ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          <ConversationListPanel
-            conversations={filteredConversations}
-            activeConversationId={activeConversation.id}
-            searchQuery={searchQuery}
-            onSearchQueryChange={setSearchQuery}
-            onSelectConversation={onSelectConversation}
-          />
-        </div>
-        <div
-          className={cx(
-            "absolute inset-0 transition-transform duration-300 ease-out",
-            mobileView === "chat"
-              ? "translate-x-0"
-              : mobileView === "list"
-                ? "translate-x-full"
-                : "-translate-x-full",
-          )}
-        >
-          <ChatPanel
-            conversation={activeConversation}
-            messages={activeMessages}
-            agentActive={agentActive}
-            isMobile
-            onAgentToggle={() => {
-              setAgentActive((currentValue) => !currentValue)
-            }}
-            onBackToList={() => {
-              setMobileView("list")
-            }}
-            onOpenInfo={() => {
-              setMobileView("info")
-            }}
-          />
-        </div>
-
-        <div
-          className={cx(
-            "absolute inset-0 transition-transform duration-300 ease-out",
-            mobileView === "info" ? "translate-x-0" : "translate-x-full",
-          )}
-        >
-          <section className="flex h-full min-h-0 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 dark:border-gray-800 dark:bg-gray-925">
-              <Button
-                type="button"
-                variant="ghost"
-                className="!p-2"
-                onClick={() => {
-                  setMobileView("chat")
-                }}
-              >
-                <ChevronLeft className="size-4" aria-hidden="true" />
-                <span className="sr-only">Back to chat</span>
-              </Button>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
-                Chat Info
-              </h2>
-            </header>
-            <div className="min-h-0 flex-1">
-              <ChatInfoPanel chatInfo={activeChatInfo} />
-            </div>
-          </section>
-        </div>
+        <ChatInfoPanel chatInfo={resolvedActiveChatInfo} />
       </div>
     </section>
   )
