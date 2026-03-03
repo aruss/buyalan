@@ -461,6 +461,11 @@ public class SubscriptionOnboardingServiceTests
 
         public Task RegisterWebhookAsync(string botToken, CancellationToken ct = default)
         {
+            return this.TryRegisterWebhookAsync(botToken, ct);
+        }
+
+        public Task TryRegisterWebhookAsync(string botToken, CancellationToken ct = default)
+        {
             if (this.behavior == StubTelegramBehavior.Success)
             {
                 return Task.CompletedTask;

@@ -1,6 +1,9 @@
 namespace ShelfBuddy.TelegramIntegration;
 
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Extensions.Http;
+using Polly.Retry;
 using ShelfBuddy.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -57,6 +60,29 @@ public sealed class TelegramService : ITelegramService
                 allowedUpdates: messageOnlyUpdates,
                 secretToken: this.telegramOptions.SecretToken,
                 cancellationToken: ct);
+    }
+
+    public async Task TryRegisterWebhookAsync(string botToken, CancellationToken ct = default)
+    {
+        AsyncRetryPolicy retryPolicy = Policy
+            .Handle<Exception>()
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                onRetry: (exception, timeSpan, retryCount, context) =>
+                {
+                    this.logger.LogWarning(
+                        exception,
+                        "Webhook registration failed. Retrying ({RetryCount}/3) in {Delay}s. BotId: {BotId}.",
+                        retryCount,
+                        timeSpan.TotalSeconds,
+                        ExtractBotId(botToken));
+                });
+
+        await retryPolicy.ExecuteAsync(async token =>
+        {
+            await RegisterWebhookAsync(botToken, token);
+        }, ct);
     }
 
     public async Task SendMessageAsync(string botToken, long chatId, string text, CancellationToken ct = default)

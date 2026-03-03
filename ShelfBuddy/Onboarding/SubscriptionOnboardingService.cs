@@ -30,7 +30,6 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         "PAYMENTS_WRITE"
     ];
 
-    private const int TelegramWebhookMaxAttempts = 3;
     private const string StepStatusNotStarted = "not_started";
     private const string StepStatusInProgress = "in_progress";
     private const string StepStatusCompleted = "completed";
@@ -212,11 +211,19 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
 
         if (!string.IsNullOrWhiteSpace(telegramBotToken))
         {
-            string? webhookRegistrationErrorCode = await this.RegisterTelegramWebhookWithRetryAsync(
-                agent.SubscriptionId,
-                agent.Id,
-                telegramBotToken,
-                cancellationToken);
+            string? webhookRegistrationErrorCode = null;
+            try
+            {
+                await this.telegramService.TryRegisterWebhookAsync(telegramBotToken, cancellationToken);
+            }
+            catch (ApiRequestException exception)
+            {
+                webhookRegistrationErrorCode = ResolveNonTransientTelegramErrorCode(exception);
+            }
+            catch (Exception)
+            {
+                webhookRegistrationErrorCode = "telegram_webhook_registration_failed";
+            }
 
             if (!string.IsNullOrWhiteSpace(webhookRegistrationErrorCode))
             {
@@ -714,77 +721,6 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             computed.CanFinalize);
     }
 
-    private async Task<string?> RegisterTelegramWebhookWithRetryAsync(
-        Guid subscriptionId,
-        Guid agentId,
-        string telegramBotToken,
-        CancellationToken cancellationToken)
-    {
-        for (int attempt = 1; attempt <= TelegramWebhookMaxAttempts; attempt++)
-        {
-            this.logger.LogInformation(
-                "Registering Telegram webhook for Subscription {SubscriptionId}, Agent {AgentId}. Attempt {Attempt} of {MaxAttempts}.",
-                subscriptionId,
-                agentId,
-                attempt,
-                TelegramWebhookMaxAttempts);
-
-            try
-            {
-                await this.telegramService.RegisterWebhookAsync(telegramBotToken, cancellationToken);
-
-                this.logger.LogInformation(
-                    "Telegram webhook registration succeeded for Subscription {SubscriptionId}, Agent {AgentId} on attempt {Attempt}.",
-                    subscriptionId,
-                    agentId,
-                    attempt);
-
-                return null;
-            }
-            catch (ApiRequestException exception) when (!IsTransientTelegramApiException(exception))
-            {
-                string nonTransientErrorCode = ResolveNonTransientTelegramErrorCode(exception);
-
-                this.logger.LogWarning(
-                    exception,
-                    "Telegram webhook registration failed with non-transient API error for Subscription {SubscriptionId}, Agent {AgentId}. StatusCode {StatusCode}. ErrorCode {ErrorCode}.",
-                    subscriptionId,
-                    agentId,
-                    exception.ErrorCode,
-                    nonTransientErrorCode);
-
-                return nonTransientErrorCode;
-            }
-            catch (Exception exception) when (attempt < TelegramWebhookMaxAttempts && IsTransientTelegramException(exception))
-            {
-                TimeSpan delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
-
-                this.logger.LogWarning(
-                    exception,
-                    "Telegram webhook registration transient failure for Subscription {SubscriptionId}, Agent {AgentId}. Attempt {Attempt} failed, retrying in {DelaySeconds} second(s).",
-                    subscriptionId,
-                    agentId,
-                    attempt,
-                    delay.TotalSeconds);
-
-                await Task.Delay(delay, cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                this.logger.LogWarning(
-                    exception,
-                    "Telegram webhook registration failed for Subscription {SubscriptionId}, Agent {AgentId} after attempt {Attempt}.",
-                    subscriptionId,
-                    agentId,
-                    attempt);
-
-                return "telegram_webhook_registration_failed";
-            }
-        }
-
-        return "telegram_webhook_registration_failed";
-    }
-
     private static bool IsTelegramTokenUniqueConstraintViolation(DbUpdateException exception)
     {
         if (exception.InnerException is not PostgresException postgresException)
@@ -795,27 +731,6 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         return string.Equals(postgresException.SqlState, PostgresErrorCodes.UniqueViolation, StringComparison.Ordinal) &&
             !string.IsNullOrWhiteSpace(postgresException.ConstraintName) &&
             postgresException.ConstraintName.Contains("telegram_bot_token", StringComparison.Ordinal);
-    }
-
-    private static bool IsTransientTelegramApiException(ApiRequestException exception)
-    {
-        return exception.ErrorCode == (int)HttpStatusCode.TooManyRequests ||
-            exception.ErrorCode >= 500;
-    }
-
-    private static bool IsTransientTelegramException(Exception exception)
-    {
-        if (exception is ApiRequestException apiRequestException)
-        {
-            return IsTransientTelegramApiException(apiRequestException);
-        }
-
-        if (exception is RequestException requestException)
-        {
-            return requestException.InnerException is HttpRequestException;
-        }
-
-        return exception is HttpRequestException;
     }
 
     private static string ResolveNonTransientTelegramErrorCode(ApiRequestException exception)
