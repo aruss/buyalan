@@ -58,6 +58,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
     public async Task<GetSubscriptionOnboardingStateResult> GetStateAsync(
         Guid subscriptionId,
         Guid userId,
+        bool resumeMode = false,
         CancellationToken cancellationToken = default)
     {
         if (!await this.IsSubscriptionMemberAsync(subscriptionId, userId, cancellationToken))
@@ -66,6 +67,11 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         }
 
         OnboardingStateResult state = await this.RecomputeStateAsync(subscriptionId, cancellationToken);
+        if (resumeMode)
+        {
+            state = ApplyResumeMode(state);
+        }
+
         return new GetSubscriptionOnboardingStateResult.Success(state);
     }
 
@@ -168,27 +174,34 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         string? telegramBotToken = NormalizeOptionalChannel(input.TelegramBotToken);
         string? whatsappNumber = NormalizeOptionalChannel(input.WhatsappNumber);
 
-        if (string.IsNullOrWhiteSpace(twilioPhoneNumber) &&
-            string.IsNullOrWhiteSpace(telegramBotToken) &&
-            string.IsNullOrWhiteSpace(whatsappNumber))
-        {
-            return new UpdateSubscriptionOnboardingStepResult.Failure("channels_at_least_one_required");
-        }
-
         SubscriptionOnboardingState onboardingState = await this.GetOrCreateStateAsync(agent.SubscriptionId, cancellationToken);
         onboardingState.PrimaryAgentId = agent.Id;
 
         string? originalTwilioPhoneNumber = agent.TwilioPhoneNumber;
         string? originalTelegramBotToken = agent.TelegramBotToken;
         string? originalWhatsappNumber = agent.WhatsappNumber;
+        bool keepExistingTelegramBotToken =
+            string.IsNullOrWhiteSpace(telegramBotToken) &&
+            !string.IsNullOrWhiteSpace(originalTelegramBotToken);
+        string? effectiveTelegramBotToken = keepExistingTelegramBotToken
+            ? originalTelegramBotToken
+            : telegramBotToken;
 
-        if (!string.IsNullOrWhiteSpace(telegramBotToken))
+        if (string.IsNullOrWhiteSpace(twilioPhoneNumber) &&
+            string.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
+            string.IsNullOrWhiteSpace(whatsappNumber))
+        {
+            return new UpdateSubscriptionOnboardingStepResult.Failure("channels_at_least_one_required");
+        }
+
+        if (!string.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
+            !string.Equals(effectiveTelegramBotToken, originalTelegramBotToken, StringComparison.Ordinal))
         {
             bool isTokenUsedByAnotherAgent = await this.dbContext.Agents
                 .AnyAsync(
                     item =>
                         item.Id != agent.Id &&
-                        item.TelegramBotToken == telegramBotToken,
+                        item.TelegramBotToken == effectiveTelegramBotToken,
                     cancellationToken);
 
             if (isTokenUsedByAnotherAgent)
@@ -198,7 +211,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         }
 
         agent.TwilioPhoneNumber = twilioPhoneNumber;
-        agent.TelegramBotToken = telegramBotToken;
+        agent.TelegramBotToken = effectiveTelegramBotToken;
         agent.WhatsappNumber = whatsappNumber;
         try
         {
@@ -209,12 +222,13 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return new UpdateSubscriptionOnboardingStepResult.Failure("telegram_bot_token_already_in_use");
         }
 
-        if (!string.IsNullOrWhiteSpace(telegramBotToken))
+        if (!string.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
+            !string.Equals(effectiveTelegramBotToken, originalTelegramBotToken, StringComparison.Ordinal))
         {
             string? webhookRegistrationErrorCode = null;
             try
             {
-                await this.telegramService.TryRegisterWebhookAsync(telegramBotToken, cancellationToken);
+                await this.telegramService.TryRegisterWebhookAsync(effectiveTelegramBotToken, cancellationToken);
             }
             catch (ApiRequestException exception)
             {
@@ -455,6 +469,13 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
 
         Agent? primaryAgent = await this.GetPrimaryAgentAsync(onboardingState, subscriptionId, cancellationToken);
         Guid? primaryAgentId = primaryAgent?.Id;
+        OnboardingProfilePrefill profilePrefill = new(
+            primaryAgent?.Name,
+            primaryAgent?.Personality);
+        OnboardingChannelsPrefill channelsPrefill = new(
+            primaryAgent?.TwilioPhoneNumber,
+            primaryAgent?.WhatsappNumber,
+            !string.IsNullOrWhiteSpace(primaryAgent?.TelegramBotToken));
 
         Dictionary<string, bool> completedByStep = new(StringComparer.Ordinal)
         {
@@ -535,7 +556,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         }
 
         bool hasIncompleteRequiredSteps = normalizedStepStates.Any(item =>
-            !item.Definition.IsSkippable &&
+            (string.Equals(item.Definition.Name, "square_connect", StringComparison.Ordinal) || !item.Definition.IsSkippable) &&
             !string.Equals(item.Definition.Name, "finalize", StringComparison.Ordinal) &&
             !string.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal));
 
@@ -548,7 +569,9 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             finalizeComplete ? "finalize" : currentStep,
             primaryAgentId,
             canFinalize,
-            normalizedStepStates);
+            normalizedStepStates,
+            profilePrefill,
+            channelsPrefill);
     }
 
     private static bool HasCompletedLaterStep(int stepIndex, IReadOnlyDictionary<string, bool> completedByStep)
@@ -718,7 +741,49 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             computed.CurrentStep,
             [.. stepStates],
             computed.PrimaryAgentId,
-            computed.CanFinalize);
+            computed.CanFinalize,
+            computed.ProfilePrefill,
+            computed.ChannelsPrefill);
+    }
+
+    private static OnboardingStateResult ApplyResumeMode(OnboardingStateResult state)
+    {
+        if (string.Equals(state.Status, SubscriptionOnboardingStatus.Completed.ToString(), StringComparison.Ordinal))
+        {
+            return state;
+        }
+
+        bool squareCompleted = state.Steps.Any(item =>
+            string.Equals(item.Step, "square_connect", StringComparison.Ordinal) &&
+            string.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal));
+
+        if (squareCompleted)
+        {
+            return state;
+        }
+
+        OnboardingStepState[] steps = state.Steps
+            .Select(item =>
+            {
+                if (!string.Equals(item.Step, "square_connect", StringComparison.Ordinal))
+                {
+                    return item;
+                }
+
+                return new OnboardingStepState(
+                    item.Step,
+                    StepStatusInProgress,
+                    item.IsSkippable,
+                    item.DependsOn);
+            })
+            .ToArray();
+
+        return state with
+        {
+            CurrentStep = "square_connect",
+            Steps = steps,
+            CanFinalize = false
+        };
     }
 
     private static bool IsTelegramTokenUniqueConstraintViolation(DbUpdateException exception)
@@ -757,5 +822,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         string CurrentStep,
         Guid? PrimaryAgentId,
         bool CanFinalize,
-        IReadOnlyList<OnboardingStepComputation> StepStates);
+        IReadOnlyList<OnboardingStepComputation> StepStates,
+        OnboardingProfilePrefill ProfilePrefill,
+        OnboardingChannelsPrefill ChannelsPrefill);
 }

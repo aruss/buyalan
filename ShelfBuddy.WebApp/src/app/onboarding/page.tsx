@@ -48,6 +48,7 @@ type ChannelState = {
 
 type FormState = {
     squareConnected: boolean;
+    hasSavedTelegramToken: boolean;
     agentName: string;
     agentPersonality: AgentPersonality;
     channels: ChannelState;
@@ -64,6 +65,22 @@ type StepMessage = {
 type OnboardingProfileDraft = {
     agentName: string;
     agentPersonality: AgentPersonality;
+};
+
+type OnboardingProfilePrefill = {
+    name: string | null;
+    personality: ApiAgentPersonality | null;
+};
+
+type OnboardingChannelsPrefill = {
+    twilioPhoneNumber: string | null;
+    whatsappNumber: string | null;
+    hasTelegramBotToken: boolean;
+};
+
+type ExtendedOnboardingState = GetSubscriptionOnboardingStateResult & {
+    profilePrefill?: OnboardingProfilePrefill;
+    channelsPrefill?: OnboardingChannelsPrefill;
 };
 
 const E164_LIKE_REGEX = /^\+[1-9]\d{7,14}$/;
@@ -174,6 +191,24 @@ const mapPersonalityToApi = (personality: AgentPersonality): ApiAgentPersonality
     }
 };
 
+const mapApiPersonalityToLocal = (
+    personality: ApiAgentPersonality | null | undefined,
+    fallback: AgentPersonality): AgentPersonality => {
+    if (personality === "Casual") {
+        return "casual";
+    }
+
+    if (personality === "Business") {
+        return "business";
+    }
+
+    if (personality === "Balanced") {
+        return "balanced";
+    }
+
+    return fallback;
+};
+
 const getRandomName = (names = ["Liam", "Olivia", "Noah", "Emma", "Oliver", "Ava", "Elijah", "Alan", "Charlotte", "William", "Sophia"]) => names[Math.floor(Math.random() * names.length)];
 
 const getProfileDraftStorageKey = (subscriptionId: string): string => {
@@ -236,6 +271,7 @@ const OnboardingPage = (): ReactElement => {
 
     const [formData, setFormData] = useState<FormState>({
         squareConnected: false,
+        hasSavedTelegramToken: false,
         agentName: getRandomName(),
         agentPersonality: "balanced",
         channels: {
@@ -296,28 +332,56 @@ const OnboardingPage = (): ReactElement => {
         profileForm.setValue("agentPersonality", draft.agentPersonality, { shouldDirty: false });
     }, [profileForm]);
 
-    const loadOnboardingStateAsync = useCallback(async (id: string): Promise<GetSubscriptionOnboardingStateResult> => {
-        const onboardingResponse = await getOnboardingSubscriptionsBySubscriptionIdState({
+    const loadOnboardingStateAsync = useCallback(async (
+        id: string,
+        options?: {
+            resumeMode?: boolean;
+            applyServerPrefill?: boolean;
+        }): Promise<GetSubscriptionOnboardingStateResult> => {
+        const requestOptions: unknown = {
             path: { subscriptionId: id },
             cache: "no-store",
-            throwOnError: true
-        });
+            throwOnError: true,
+            query: { resumeMode: options?.resumeMode === true }
+        };
 
-        const state = onboardingResponse.data;
+        const onboardingResponse = await getOnboardingSubscriptionsBySubscriptionIdState(
+            requestOptions as Parameters<typeof getOnboardingSubscriptionsBySubscriptionIdState>[0]);
+
+        const state = onboardingResponse.data as ExtendedOnboardingState;
         setOnboardingState(state);
 
         const squareConnectStep = state.steps.find((item) => item.step === "square_connect");
         const squareConnected = squareConnectStep?.status === "completed";
-
         const formSnapshot = formDataRef.current;
+        const applyServerPrefill = options?.applyServerPrefill === true;
+
+        const prefillName = applyServerPrefill
+            ? state.profilePrefill?.name?.trim() ?? ""
+            : "";
+        const nextAgentName = prefillName.length > 0
+            ? prefillName
+            : formSnapshot.agentName;
+        const nextAgentPersonality = applyServerPrefill
+            ? mapApiPersonalityToLocal(state.profilePrefill?.personality, formSnapshot.agentPersonality)
+            : formSnapshot.agentPersonality;
+        const nextWhatsapp = applyServerPrefill
+            ? (state.channelsPrefill?.whatsappNumber ?? "")
+            : formSnapshot.channels.whatsapp;
+        const nextPhone = applyServerPrefill
+            ? (state.channelsPrefill?.twilioPhoneNumber ?? "")
+            : formSnapshot.channels.phone;
+        const hasSavedTelegramToken = state.channelsPrefill?.hasTelegramBotToken === true;
+
         const nextFormData: FormState = {
             squareConnected,
-            agentName: formSnapshot.agentName,
-            agentPersonality: formSnapshot.agentPersonality,
+            hasSavedTelegramToken,
+            agentName: nextAgentName,
+            agentPersonality: nextAgentPersonality,
             channels: {
-                whatsapp: formSnapshot.channels.whatsapp,
-                phone: formSnapshot.channels.phone,
-                telegram: formSnapshot.channels.telegram
+                whatsapp: nextWhatsapp,
+                phone: nextPhone,
+                telegram: applyServerPrefill ? "" : formSnapshot.channels.telegram
             },
             teamMembers: [...formSnapshot.teamMembers]
         };
@@ -333,7 +397,7 @@ const OnboardingPage = (): ReactElement => {
     }, [channelsForm, profileForm, teamForm]);
 
     const refreshOnboardingStateAsync = async (id: string): Promise<GetSubscriptionOnboardingStateResult> => {
-        return loadOnboardingStateAsync(id);
+        return loadOnboardingStateAsync(id, { resumeMode: false, applyServerPrefill: false });
     };
 
     const ensurePrimaryAgentIdAsync = async (id: string): Promise<string> => {
@@ -385,9 +449,12 @@ const OnboardingPage = (): ReactElement => {
                 }
 
                 setSubscriptionId(activeSubscriptionId);
-                const state = await loadOnboardingStateAsync(activeSubscriptionId);
+                const state = await loadOnboardingStateAsync(activeSubscriptionId, {
+                    resumeMode: true,
+                    applyServerPrefill: true
+                });
                 const profileDraft = readProfileDraft(activeSubscriptionId);
-                if (profileDraft) {
+                if (profileDraft && !(state as ExtendedOnboardingState).profilePrefill?.name) {
                     applyProfileDraft(profileDraft);
                 }
                 setStep(mapApiStepToUiStep(state.currentStep));
@@ -826,6 +893,11 @@ const OnboardingPage = (): ReactElement => {
                                 />
                                 {telegramError ? (
                                     <div className="text-xs text-red-500">{telegramError}</div>
+                                ) : null}
+                                {!telegramError && formData.hasSavedTelegramToken && !formData.channels.telegram.trim() ? (
+                                    <div className="text-xs text-slate-500">
+                                        A Telegram token is already saved. Enter a new token only if you want to replace it.
+                                    </div>
                                 ) : null}
                             </div>
 

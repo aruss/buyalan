@@ -4,7 +4,6 @@ import { AUTH_COOKIE_NAME } from './lib/contants';
 
 const AUTH_ME_PATH = '/auth/me';
 const ADMIN_HOME_PATH = '/admin';
-const ONBOARDING_PATH = '/onboarding';
 
 type AuthMePayload = {
     isOnboarded?: boolean;
@@ -19,10 +18,6 @@ function createLoginRedirect(request: NextRequest): NextResponse {
 
 function createAdminRedirect(request: NextRequest): NextResponse {
     return NextResponse.redirect(new URL(ADMIN_HOME_PATH, request.url));
-}
-
-function createOnboardingRedirect(request: NextRequest): NextResponse {
-    return NextResponse.redirect(new URL(ONBOARDING_PATH, request.url));
 }
 
 async function getAuthMePayloadAsync(request: NextRequest, webApiEndpoint: string): Promise<AuthMePayload | null> {

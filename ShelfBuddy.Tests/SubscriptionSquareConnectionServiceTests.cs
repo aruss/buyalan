@@ -396,6 +396,7 @@ public class SubscriptionSquareConnectionServiceTests
         public Task<GetSubscriptionOnboardingStateResult> GetStateAsync(
             Guid subscriptionId,
             Guid userId,
+            bool resumeMode = false,
             CancellationToken cancellationToken = default)
         {
             return Task.FromResult<GetSubscriptionOnboardingStateResult>(
@@ -404,7 +405,9 @@ public class SubscriptionSquareConnectionServiceTests
                     "square_connect",
                     [new OnboardingStepState("square_connect", "in_progress", true, [])],
                     null,
-                    false)));
+                    false,
+                    new OnboardingProfilePrefill(null, null),
+                    new OnboardingChannelsPrefill(null, null, false))));
         }
 
         public Task<CreateSubscriptionOnboardingAgentResult> CreatePrimaryAgentAsync(
@@ -469,7 +472,9 @@ public class SubscriptionSquareConnectionServiceTests
                 "square_connect",
                 [new OnboardingStepState("square_connect", "in_progress", true, [])],
                 null,
-                false));
+                false,
+                new OnboardingProfilePrefill(null, null),
+                new OnboardingChannelsPrefill(null, null, false)));
         }
     }
 }

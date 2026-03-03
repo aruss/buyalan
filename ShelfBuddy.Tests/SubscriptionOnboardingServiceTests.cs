@@ -146,6 +146,89 @@ public class SubscriptionOnboardingServiceTests
     }
 
     [Fact]
+    public async Task GetStateAsync_WhenResumeModeAndSquareMissing_ReturnsSquareConnectWithPrefill()
+    {
+        MainDataContext dbContext = CreateContext();
+        Guid subscriptionId = Guid.NewGuid();
+        Guid userId = Guid.NewGuid();
+        await SeedSubscriptionMemberAsync(dbContext, subscriptionId, userId);
+
+        SubscriptionOnboardingService service = CreateService(dbContext);
+        CreateSubscriptionOnboardingAgentResult createResult = await service.CreatePrimaryAgentAsync(subscriptionId, userId);
+        CreateSubscriptionOnboardingAgentResult.Success createSuccess =
+            Assert.IsType<CreateSubscriptionOnboardingAgentResult.Success>(createResult);
+
+        await service.UpdateProfileAsync(
+            new UpdateSubscriptionOnboardingProfileInput(
+                createSuccess.AgentId,
+                userId,
+                "Replay Agent",
+                AgentPersonality.Business));
+
+        await service.UpdateChannelsAsync(
+            new UpdateSubscriptionOnboardingChannelsInput(
+                createSuccess.AgentId,
+                userId,
+                "+15551112222",
+                "telegram-token",
+                "+15553334444"));
+
+        GetSubscriptionOnboardingStateResult stateResult = await service.GetStateAsync(
+            subscriptionId,
+            userId,
+            true);
+
+        GetSubscriptionOnboardingStateResult.Success success =
+            Assert.IsType<GetSubscriptionOnboardingStateResult.Success>(stateResult);
+
+        Assert.Equal("square_connect", success.State.CurrentStep);
+        Assert.Equal("Replay Agent", success.State.ProfilePrefill.Name);
+        Assert.Equal(AgentPersonality.Business, success.State.ProfilePrefill.Personality);
+        Assert.Equal("+15551112222", success.State.ChannelsPrefill.TwilioPhoneNumber);
+        Assert.Equal("+15553334444", success.State.ChannelsPrefill.WhatsappNumber);
+        Assert.True(success.State.ChannelsPrefill.HasTelegramBotToken);
+        Assert.False(success.State.CanFinalize);
+    }
+
+    [Fact]
+    public async Task UpdateChannelsAsync_WhenTelegramInputBlank_PreservesExistingToken()
+    {
+        MainDataContext dbContext = CreateContext();
+        Guid subscriptionId = Guid.NewGuid();
+        Guid userId = Guid.NewGuid();
+        await SeedSubscriptionMemberAsync(dbContext, subscriptionId, userId);
+        SeedConnectedSquare(dbContext, subscriptionId, userId);
+        await dbContext.SaveChangesAsync();
+
+        SubscriptionOnboardingService service = CreateService(dbContext);
+        CreateSubscriptionOnboardingAgentResult createResult = await service.CreatePrimaryAgentAsync(subscriptionId, userId);
+        CreateSubscriptionOnboardingAgentResult.Success createSuccess =
+            Assert.IsType<CreateSubscriptionOnboardingAgentResult.Success>(createResult);
+
+        await service.UpdateChannelsAsync(
+            new UpdateSubscriptionOnboardingChannelsInput(
+                createSuccess.AgentId,
+                userId,
+                null,
+                "persisted-telegram-token",
+                null));
+
+        UpdateSubscriptionOnboardingStepResult updateResult = await service.UpdateChannelsAsync(
+            new UpdateSubscriptionOnboardingChannelsInput(
+                createSuccess.AgentId,
+                userId,
+                "+15550000001",
+                "   ",
+                null));
+
+        Assert.IsType<UpdateSubscriptionOnboardingStepResult.Success>(updateResult);
+
+        Agent persistedAgent = await dbContext.Agents.SingleAsync(item => item.Id == createSuccess.AgentId);
+        Assert.Equal("persisted-telegram-token", persistedAgent.TelegramBotToken);
+        Assert.Equal("+15550000001", persistedAgent.TwilioPhoneNumber);
+    }
+
+    [Fact]
     public async Task FinalizeAsync_WhenAllStepsCompleted_ReturnsCompletedState()
     {
         MainDataContext dbContext = CreateContext();

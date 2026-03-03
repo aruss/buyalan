@@ -7,4 +7,6 @@ public sealed record GetSubscriptionOnboardingStateResult(
     string CurrentStep,
     OnboardingStepState[] Steps,
     Guid? PrimaryAgentId,
-    bool CanFinalize);
+    bool CanFinalize,
+    OnboardingProfilePrefill ProfilePrefill,
+    OnboardingChannelsPrefill ChannelsPrefill);

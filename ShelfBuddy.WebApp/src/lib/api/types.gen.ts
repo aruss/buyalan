@@ -84,6 +84,8 @@ export type GetSubscriptionOnboardingStateResult = {
     steps: Array<OnboardingStepState>;
     primaryAgentId: null | string;
     canFinalize: boolean;
+    profilePrefill: OnboardingProfilePrefill;
+    channelsPrefill: OnboardingChannelsPrefill;
 };
 
 export type GetSubscriptionSquareConnectionProbeResult = {
@@ -136,9 +138,20 @@ export type MessageChannel = 'WhatsApp' | 'Telegram' | 'SMS';
 
 export type MessageRole = 'Customer' | 'Agent' | 'Operator';
 
+export type OnboardingChannelsPrefill = {
+    twilioPhoneNumber: null | string;
+    whatsappNumber: null | string;
+    hasTelegramBotToken: boolean;
+};
+
 export type OnboardingErrorResult = {
     errorCode: string;
     message: string;
+};
+
+export type OnboardingProfilePrefill = {
+    name: null | string;
+    personality: null | AgentPersonality;
 };
 
 export type OnboardingStepState = {
@@ -765,7 +778,9 @@ export type GetOnboardingSubscriptionsBySubscriptionIdStateData = {
     path: {
         subscriptionId: string;
     };
-    query?: never;
+    query: {
+        resumeMode: boolean;
+    };
     url: '/onboarding/subscriptions/{subscriptionId}/state';
 };
 

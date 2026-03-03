@@ -119,6 +119,7 @@ public static class OnboardingEndpoints
 
     private static async Task<IResult> GetSubscriptionOnboardingStateAsync(
         [FromRoute] Guid subscriptionId,
+        [FromQuery] bool resumeMode,
         ClaimsPrincipal user,
         ISubscriptionOnboardingService onboardingService,
         CancellationToken cancellationToken)
@@ -132,6 +133,7 @@ public static class OnboardingEndpoints
         ServiceGetStateResult result = await onboardingService.GetStateAsync(
             subscriptionId,
             userId.Value,
+            resumeMode,
             cancellationToken);
 
         if (result is ServiceGetStateResult.Failure failure)
@@ -297,7 +299,9 @@ public static class OnboardingEndpoints
             state.CurrentStep,
             state.Steps,
             state.PrimaryAgentId,
-            state.CanFinalize);
+            state.CanFinalize,
+            state.ProfilePrefill,
+            state.ChannelsPrefill);
     }
 
     private static IResult UnauthorizedError(string errorCode)

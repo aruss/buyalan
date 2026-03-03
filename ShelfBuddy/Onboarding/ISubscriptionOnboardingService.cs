@@ -8,12 +8,23 @@ public sealed record OnboardingStepState(
     bool IsSkippable,
     string[] DependsOn);
 
+public sealed record OnboardingProfilePrefill(
+    string? Name,
+    AgentPersonality? Personality);
+
+public sealed record OnboardingChannelsPrefill(
+    string? TwilioPhoneNumber,
+    string? WhatsappNumber,
+    bool HasTelegramBotToken);
+
 public sealed record OnboardingStateResult(
     string Status,
     string CurrentStep,
     OnboardingStepState[] Steps,
     Guid? PrimaryAgentId,
-    bool CanFinalize);
+    bool CanFinalize,
+    OnboardingProfilePrefill ProfilePrefill,
+    OnboardingChannelsPrefill ChannelsPrefill);
 
 public abstract record GetSubscriptionOnboardingStateResult
 {
@@ -54,6 +65,7 @@ public interface ISubscriptionOnboardingService
     Task<GetSubscriptionOnboardingStateResult> GetStateAsync(
         Guid subscriptionId,
         Guid userId,
+        bool resumeMode = false,
         CancellationToken cancellationToken = default);
 
     Task<CreateSubscriptionOnboardingAgentResult> CreatePrimaryAgentAsync(
