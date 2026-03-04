@@ -64,6 +64,7 @@ var initializer = builder.AddProject<Projects.HeyAlan_Initializer>("initializer"
     .WithEnvironment("RABBITMQ_PASS", rabbitPass)
     .WithEnvironment("RABBITMQ_VHOST", "heyalan") // The vhost name you want to use
     .WithReference(rabbitmq)
+    .WithEnvironment("ConnectionStrings__rabbitmq", ReferenceExpression.Create($"{rabbitmq}/heyalan"))    
     .WaitFor(postgres)
     .WaitFor(rabbitmq); 
 

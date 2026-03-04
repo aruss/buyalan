@@ -117,18 +117,10 @@ public class Program
             x.AddConsumer<IncomingMessageConsumer>();
             x.AddConsumer<OutgoingTelegramMessageConsumer>();
 
-            
-
             x.UsingRabbitMq((context, cfg) =>
             {
                 var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq");
-                var vhostName = builder.Configuration["RABBITMQ_VHOST"] ?? "heyalan";
-
-                var uriBuilder = new UriBuilder(rabbitConnectionString);
-                // uriBuilder.Path = vhostName;
-
-                // cfg.Host(rabbitConnectionString);
-                cfg.Host(new Uri($"{uriBuilder}/{vhostName}"));
+                cfg.Host(rabbitConnectionString);
 
                 // 2. The magic flag: Tells MassTransit NOT to start consuming messages
                 cfg.DeployTopologyOnly = true;
