@@ -13,6 +13,7 @@ using HeyAlan.Configuration;
 using HeyAlan.Data;
 using HeyAlan.Data.Entities;
 using HeyAlan.Messaging;
+using HeyAlan.Newsletter;
 using HeyAlan.TelegramIntegration;
 using System.Net.Http.Headers;
 using System.Text;
@@ -49,7 +50,7 @@ public class Program
         // Aspire injects "ConnectionStrings__postgres", so we look for "postgres".
         var connectionString = builder.Configuration.GetConnectionString("heyalan");
 
-        if (string.IsNullOrEmpty(connectionString))
+        if (String.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException("Connection string 'postgres' not found.");
         }
@@ -109,7 +110,7 @@ public class Program
         #region RabbitMQ
 
         string? rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq");
-        if (string.IsNullOrWhiteSpace(rabbitConnectionString))
+        if (String.IsNullOrWhiteSpace(rabbitConnectionString))
         {
             throw new InvalidOperationException("RabbitMQ connection string 'rabbitmq' is missing.");
         }
@@ -122,9 +123,11 @@ public class Program
 
             options.ListenToRabbitQueue("incoming-message");
             options.ListenToRabbitQueue("telegram-outgoing-messages");
+            options.ListenToRabbitQueue("newsletter-subscription");
 
             options.PublishMessage<IncomingMessage>().ToRabbitQueue("incoming-message");
             options.PublishMessage<OutgoingTelegramMessage>().ToRabbitQueue("telegram-outgoing-messages");
+            options.PublishMessage<NewsletterSubscriptionRequested>().ToRabbitQueue("newsletter-subscription");
         });
 
         #endregion
@@ -340,7 +343,7 @@ public class Program
             var vhostName = configuration["RABBITMQ_VHOST"] ?? "heyalan"; // Fallback just in case
 
             // 2. Ensure the Virtual Host exists BEFORE Wolverine connects
-            if (!string.IsNullOrEmpty(managementUrl) && !string.IsNullOrEmpty(rabbitUser) && !string.IsNullOrEmpty(rabbitPass))
+            if (!String.IsNullOrWhiteSpace(managementUrl) && !String.IsNullOrWhiteSpace(rabbitUser) && !String.IsNullOrWhiteSpace(rabbitPass))
             {
                 Console.WriteLine($"[Rabbit] Ensuring virtual host '{vhostName}' exists via Management API...");
                 await EnsureVirtualHostExistsAsync(

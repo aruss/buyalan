@@ -2,6 +2,13 @@
 
 using Microsoft.Extensions.Configuration;
 
+public record LiteLlmOptions
+{
+    public Uri? Endpoint { get; init; }
+
+    public string ApiKey { get; init; } = String.Empty;
+}
+
 public static class LiteLlmConfigurationExtensions
 {
     public static LiteLlmOptions TryGetLiteLlmOptions(this IConfiguration configuration)
@@ -23,11 +30,4 @@ public static class LiteLlmConfigurationExtensions
             ApiKey = apiKey
         };
     }
-}
-
-public record LiteLlmOptions
-{
-    public Uri? Endpoint { get; init; }
-
-    public string ApiKey { get; init; } = string.Empty;
 }

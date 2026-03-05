@@ -50,17 +50,17 @@ public sealed class SquareTokenService : ISquareTokenService
             throw new ArgumentException("ConnectedByUserId is required.", nameof(input));
         }
 
-        if (string.IsNullOrWhiteSpace(input.MerchantId))
+        if (String.IsNullOrWhiteSpace(input.MerchantId))
         {
             throw new ArgumentException("MerchantId is required.", nameof(input));
         }
 
-        if (string.IsNullOrWhiteSpace(input.AccessToken))
+        if (String.IsNullOrWhiteSpace(input.AccessToken))
         {
             throw new ArgumentException("AccessToken is required.", nameof(input));
         }
 
-        if (string.IsNullOrWhiteSpace(input.RefreshToken))
+        if (String.IsNullOrWhiteSpace(input.RefreshToken))
         {
             throw new ArgumentException("RefreshToken is required.", nameof(input));
         }
@@ -179,7 +179,7 @@ public sealed class SquareTokenService : ISquareTokenService
             }
 
             RefreshTokenApiPayload payload = refreshOutcome.Payload;
-            if (string.IsNullOrWhiteSpace(payload.AccessToken))
+            if (String.IsNullOrWhiteSpace(payload.AccessToken))
             {
                 return new SquareTokenResolution.RefreshFailed("refresh_response_missing_access_token");
             }
@@ -189,7 +189,7 @@ public sealed class SquareTokenService : ISquareTokenService
                 return new SquareTokenResolution.RefreshFailed("refresh_response_expired_token");
             }
 
-            string rotatedRefreshToken = !string.IsNullOrWhiteSpace(payload.RefreshToken)
+            string rotatedRefreshToken = !String.IsNullOrWhiteSpace(payload.RefreshToken)
                 ? payload.RefreshToken
                 : refreshToken;
 
@@ -202,7 +202,7 @@ public sealed class SquareTokenService : ISquareTokenService
             }
             lockedConnection.DisconnectedAtUtc = null;
 
-            if (!string.IsNullOrWhiteSpace(payload.MerchantId))
+            if (!String.IsNullOrWhiteSpace(payload.MerchantId))
             {
                 lockedConnection.SquareMerchantId = payload.MerchantId.Trim();
             }
@@ -230,7 +230,7 @@ public sealed class SquareTokenService : ISquareTokenService
         try
         {
             string decryptedAccessToken = this.dataProtector.Unprotect(connection.EncryptedAccessToken);
-            if (string.IsNullOrWhiteSpace(decryptedAccessToken))
+            if (String.IsNullOrWhiteSpace(decryptedAccessToken))
             {
                 return new SquareTokenResolution.ReconnectRequired("token_decrypt_failed");
             }
@@ -249,7 +249,7 @@ public sealed class SquareTokenService : ISquareTokenService
 
     private async Task<RefreshTokenApiOutcome> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || string.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
+        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
         {
             return new RefreshTokenApiOutcome(RefreshTokenApiResultType.ReconnectRequired, "square_not_configured");
         }
@@ -303,22 +303,22 @@ public sealed class SquareTokenService : ISquareTokenService
     {
         if (scopes is null)
         {
-            return string.Empty;
+            return String.Empty;
         }
 
         string[] normalizedScopes = scopes
-            .Where(scope => !string.IsNullOrWhiteSpace(scope))
+            .Where(scope => !String.IsNullOrWhiteSpace(scope))
             .Select(scope => scope.Trim())
             .Distinct(StringComparer.Ordinal)
             .OrderBy(scope => scope, StringComparer.Ordinal)
             .ToArray();
 
-        return string.Join(' ', normalizedScopes);
+        return String.Join(' ', normalizedScopes);
     }
 
     private static RefreshTokenApiPayload? ToRefreshPayload(ObtainTokenResponse response)
     {
-        if (string.IsNullOrWhiteSpace(response.AccessToken))
+        if (String.IsNullOrWhiteSpace(response.AccessToken))
         {
             return null;
         }
@@ -375,7 +375,7 @@ public sealed class SquareTokenService : ISquareTokenService
                 .EnumerateArray()
                 .Where(item => item.ValueKind == JsonValueKind.String)
                 .Select(item => item.GetString())
-                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Where(item => !String.IsNullOrWhiteSpace(item))
                 .Select(item => item!.Trim())
                 .ToArray();
         }
@@ -384,7 +384,7 @@ public sealed class SquareTokenService : ISquareTokenService
             scopeElement.ValueKind == JsonValueKind.String)
         {
             string? scopeRaw = scopeElement.GetString();
-            if (!string.IsNullOrWhiteSpace(scopeRaw))
+            if (!String.IsNullOrWhiteSpace(scopeRaw))
             {
                 return scopeRaw
                     .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -403,7 +403,7 @@ public sealed class SquareTokenService : ISquareTokenService
 
         foreach (Error error in errors)
         {
-            if (string.Equals(error.Code.ToString(), expectedCode, StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(error.Code.ToString(), expectedCode, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

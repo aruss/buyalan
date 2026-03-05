@@ -52,3 +52,8 @@ For setup and operational HOWTOs, use the docs in `/docs`:
 - [Square App Setup](./docs/square-app-setup.md)
 - [Configuration Reference](./docs/configuration-reference.md)
 - [Architecture Overview](./docs/architecture-overview.md)
+
+
+## Run Project 
+
+    dotnet watch run --project .\SquareBuddy.AppHost\SquareBuddy.AppHost.csproj

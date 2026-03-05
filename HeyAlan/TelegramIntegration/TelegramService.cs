@@ -38,7 +38,7 @@ public sealed class TelegramService : ITelegramService
 
     public async Task RegisterWebhookAsync(string botToken, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(botToken))
+        if (String.IsNullOrWhiteSpace(botToken))
         {
             throw new ArgumentException("Telegram bot token is required.", nameof(botToken));
         }  
@@ -87,12 +87,12 @@ public sealed class TelegramService : ITelegramService
 
     public async Task SendMessageAsync(string botToken, long chatId, string text, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(botToken))
+        if (String.IsNullOrWhiteSpace(botToken))
         {
             throw new ArgumentException("Telegram bot token is required.", nameof(botToken));
         }
 
-        if (string.IsNullOrWhiteSpace(text))
+        if (String.IsNullOrWhiteSpace(text))
         {
             throw new ArgumentException("Telegram message text is required.", nameof(text));
         }

@@ -58,13 +58,14 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
             return new StartSquareConnectResult.Failure("subscription_owner_required");
         }
 
-        if (string.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || string.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
+        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
         {
             return new StartSquareConnectResult.Failure("square_not_configured");
         }
 
         string safeReturnUrl = NormalizeReturnUrl(input.ReturnUrl, input.Intent);
         string callbackUrl = BuildAbsoluteCallbackUrl(this.appOptions.PublicBaseUrl, "/onboarding/square/connect/callback");
+
         SquareConnectStatePayload payload = new(
             input.SubscriptionId,
             input.UserId,
@@ -80,7 +81,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
         Dictionary<string, string?> parameters = new()
         {
             ["client_id"] = this.appOptions.SquareClientId,
-            ["scope"] = string.Join(' ', RequiredFullScopes),
+            ["scope"] = String.Join(' ', RequiredFullScopes),
             ["state"] = protectedState,
             // ["redirect_uri"] = callbackUrl,
             ["response_type"] = "code"
@@ -99,7 +100,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
         CompleteSquareConnectInput input,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(input.State) || !this.stateProtector.TryUnprotect(input.State, out SquareConnectStatePayload? state))
+        if (String.IsNullOrWhiteSpace(input.State) || !this.stateProtector.TryUnprotect(input.State, out SquareConnectStatePayload? state))
         {
             string redirectUrl = AddQuery("/onboarding", "squareConnectError", "square_oauth_state_invalid");
             return new CompleteSquareConnectResult.Failure(redirectUrl, "square_oauth_state_invalid");
@@ -111,10 +112,10 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
             return new CompleteSquareConnectResult.Failure(redirectUrl, "subscription_owner_required");
         }
 
-        if (string.IsNullOrWhiteSpace(input.AuthorizationCode))
+        if (String.IsNullOrWhiteSpace(input.AuthorizationCode))
         {
             string? oauthError = NormalizeOAuthError(input.OAuthError);
-            if (!string.IsNullOrWhiteSpace(oauthError))
+            if (!String.IsNullOrWhiteSpace(oauthError))
             {
                 string errorCode = ResolveOAuthErrorCode(oauthError);
                 string oauthErrorRedirectUrl = AddQuery(state.ReturnUrl, "squareConnectError", errorCode);
@@ -122,13 +123,22 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
             }
         }
 
-        if (string.IsNullOrWhiteSpace(input.AuthorizationCode))
+        if (String.IsNullOrWhiteSpace(input.AuthorizationCode))
         {
-            string redirectUrl = AddQuery(state.ReturnUrl, "squareConnectError", "square_oauth_code_missing");
-            return new CompleteSquareConnectResult.Failure(redirectUrl, "square_oauth_code_missing");
+            string redirectUrl = AddQuery(
+                state.ReturnUrl, 
+                "squareConnectError", 
+                "square_oauth_code_missing");
+
+            return new CompleteSquareConnectResult.Failure(
+                redirectUrl, 
+                "square_oauth_code_missing");
         }
 
-        string callbackUrl = BuildAbsoluteCallbackUrl(this.appOptions.PublicBaseUrl, "/onboarding/square/connect/callback");
+        string callbackUrl = BuildAbsoluteCallbackUrl(
+            this.appOptions.PublicBaseUrl, 
+            "/onboarding/square/connect/callback");
+
         SquareTokenExchangeResult tokenExchange = await this.squareOAuthClient.ExchangeAuthorizationCodeAsync(
             input.AuthorizationCode.Trim(),
             callbackUrl,
@@ -296,7 +306,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
     private static bool HasRequiredScopes(IEnumerable<string> scopes)
     {
         HashSet<string> grantedScopes = scopes
-            .Where(scope => !string.IsNullOrWhiteSpace(scope))
+            .Where(scope => !String.IsNullOrWhiteSpace(scope))
             .Select(scope => scope.Trim())
             .ToHashSet(StringComparer.Ordinal);
 
@@ -306,7 +316,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
     private static string NormalizeReturnUrl(string? rawReturnUrl, SquareConnectIntent intent)
     {
         string fallback = intent == SquareConnectIntent.Onboarding ? "/onboarding" : "/admin";
-        if (string.IsNullOrWhiteSpace(rawReturnUrl))
+        if (String.IsNullOrWhiteSpace(rawReturnUrl))
         {
             return fallback;
         }
@@ -343,7 +353,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
 
     private static string? NormalizeOAuthError(string? rawOAuthError)
     {
-        if (string.IsNullOrWhiteSpace(rawOAuthError))
+        if (String.IsNullOrWhiteSpace(rawOAuthError))
         {
             return null;
         }
@@ -353,7 +363,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
 
     private static string ResolveOAuthErrorCode(string oauthError)
     {
-        if (string.Equals(oauthError, "access_denied", StringComparison.OrdinalIgnoreCase))
+        if (String.Equals(oauthError, "access_denied", StringComparison.OrdinalIgnoreCase))
         {
             return "square_oauth_access_denied";
         }

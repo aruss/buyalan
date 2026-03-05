@@ -7,6 +7,7 @@ using HeyAlan.TelegramIntegration;
 using HeyAlan.WebApi.Core;
 using HeyAlan.WebApi.Identity;
 using HeyAlan.WebApi.Infrastructure;
+using HeyAlan.WebApi.Newsletter;
 using HeyAlan.WebApi.Onboarding;
 using HeyAlan.WebApi.SquareIntegration;
 using HeyAlan.WebApi.TwilioIntegration;
@@ -163,6 +164,7 @@ app.MapAuthEndpoints();
 app.MapConversationEndpoints();
 app.MapSquareConnectionEndpoints();
 app.MapOnboardingEndpoints();
+app.MapNewsletterEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

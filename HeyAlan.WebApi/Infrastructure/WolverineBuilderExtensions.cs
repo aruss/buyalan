@@ -1,6 +1,7 @@
 namespace HeyAlan.WebApi.Infrastructure;
 
 using HeyAlan.Messaging;
+using HeyAlan.Newsletter;
 using Wolverine;
 using Wolverine.RabbitMQ;
 using Wolverine.Postgresql;
@@ -15,9 +16,10 @@ public static class WolverineBuilderExtensions
         {
             options.Discovery.IncludeType<IncomingMessageConsumer>();
             options.Discovery.IncludeType<OutgoingTelegramMessageConsumer>();
+            options.Discovery.IncludeType<NewsletterSubscriptionConsumer>();
 
             string? rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq");
-            if (string.IsNullOrWhiteSpace(rabbitConnectionString))
+            if (String.IsNullOrWhiteSpace(rabbitConnectionString))
             {
                 throw new InvalidOperationException("RabbitMQ connection string 'rabbitmq' is missing.");
             }
@@ -27,16 +29,18 @@ public static class WolverineBuilderExtensions
 
             options.ListenToRabbitQueue("incoming-message");
             options.ListenToRabbitQueue("telegram-outgoing-messages");
+            options.ListenToRabbitQueue("newsletter-subscription");
 
             options.PublishMessage<IncomingMessage>().ToRabbitQueue("incoming-message");
             options.PublishMessage<OutgoingTelegramMessage>().ToRabbitQueue("telegram-outgoing-messages");
+            options.PublishMessage<NewsletterSubscriptionRequested>().ToRabbitQueue("newsletter-subscription");
 
             options.Policies.UseDurableInboxOnAllListeners();
             options.Policies.UseDurableOutboxOnAllSendingEndpoints();
 
 
             string? databaseConnectionString = builder.Configuration.GetConnectionString("heyalan");
-            if (string.IsNullOrWhiteSpace(databaseConnectionString))
+            if (String.IsNullOrWhiteSpace(databaseConnectionString))
             {
                 throw new InvalidOperationException("Database connection string 'heyalan' is missing.");
             }

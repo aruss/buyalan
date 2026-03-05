@@ -21,12 +21,12 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
         string redirectUri,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(authorizationCode))
+        if (String.IsNullOrWhiteSpace(authorizationCode))
         {
             return new SquareTokenExchangeResult.Failure("square_oauth_code_missing");
         }
 
-        if (string.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || string.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
+        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
         {
             return new SquareTokenExchangeResult.Failure("square_not_configured");
         }
@@ -66,12 +66,12 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
         string accessToken,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(accessToken))
+        if (String.IsNullOrWhiteSpace(accessToken))
         {
             return new SquareRevokeResult.InvalidOrRevoked();
         }
 
-        if (string.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || string.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
+        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
         {
             return new SquareRevokeResult.Failure("square_not_configured");
         }
@@ -167,7 +167,7 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
             return scopesFromExchange;
         }
 
-        if (string.IsNullOrWhiteSpace(response.AccessToken))
+        if (String.IsNullOrWhiteSpace(response.AccessToken))
         {
             return [];
         }
@@ -188,9 +188,9 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
         ObtainTokenResponse response,
         string[] scopes)
     {
-        if (string.IsNullOrWhiteSpace(response.AccessToken) ||
-            string.IsNullOrWhiteSpace(response.RefreshToken) ||
-            string.IsNullOrWhiteSpace(response.MerchantId))
+        if (String.IsNullOrWhiteSpace(response.AccessToken) ||
+            String.IsNullOrWhiteSpace(response.RefreshToken) ||
+            String.IsNullOrWhiteSpace(response.MerchantId))
         {
             return null;
         }
@@ -250,7 +250,7 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
                 .EnumerateArray()
                 .Where(item => item.ValueKind == JsonValueKind.String)
                 .Select(item => item.GetString())
-                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Where(item => !String.IsNullOrWhiteSpace(item))
                 .Select(item => item!.Trim())
                 .ToArray();
         }
@@ -259,7 +259,7 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
             scopeElement.ValueKind == JsonValueKind.String)
         {
             string? scopeRaw = scopeElement.GetString();
-            if (!string.IsNullOrWhiteSpace(scopeRaw))
+            if (!String.IsNullOrWhiteSpace(scopeRaw))
             {
                 return scopeRaw
                     .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -277,7 +277,7 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
         }
 
         return scopes
-            .Where(scope => !string.IsNullOrWhiteSpace(scope))
+            .Where(scope => !String.IsNullOrWhiteSpace(scope))
             .Select(scope => scope.Trim())
             .Distinct(StringComparer.Ordinal)
             .ToArray();
@@ -292,7 +292,7 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
 
         foreach (Error error in errors)
         {
-            if (string.Equals(error.Code.ToString(), expectedCode, StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(error.Code.ToString(), expectedCode, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

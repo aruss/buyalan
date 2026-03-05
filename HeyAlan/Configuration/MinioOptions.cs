@@ -2,6 +2,17 @@
 
 using Microsoft.Extensions.Configuration;
 
+public record MinioOptions
+{    
+    public Uri? Endpoint { get; init; }
+   
+    public string AccessKey { get; init; } = String.Empty;
+    
+    public string SecretKey { get; init; } = String.Empty;
+
+    public string Bucket { get; init; } = String.Empty;
+}
+
 public static class MinioConfigurationExtensions
 {
     public static MinioOptions TryGetMinioOptions(this IConfiguration configuration)
@@ -29,15 +40,4 @@ public static class MinioConfigurationExtensions
             Bucket = bucket
         };
     }
-}
-
-public record MinioOptions
-{    
-    public Uri? Endpoint { get; init; }
-   
-    public string AccessKey { get; init; } = string.Empty;
-    
-    public string SecretKey { get; init; } = string.Empty;
-
-    public string Bucket { get; init; } = string.Empty;
 }

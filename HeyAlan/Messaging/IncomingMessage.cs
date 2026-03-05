@@ -10,11 +10,11 @@ public record IncomingMessage
 
     public MessageRole Role { get; set; }
 
-    public string Content { get; init; } = string.Empty;
+    public string Content { get; init; } = String.Empty;
 
-    public string From { get; init; } = string.Empty;
+    public string From { get; init; } = String.Empty;
 
-    public string To { get; init; } = string.Empty;
+    public string To { get; init; } = String.Empty;
 
     public DateTimeOffset ReceivedAt { get; init; }
 }

@@ -41,7 +41,7 @@ public class OutgoingTelegramMessageConsumer
                 $"Agent '{message.AgentId}' was not found for outgoing Telegram message.");
         }
 
-        if (string.IsNullOrWhiteSpace(agent.TelegramBotToken))
+        if (String.IsNullOrWhiteSpace(agent.TelegramBotToken))
         {
             throw new InvalidOperationException(
                 $"Telegram bot token is not configured for agent '{message.AgentId}'.");

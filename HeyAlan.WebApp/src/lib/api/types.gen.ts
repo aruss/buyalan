@@ -11,6 +11,14 @@ export type AppInfo = {
     appVersion: string;
 };
 
+export type ConfirmNewsletterSubscriptionInput = {
+    token: null | string;
+};
+
+export type ConfirmNewsletterSubscriptionResult = {
+    accepted: boolean;
+};
+
 export type ConversationListItem = {
     conversationId: string;
     participantExternalId: string;
@@ -31,6 +39,14 @@ export type ConversationMessageItem = {
     occurredAt: string;
     isRead: boolean;
     readAt: null | string;
+};
+
+export type CreateNewsletterSubscriptionInput = {
+    email: null | string;
+};
+
+export type CreateNewsletterSubscriptionResult = {
+    accepted: boolean;
 };
 
 export type CreateSubscriptionOnboardingAgentResult = {
@@ -1000,3 +1016,44 @@ export type PostOnboardingSubscriptionsBySubscriptionIdFinalizeResponses = {
 };
 
 export type PostOnboardingSubscriptionsBySubscriptionIdFinalizeResponse = PostOnboardingSubscriptionsBySubscriptionIdFinalizeResponses[keyof PostOnboardingSubscriptionsBySubscriptionIdFinalizeResponses];
+
+export type PostNewsletterSubscribeData = {
+    body: CreateNewsletterSubscriptionInput;
+    path?: never;
+    query?: never;
+    url: '/newsletter/subscribe';
+};
+
+export type PostNewsletterSubscribeErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+};
+
+export type PostNewsletterSubscribeError = PostNewsletterSubscribeErrors[keyof PostNewsletterSubscribeErrors];
+
+export type PostNewsletterSubscribeResponses = {
+    /**
+     * OK
+     */
+    200: CreateNewsletterSubscriptionResult;
+};
+
+export type PostNewsletterSubscribeResponse = PostNewsletterSubscribeResponses[keyof PostNewsletterSubscribeResponses];
+
+export type PostNewsletterConfirmData = {
+    body: ConfirmNewsletterSubscriptionInput;
+    path?: never;
+    query?: never;
+    url: '/newsletter/confirm';
+};
+
+export type PostNewsletterConfirmResponses = {
+    /**
+     * OK
+     */
+    200: ConfirmNewsletterSubscriptionResult;
+};
+
+export type PostNewsletterConfirmResponse = PostNewsletterConfirmResponses[keyof PostNewsletterConfirmResponses];

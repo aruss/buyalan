@@ -138,7 +138,7 @@ public class SquareOAuthClientTests
 
     private static bool IsTokenStatusRequest(HttpRequestMessage request)
     {
-        string requestPath = request.RequestUri?.AbsolutePath ?? string.Empty;
+        string requestPath = request.RequestUri?.AbsolutePath ?? String.Empty;
         return requestPath.Contains("/oauth2/token/status", StringComparison.Ordinal);
     }
 

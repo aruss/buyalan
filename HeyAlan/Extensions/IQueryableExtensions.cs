@@ -1,4 +1,4 @@
-namespace HeyAlan.Collections;
+namespace HeyAlan.Extensions;
 
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;

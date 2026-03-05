@@ -275,7 +275,7 @@ public class MainDataContext :
 
         foreach (var entity in builder.Model.GetEntityTypes())
         {
-            if (string.Equals(entity.GetSchema(), WolverineSchema, StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(entity.GetSchema(), WolverineSchema, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }

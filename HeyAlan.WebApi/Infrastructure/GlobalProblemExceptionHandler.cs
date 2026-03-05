@@ -35,7 +35,7 @@ public sealed class GlobalProblemExceptionHandler : IExceptionHandler
             {
                 Status = badRequestException.StatusCode,
                 Title = "Bad Request",
-                Detail = string.IsNullOrWhiteSpace(badRequestException.Message)
+                Detail = String.IsNullOrWhiteSpace(badRequestException.Message)
                     ? "The request is invalid."
                     : badRequestException.Message,
                 Type = $"https://httpstatuses.com/{badRequestException.StatusCode}",

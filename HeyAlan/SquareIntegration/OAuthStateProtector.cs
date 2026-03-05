@@ -28,7 +28,7 @@ public sealed class OAuthStateProtector : IOAuthStateProtector
     {
         payload = null;
 
-        if (string.IsNullOrWhiteSpace(protectedState))
+        if (String.IsNullOrWhiteSpace(protectedState))
         {
             return false;
         }

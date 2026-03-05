@@ -46,7 +46,7 @@ public sealed class LoggingEmailSender : IEmailSender<ApplicationUser>
 
     private static string MaskEmail(string email)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (String.IsNullOrWhiteSpace(email))
         {
             return "<empty>";
         }

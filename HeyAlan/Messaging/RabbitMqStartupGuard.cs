@@ -9,7 +9,7 @@ public static class RabbitMqStartupGuard
 
     public static void EnsureReachable(string connectionString, TimeSpan timeout)
     {
-        if (string.IsNullOrWhiteSpace(connectionString))
+        if (String.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException("RabbitMQ connection string is missing.");
         }

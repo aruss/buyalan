@@ -10,7 +10,7 @@ public class Conversation : IEntityWithId, IEntityWithAudit
 
     public Agent Agent { get; set; } = null!;
 
-    public string ParticipantExternalId { get; set; } = string.Empty;
+    public string ParticipantExternalId { get; set; } = String.Empty;
 
     public MessageChannel Channel { get; set; }
 

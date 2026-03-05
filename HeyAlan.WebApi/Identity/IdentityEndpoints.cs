@@ -123,7 +123,7 @@ public static class IdentityEndpoints
 
         try
         {
-            if (!string.IsNullOrWhiteSpace(remoteError))
+            if (!String.IsNullOrWhiteSpace(remoteError))
             {
                 return TypedResults.Redirect(BuildLoginRedirectUrl(safeReturnUrl, "external_provider_error"));
             }
@@ -162,7 +162,7 @@ public static class IdentityEndpoints
 
             string? emailClaim = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email);
 
-            if (string.IsNullOrWhiteSpace(emailClaim))
+            if (String.IsNullOrWhiteSpace(emailClaim))
             {
                 return TypedResults.Redirect(BuildLoginRedirectUrl(safeReturnUrl, "email_claim_missing"));
             }
@@ -173,9 +173,12 @@ public static class IdentityEndpoints
                 // TEMP-DIAG-REMOVE: Temporary diagnostics for Google email verification investigation.
                 string traceId = httpContext.TraceIdentifier;
                 string path = httpContext.Request.Path;
+
                 IEnumerable<string> claimPairs = externalLoginInfo.Principal.Claims
                     .Select(claim => $"{claim.Type}={claim.Value}");
-                string allClaims = string.Join("; ", claimPairs);
+
+                string allClaims = String.Join("; ", claimPairs);
+
                 ILogger logger = httpContext.RequestServices
                     .GetRequiredService<ILoggerFactory>()
                     .CreateLogger("ExternalLoginDiagnostics");
@@ -194,7 +197,10 @@ public static class IdentityEndpoints
             }
 
             string normalizedEmail = emailClaim.Trim();
-            ApplicationUser? applicationUser = await userManager.FindByEmailAsync(normalizedEmail);
+
+            ApplicationUser? applicationUser =
+                await userManager.FindByEmailAsync(normalizedEmail);
+
             bool isOnboarded = false;
             bool isNewUser = false;
 
@@ -209,24 +215,30 @@ public static class IdentityEndpoints
                     Email = normalizedEmail,
                     UserName = normalizedEmail,
                     EmailConfirmed = true,
-                    DisplayName = ResolveDisplayName(externalLoginInfo.Principal, normalizedEmail)
+                    DisplayName = ResolveDisplayName(
+                        externalLoginInfo.Principal, normalizedEmail)
                 };
 
-                IdentityResult createUserResult = await userManager.CreateAsync(applicationUser);
+                IdentityResult createUserResult =
+                    await userManager.CreateAsync(applicationUser);
 
                 if (!createUserResult.Succeeded)
                 {
-                    return TypedResults.Redirect(BuildLoginRedirectUrl(safeReturnUrl, "user_create_failed"));
+                    return TypedResults.Redirect(
+                        BuildLoginRedirectUrl(safeReturnUrl, "user_create_failed"));
                 }
 
                 isNewUser = true;
             }
             else
             {
-                bool isLocalEmailConfirmed = await userManager.IsEmailConfirmedAsync(applicationUser);
+                bool isLocalEmailConfirmed =
+                    await userManager.IsEmailConfirmedAsync(applicationUser);
+
                 if (!isLocalEmailConfirmed)
                 {
-                    return TypedResults.Redirect(BuildLoginRedirectUrl(safeReturnUrl, "local_email_not_confirmed"));
+                    return TypedResults.Redirect(
+                        BuildLoginRedirectUrl(safeReturnUrl, "local_email_not_confirmed"));
                 }
 
                 isOnboarded = await IsActiveSubscriptionOnboardedAsync(
@@ -352,7 +364,7 @@ public static class IdentityEndpoints
     {
         IEnumerable<AuthenticationScheme> schemes = await signInManager.GetExternalAuthenticationSchemesAsync();
         AuthenticationScheme? matchingScheme = schemes
-            .FirstOrDefault(scheme => string.Equals(
+            .FirstOrDefault(scheme => String.Equals(
                 scheme.Name,
                 provider,
                 StringComparison.OrdinalIgnoreCase));
@@ -362,7 +374,7 @@ public static class IdentityEndpoints
 
     internal static string NormalizeReturnUrl(string? returnUrl)
     {
-        if (string.IsNullOrWhiteSpace(returnUrl))
+        if (String.IsNullOrWhiteSpace(returnUrl))
         {
             return DefaultReturnUrl;
         }
@@ -392,7 +404,7 @@ public static class IdentityEndpoints
         int fragmentIndex = returnUrl.IndexOf('#');
         string fragment = fragmentIndex >= 0
             ? returnUrl.Substring(fragmentIndex)
-            : string.Empty;
+            : String.Empty;
 
         string urlWithoutFragment = fragmentIndex >= 0
             ? returnUrl.Substring(0, fragmentIndex)
@@ -411,18 +423,18 @@ public static class IdentityEndpoints
 
         foreach (KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues> queryItem in parsedQuery)
         {
-            if (string.Equals(queryItem.Key, "authError", StringComparison.Ordinal))
+            if (String.Equals(queryItem.Key, "authError", StringComparison.Ordinal))
             {
                 continue;
             }
 
             foreach (string? value in queryItem.Value)
             {
-                queryBuilder.Add(queryItem.Key, value ?? string.Empty);
+                queryBuilder.Add(queryItem.Key, value ?? String.Empty);
             }
         }
 
-        string queryString = queryBuilder.ToQueryString().Value ?? string.Empty;
+        string queryString = queryBuilder.ToQueryString().Value ?? String.Empty;
         return $"{path}{queryString}{fragment}";
     }
 
@@ -442,7 +454,7 @@ public static class IdentityEndpoints
     {
         string? displayName = principal.FindFirstValue("name");
 
-        if (!string.IsNullOrWhiteSpace(displayName))
+        if (!String.IsNullOrWhiteSpace(displayName))
         {
             return displayName.Trim();
         }
@@ -452,17 +464,17 @@ public static class IdentityEndpoints
 
     private static string ResolveDisplayName(ApplicationUser user)
     {
-        if (!string.IsNullOrWhiteSpace(user.DisplayName))
+        if (!String.IsNullOrWhiteSpace(user.DisplayName))
         {
             return user.DisplayName;
         }
 
-        if (!string.IsNullOrWhiteSpace(user.UserName))
+        if (!String.IsNullOrWhiteSpace(user.UserName))
         {
             return user.UserName;
         }
 
-        return user.Email ?? string.Empty;
+        return user.Email ?? String.Empty;
     }
 
     internal static bool IsExternalEmailVerified(ClaimsPrincipal principal)
@@ -477,14 +489,14 @@ public static class IdentityEndpoints
         foreach (string claimType in verificationClaimTypes)
         {
             string? verificationValue = principal.FindFirstValue(claimType);
-            if (string.IsNullOrWhiteSpace(verificationValue))
+            if (String.IsNullOrWhiteSpace(verificationValue))
             {
                 continue;
             }
 
-            if (string.Equals(verificationValue, "true", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(verificationValue, "1", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(verificationValue, "yes", StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(verificationValue, "true", StringComparison.OrdinalIgnoreCase) ||
+                String.Equals(verificationValue, "1", StringComparison.OrdinalIgnoreCase) ||
+                String.Equals(verificationValue, "yes", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

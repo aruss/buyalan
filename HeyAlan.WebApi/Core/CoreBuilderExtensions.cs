@@ -2,6 +2,7 @@ namespace HeyAlan.WebApi.Core;
 
 using HeyAlan.Configuration;
 using HeyAlan.Messaging;
+using HeyAlan.Newsletter;
 using HeyAlan.Onboarding;
 using HeyAlan.SquareIntegration;
 using HeyAlan.TelegramIntegration;
@@ -15,6 +16,7 @@ public static class CoreBuilderExtensions
 
         // ... add here busines services, repositories, etc.
         builder.AddMessagingServices();
+        builder.AddNewsletterServices();
         builder.Services.AddScoped<ISubscriptionOnboardingService, SubscriptionOnboardingService>();
 
         builder.AddTelegramServices();

@@ -1,7 +1,7 @@
 namespace HeyAlan.WebApi.Core;
 
 using HeyAlan;
-using HeyAlan.Collections;
+using HeyAlan.Extensions;
 
 public record ConversationMessageItem(
     Guid MessageId,

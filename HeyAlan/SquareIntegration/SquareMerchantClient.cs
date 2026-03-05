@@ -19,12 +19,12 @@ public sealed class SquareMerchantClient : ISquareMerchantClient
         string accessToken,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(accessToken))
+        if (String.IsNullOrWhiteSpace(accessToken))
         {
             return new SquareMerchantProfileResult.ReconnectRequired();
         }
 
-        if (string.IsNullOrWhiteSpace(this.appOptions.SquareClientId))
+        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId))
         {
             return new SquareMerchantProfileResult.Failure("square_not_configured");
         }
@@ -48,7 +48,7 @@ public sealed class SquareMerchantClient : ISquareMerchantClient
                 null,
                 cancellationToken);
 
-            if (response.Merchant is null || string.IsNullOrWhiteSpace(response.Merchant.Id))
+            if (response.Merchant is null || String.IsNullOrWhiteSpace(response.Merchant.Id))
             {
                 return new SquareMerchantProfileResult.Failure("square_probe_failed");
             }

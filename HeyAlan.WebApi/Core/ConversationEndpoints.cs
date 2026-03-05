@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HeyAlan;
-using HeyAlan.Collections;
 using HeyAlan.Data;
 using HeyAlan.Data.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using HeyAlan.Extensions;
 
 public static class ConversationEndpoints
 {
@@ -20,7 +20,7 @@ public static class ConversationEndpoints
              .WithTags("Conversations");
 
          routeGroup
-             .MapGet(string.Empty, GetAgentConversationsAsync)
+             .MapGet(String.Empty, GetAgentConversationsAsync)
              .ProducesProblem(StatusCodes.Status400BadRequest)
              .ProducesProblem(StatusCodes.Status404NotFound)
              .ProducesProblem(StatusCodes.Status500InternalServerError);

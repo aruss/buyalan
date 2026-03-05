@@ -140,15 +140,15 @@ public class ConversationStore : IConversationStore
             .Select(agent => agent.TelegramBotToken)
             .SingleOrDefaultAsync(ct);
 
-        if (string.IsNullOrWhiteSpace(token))
+        if (String.IsNullOrWhiteSpace(token))
         {
-            return string.Empty;
+            return String.Empty;
         }
 
         int separatorIndex = token.IndexOf(':');
         if (separatorIndex <= 0)
         {
-            return string.Empty;
+            return String.Empty;
         }
 
         return token[..separatorIndex];
@@ -163,9 +163,9 @@ public class ConversationStore : IConversationStore
 
     private string BuildPreview(string content)
     {
-        if (string.IsNullOrEmpty(content))
+        if (String.IsNullOrWhiteSpace(content))
         {
-            return string.Empty;
+            return String.Empty;
         }
 
         if (content.Length <= LastMessagePreviewLimit)

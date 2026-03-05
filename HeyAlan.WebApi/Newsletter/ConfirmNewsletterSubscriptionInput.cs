@@ -1,0 +1,7 @@
+namespace HeyAlan.WebApi.Newsletter;
+
+using System.ComponentModel.DataAnnotations;
+
+public sealed record ConfirmNewsletterSubscriptionInput(
+    [Required]
+    string? Token);

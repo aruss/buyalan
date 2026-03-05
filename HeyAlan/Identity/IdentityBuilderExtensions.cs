@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using HeyAlan.Configuration;
 using HeyAlan.Data;
 using HeyAlan.Data.Entities;
@@ -17,6 +19,10 @@ using System.Text.Json;
 
 public static class IdentityBuilderExtensions
 {
+    private const string ExternalApiPathPrefix = "/api";
+    private const string GoogleProviderCallbackPath = "/auth/providers/google/callback";
+    private const string SquareProviderCallbackPath = "/auth/providers/square/callback";
+
     public static TBuilder AddIdentityServices<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         AppOptions appOptions = builder.Configuration.TryGetAppOptions();
@@ -41,13 +47,27 @@ public static class IdentityBuilderExtensions
         if (!String.IsNullOrWhiteSpace(appOptions.AuthGoogleClientId) &&
             !String.IsNullOrWhiteSpace(appOptions.AuthGoogleClientSecret))
         {
+            string googleCallbackUrl = BuildAbsoluteAuthCallbackUrl(
+                appOptions.PublicBaseUrl,
+                GoogleProviderCallbackPath);
+
             authBuilder.AddGoogle("google", "Google", options =>
             {
                 options.ClientId = appOptions.AuthGoogleClientId;
                 options.ClientSecret = appOptions.AuthGoogleClientSecret;
-                options.CallbackPath = "/auth/providers/google/callback";
+                options.CallbackPath = GoogleProviderCallbackPath;
                 options.UserInformationEndpoint = "https://www.googleapis.com/oauth2/v2/userinfo";
                 options.SignInScheme = IdentityConstants.ExternalScheme;
+                options.Events.OnRedirectToAuthorizationEndpoint = context =>
+                {
+                    string authorizationUrl = ReplaceQueryParameter(
+                        context.RedirectUri,
+                        "redirect_uri",
+                        googleCallbackUrl);
+
+                    context.Response.Redirect(authorizationUrl);
+                    return Task.CompletedTask;
+                };
                 options.Events.OnCreatingTicket = context =>
                 {
                     if (TryGetVerificationValue(context.User, "verified_email", out bool isVerifiedEmail))
@@ -97,9 +117,13 @@ public static class IdentityBuilderExtensions
             });
         }
 
-        if (!string.IsNullOrWhiteSpace(appOptions.AuthSquareClientId) &&
-            !string.IsNullOrWhiteSpace(appOptions.AuthSquareClientSecret))
+        if (!String.IsNullOrWhiteSpace(appOptions.AuthSquareClientId) &&
+            !String.IsNullOrWhiteSpace(appOptions.AuthSquareClientSecret))
         {
+            string squareCallbackUrl = BuildAbsoluteAuthCallbackUrl(
+                appOptions.PublicBaseUrl,
+                SquareProviderCallbackPath);
+
             authBuilder.AddOAuth("square", "Square", options =>
             {
                 bool isSandbox = appOptions.AuthSquareClientId.StartsWith("sandbox-", StringComparison.OrdinalIgnoreCase);
@@ -110,7 +134,7 @@ public static class IdentityBuilderExtensions
 
                 options.ClientId = appOptions.AuthSquareClientId;
                 options.ClientSecret = appOptions.AuthSquareClientSecret;
-                options.CallbackPath = "/auth/providers/square/callback";
+                options.CallbackPath = SquareProviderCallbackPath;
                 options.SignInScheme = IdentityConstants.ExternalScheme;
 
                 options.AuthorizationEndpoint = $"{squareBaseUrl}/oauth2/authorize";
@@ -126,11 +150,16 @@ public static class IdentityBuilderExtensions
 
                 options.Events.OnRedirectToAuthorizationEndpoint = context =>
                 {
+                    string rewrittenRedirectUri = ReplaceQueryParameter(
+                        context.RedirectUri,
+                        "redirect_uri",
+                        squareCallbackUrl);
+
                     // Enforce explicit login for Production per Square OAuth guidelines
                     string authorizationUrl = isSandbox
-                        ? context.RedirectUri
+                        ? rewrittenRedirectUri
                         : Microsoft.AspNetCore.WebUtilities.QueryHelpers
-                            .AddQueryString(context.RedirectUri, "session", "false");
+                            .AddQueryString(rewrittenRedirectUri, "session", "false");
 
                     context.Response.Redirect(authorizationUrl);
                     return Task.CompletedTask;
@@ -165,13 +194,13 @@ public static class IdentityBuilderExtensions
                     // Synthesize the email_verified claim to satisfy existing IsExternalEmailVerified validation in IdentityEndpoints
                     if (merchant.TryGetProperty("owner_email", out JsonElement ownerEmailElement) &&
                         ownerEmailElement.ValueKind == JsonValueKind.String &&
-                        !string.IsNullOrWhiteSpace(ownerEmailElement.GetString()))
+                        !String.IsNullOrWhiteSpace(ownerEmailElement.GetString()))
                     {
                         context.Identity?.AddClaim(new Claim("email_verified", "true"));
                     }
                     else if (merchant.TryGetProperty("main_email", out JsonElement mainEmailElement) &&
                              mainEmailElement.ValueKind == JsonValueKind.String &&
-                             !string.IsNullOrWhiteSpace(mainEmailElement.GetString()))
+                             !String.IsNullOrWhiteSpace(mainEmailElement.GetString()))
                     {
                         // Fallback for payloads that still emit main_email.
                         context.Identity?.AddClaim(new Claim(ClaimTypes.Email, mainEmailElement.GetString()!));
@@ -237,6 +266,68 @@ public static class IdentityBuilderExtensions
             : authPath;
     }
 
+    internal static string BuildAbsoluteAuthCallbackUrl(Uri publicBaseUrl, string callbackPath)
+    {
+        if (!callbackPath.StartsWith('/'))
+        {
+            throw new ArgumentException("Callback path must start with '/'.", nameof(callbackPath));
+        }
+
+        string normalizedBasePath = publicBaseUrl.AbsolutePath.TrimEnd('/');
+
+        PathString basePath = String.Equals(normalizedBasePath, "/", StringComparison.Ordinal) ||
+            String.IsNullOrWhiteSpace(normalizedBasePath)
+                ? PathString.Empty
+                : new PathString(normalizedBasePath);
+
+        PathString fullPath = basePath
+            .Add(ExternalApiPathPrefix)
+            .Add(callbackPath);
+
+        UriBuilder uriBuilder = new(publicBaseUrl)
+        {
+            Path = fullPath.Value,
+            Query = String.Empty,
+            Fragment = String.Empty
+        };
+
+        return uriBuilder.Uri.ToString();
+    }
+
+    internal static string ReplaceQueryParameter(string url, string key, string value)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? parsedUri))
+        {
+            throw new ArgumentException("URL must be an absolute URI.", nameof(url));
+        }
+
+        Dictionary<string, StringValues> parsedQuery = QueryHelpers.ParseQuery(parsedUri.Query);
+        QueryBuilder queryBuilder = new();
+
+        foreach (KeyValuePair<string, StringValues> queryItem in parsedQuery)
+        {
+            if (String.Equals(queryItem.Key, key, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            foreach (string? queryValue in queryItem.Value)
+            {
+                queryBuilder.Add(queryItem.Key, queryValue ?? String.Empty);
+            }
+        }
+
+        queryBuilder.Add(key, value);
+
+        string queryString = queryBuilder.ToQueryString().Value ?? String.Empty;
+        UriBuilder uriBuilder = new(parsedUri)
+        {
+            Query = queryString.TrimStart('?')
+        };
+
+        return uriBuilder.Uri.ToString();
+    }
+
     internal static void ConfigureAuthCookie(CookieBuilder cookie, CookieSecurePolicy securePolicy)
     {
         cookie.HttpOnly = true;
@@ -272,23 +363,23 @@ public static class IdentityBuilderExtensions
         }
 
         string? propertyValue = property.GetString();
-        if (string.IsNullOrWhiteSpace(propertyValue))
+        if (String.IsNullOrWhiteSpace(propertyValue))
         {
             return false;
         }
 
         string normalizedValue = propertyValue.Trim();
-        if (string.Equals(normalizedValue, "true", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(normalizedValue, "1", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(normalizedValue, "yes", StringComparison.OrdinalIgnoreCase))
+        if (String.Equals(normalizedValue, "true", StringComparison.OrdinalIgnoreCase) ||
+            String.Equals(normalizedValue, "1", StringComparison.OrdinalIgnoreCase) ||
+            String.Equals(normalizedValue, "yes", StringComparison.OrdinalIgnoreCase))
         {
             result = true;
             return true;
         }
 
-        if (string.Equals(normalizedValue, "false", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(normalizedValue, "0", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(normalizedValue, "no", StringComparison.OrdinalIgnoreCase))
+        if (String.Equals(normalizedValue, "false", StringComparison.OrdinalIgnoreCase) ||
+            String.Equals(normalizedValue, "0", StringComparison.OrdinalIgnoreCase) ||
+            String.Equals(normalizedValue, "no", StringComparison.OrdinalIgnoreCase))
         {
             result = false;
             return true;

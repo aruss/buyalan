@@ -2,6 +2,23 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+public record AppOptions
+{
+    public Uri PublicBaseUrl { get; init; }
+
+    public string? AuthGoogleClientId { get; init; }
+
+    public string? AuthGoogleClientSecret { get; init; }
+
+    public string? AuthSquareClientId { get; init; }
+
+    public string? AuthSquareClientSecret { get; init; }
+
+    public string? SquareClientId { get; init; }
+
+    public string? SquareClientSecret { get; init; }
+}
+
 
 public static class AppOptionsConfigurationExtensions
 {
@@ -47,8 +64,8 @@ public static class AppOptionsConfigurationExtensions
 
     private static void ValidatePair(string? firstValue, string? secondValue, string errorMessage)
     {
-        bool hasFirstValue = !string.IsNullOrWhiteSpace(firstValue);
-        bool hasSecondValue = !string.IsNullOrWhiteSpace(secondValue);
+        bool hasFirstValue = !String.IsNullOrWhiteSpace(firstValue);
+        bool hasSecondValue = !String.IsNullOrWhiteSpace(secondValue);
 
         if (hasFirstValue != hasSecondValue)
         {
@@ -58,7 +75,7 @@ public static class AppOptionsConfigurationExtensions
 
     private static string? NormalizeOptional(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (String.IsNullOrWhiteSpace(value))
         {
             return null;
         }
@@ -67,19 +84,3 @@ public static class AppOptionsConfigurationExtensions
     }
 }
 
-public record AppOptions
-{
-    public Uri PublicBaseUrl { get; init; }
-
-    public string? AuthGoogleClientId { get; init; }
-
-    public string? AuthGoogleClientSecret { get; init; }
-
-    public string? AuthSquareClientId { get; init; }
-
-    public string? AuthSquareClientSecret { get; init; }
-
-    public string? SquareClientId { get; init; }
-
-    public string? SquareClientSecret { get; init; }
-}

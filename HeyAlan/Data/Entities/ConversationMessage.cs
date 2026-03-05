@@ -16,11 +16,11 @@ public class ConversationMessage : IEntityWithId, IEntityWithAudit
 
     public MessageRole Role { get; set; }
 
-    public string Content { get; set; } = string.Empty;
+    public string Content { get; set; } = String.Empty;
 
-    public string From { get; set; } = string.Empty;
+    public string From { get; set; } = String.Empty;
 
-    public string To { get; set; } = string.Empty;
+    public string To { get; set; } = String.Empty;
 
     public DateTimeOffset OccurredAt { get; set; }
 

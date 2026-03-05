@@ -1,7 +1,13 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { ReactElement } from "react";
+import { NEWSLETTER_CONFIRMATION_COOKIE_NAME } from "./newsletter-constants";
+import { NewsletterSubscriptionForm } from "./newsletter-subscription-form";
 
-export const LandingFooter = (): ReactElement => {
+export const LandingFooter = async (): Promise<ReactElement> => {
+    const cookieStore = await cookies();
+    const isSubscribedForSession = cookieStore.get(NEWSLETTER_CONFIRMATION_COOKIE_NAME)?.value === "1";
+
     return (
         <footer className="border-t border-zinc-800 bg-black py-16 text-white">
             <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 md:grid-cols-4">
@@ -12,20 +18,7 @@ export const LandingFooter = (): ReactElement => {
                     <p className="mb-6 max-w-sm text-sm text-zinc-500">
                         Empowering Square merchants with autonomous conversational sales.
                     </p>
-                    <form className="flex max-w-md flex-col gap-2 sm:flex-row">
-                        <input
-                            type="email"
-                            placeholder="Subscribe to newsletter"
-                            required
-                            className="flex-1 rounded border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
-                        />
-                        <button
-                            type="submit"
-                            className="rounded bg-white px-6 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200"
-                        >
-                            Subscribe
-                        </button>
-                    </form>
+                    <NewsletterSubscriptionForm isInitiallySubmitted={isSubscribedForSession} />
                 </div>
 
                 <div>

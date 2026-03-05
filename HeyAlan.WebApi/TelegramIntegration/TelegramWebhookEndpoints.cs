@@ -96,7 +96,7 @@ public static class TelegramWebhookEndpoints
 
     private static string ExtractBotId(string botToken)
     {
-        if (string.IsNullOrWhiteSpace(botToken))
+        if (String.IsNullOrWhiteSpace(botToken))
         {
             return "unknown";
         }

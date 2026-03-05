@@ -1,8 +1,7 @@
 namespace HeyAlan.WebApi.Core;
 
 using HeyAlan;
-using HeyAlan.Collections;
-
+using HeyAlan.Extensions;
 public record ConversationListItem(
     Guid ConversationId,
     string ParticipantExternalId,

@@ -20,7 +20,7 @@ public sealed class TelegramSecretTokenFilter : IEndpointFilter
             .GetRequiredService<ILogger<TelegramSecretTokenFilter>>();
 
         if (!context.HttpContext.Request.Headers.TryGetValue(SecretTokenHeader, out var extractedToken) ||
-            !string.Equals(extractedToken, this.expectedToken, StringComparison.Ordinal))
+            !String.Equals(extractedToken, this.expectedToken, StringComparison.Ordinal))
         {
             logger.LogWarning(
                 "Rejected Telegram webhook request with invalid secret token. Path: {Path}.",

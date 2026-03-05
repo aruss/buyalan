@@ -17,7 +17,7 @@ public class CamelCaseQueryParameterOperationTransformer : IOpenApiOperationTran
 
         foreach (OpenApiParameter parameter in operation.Parameters)
         {
-            if (parameter.In != ParameterLocation.Query || string.IsNullOrEmpty(parameter.Name))
+            if (parameter.In != ParameterLocation.Query || String.IsNullOrWhiteSpace(parameter.Name))
             {
                 continue;
             }

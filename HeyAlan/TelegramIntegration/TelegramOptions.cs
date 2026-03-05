@@ -19,5 +19,5 @@ public static class TelegramConfigurationExtensions
 
 public record TelegramOptions
 {
-    public string SecretToken { get; init; } = string.Empty;
+    public string SecretToken { get; init; } = String.Empty;
 }

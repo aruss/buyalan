@@ -132,7 +132,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return new UpdateSubscriptionOnboardingStepResult.Failure("subscription_member_required");
         }
 
-        if (string.IsNullOrWhiteSpace(input.Name))
+        if (String.IsNullOrWhiteSpace(input.Name))
         {
             return new UpdateSubscriptionOnboardingStepResult.Failure("agent_name_required");
         }
@@ -180,22 +180,24 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         string? originalTwilioPhoneNumber = agent.TwilioPhoneNumber;
         string? originalTelegramBotToken = agent.TelegramBotToken;
         string? originalWhatsappNumber = agent.WhatsappNumber;
+
         bool keepExistingTelegramBotToken =
-            string.IsNullOrWhiteSpace(telegramBotToken) &&
-            !string.IsNullOrWhiteSpace(originalTelegramBotToken);
+            String.IsNullOrWhiteSpace(telegramBotToken) &&
+            !String.IsNullOrWhiteSpace(originalTelegramBotToken);
+
         string? effectiveTelegramBotToken = keepExistingTelegramBotToken
             ? originalTelegramBotToken
             : telegramBotToken;
 
-        if (string.IsNullOrWhiteSpace(twilioPhoneNumber) &&
-            string.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
-            string.IsNullOrWhiteSpace(whatsappNumber))
+        if (String.IsNullOrWhiteSpace(twilioPhoneNumber) &&
+            String.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
+            String.IsNullOrWhiteSpace(whatsappNumber))
         {
             return new UpdateSubscriptionOnboardingStepResult.Failure("channels_at_least_one_required");
         }
 
-        if (!string.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
-            !string.Equals(effectiveTelegramBotToken, originalTelegramBotToken, StringComparison.Ordinal))
+        if (!String.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
+            !String.Equals(effectiveTelegramBotToken, originalTelegramBotToken, StringComparison.Ordinal))
         {
             bool isTokenUsedByAnotherAgent = await this.dbContext.Agents
                 .AnyAsync(
@@ -213,6 +215,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         agent.TwilioPhoneNumber = twilioPhoneNumber;
         agent.TelegramBotToken = effectiveTelegramBotToken;
         agent.WhatsappNumber = whatsappNumber;
+
         try
         {
             await this.dbContext.SaveChangesAsync(cancellationToken);
@@ -222,8 +225,8 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return new UpdateSubscriptionOnboardingStepResult.Failure("telegram_bot_token_already_in_use");
         }
 
-        if (!string.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
-            !string.Equals(effectiveTelegramBotToken, originalTelegramBotToken, StringComparison.Ordinal))
+        if (!String.IsNullOrWhiteSpace(effectiveTelegramBotToken) &&
+            !String.Equals(effectiveTelegramBotToken, originalTelegramBotToken, StringComparison.Ordinal))
         {
             string? webhookRegistrationErrorCode = null;
             try
@@ -239,7 +242,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
                 webhookRegistrationErrorCode = "telegram_webhook_registration_failed";
             }
 
-            if (!string.IsNullOrWhiteSpace(webhookRegistrationErrorCode))
+            if (!String.IsNullOrWhiteSpace(webhookRegistrationErrorCode))
             {
                 this.logger.LogWarning(
                     "Rolling back onboarding channel update because Telegram webhook registration failed for Subscription {SubscriptionId}, Agent {AgentId}. ErrorCode {ErrorCode}.",
@@ -250,13 +253,16 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
                 agent.TwilioPhoneNumber = originalTwilioPhoneNumber;
                 agent.TelegramBotToken = originalTelegramBotToken;
                 agent.WhatsappNumber = originalWhatsappNumber;
+
                 await this.dbContext.SaveChangesAsync(cancellationToken);
 
                 return new UpdateSubscriptionOnboardingStepResult.Failure(webhookRegistrationErrorCode);
             }
         }
 
-        OnboardingStateResult state = await this.RecomputeStateAsync(agent.SubscriptionId, cancellationToken);
+        OnboardingStateResult state = 
+            await this.RecomputeStateAsync(agent.SubscriptionId, cancellationToken);
+
         return new UpdateSubscriptionOnboardingStepResult.Success(state);
     }
 
@@ -274,10 +280,10 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         OnboardingComputation computed = await this.ComputeStateAsync(subscriptionId, cancellationToken);
 
         OnboardingStepComputation? invitationsStep = computed.StepStates.SingleOrDefault(item =>
-            string.Equals(item.Definition.Name, "invitations", StringComparison.Ordinal));
+            String.Equals(item.Definition.Name, "invitations", StringComparison.Ordinal));
 
         if (invitationsStep is null ||
-            string.Equals(invitationsStep.Status, StepStatusBlocked, StringComparison.Ordinal))
+            String.Equals(invitationsStep.Status, StepStatusBlocked, StringComparison.Ordinal))
         {
             return new UpdateSubscriptionOnboardingStepResult.Failure("onboarding_invitations_blocked");
         }
@@ -332,7 +338,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return new UpdateSubscriptionOnboardingStepResult.Failure("subscription_member_required");
         }
 
-        if (string.IsNullOrWhiteSpace(step))
+        if (String.IsNullOrWhiteSpace(step))
         {
             return new UpdateSubscriptionOnboardingStepResult.Failure("step_not_found");
         }
@@ -352,10 +358,10 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         OnboardingComputation computed = await this.ComputeStateAsync(subscriptionId, cancellationToken);
 
         OnboardingStepComputation? stepComputation = computed.StepStates.SingleOrDefault(item =>
-            string.Equals(item.Definition.Name, definition.Name, StringComparison.Ordinal));
+            String.Equals(item.Definition.Name, definition.Name, StringComparison.Ordinal));
 
         if (stepComputation is not null &&
-            string.Equals(stepComputation.Status, StepStatusBlocked, StringComparison.Ordinal))
+            String.Equals(stepComputation.Status, StepStatusBlocked, StringComparison.Ordinal))
         {
             return new UpdateSubscriptionOnboardingStepResult.Failure("step_skip_blocked");
         }
@@ -475,7 +481,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         OnboardingChannelsPrefill channelsPrefill = new(
             primaryAgent?.TwilioPhoneNumber,
             primaryAgent?.WhatsappNumber,
-            !string.IsNullOrWhiteSpace(primaryAgent?.TelegramBotToken));
+            !String.IsNullOrWhiteSpace(primaryAgent?.TelegramBotToken));
 
         Dictionary<string, bool> completedByStep = new(StringComparer.Ordinal)
         {
@@ -484,7 +490,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             ["channels"] = IsChannelsComplete(primaryAgent),
             ["invitations"] =
                 onboardingState.Status == SubscriptionOnboardingStatus.Completed ||
-                string.Equals(onboardingState.CurrentStep, "finalize", StringComparison.Ordinal),
+                String.Equals(onboardingState.CurrentStep, "finalize", StringComparison.Ordinal),
             ["finalize"] = onboardingState.Status == SubscriptionOnboardingStatus.Completed && onboardingState.CompletedAt.HasValue
         };
 
@@ -505,10 +511,10 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             bool hasSkippedDependency = definition.DependsOn.Any(dependency =>
             {
                 OnboardingStepComputation? dependencyState = baseStepStates.SingleOrDefault(item =>
-                    string.Equals(item.Definition.Name, dependency, StringComparison.Ordinal));
+                    String.Equals(item.Definition.Name, dependency, StringComparison.Ordinal));
 
                 return dependencyState is not null &&
-                    string.Equals(dependencyState.Status, StepStatusSkipped, StringComparison.Ordinal);
+                    String.Equals(dependencyState.Status, StepStatusSkipped, StringComparison.Ordinal);
             });
 
             if (hasSkippedDependency)
@@ -520,10 +526,10 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             bool hasUnmetDependency = definition.DependsOn.Any(dependency =>
             {
                 OnboardingStepComputation? dependencyState = baseStepStates.SingleOrDefault(item =>
-                    string.Equals(item.Definition.Name, dependency, StringComparison.Ordinal));
+                    String.Equals(item.Definition.Name, dependency, StringComparison.Ordinal));
 
                 return dependencyState is null ||
-                    !string.Equals(dependencyState.Status, StepStatusCompleted, StringComparison.Ordinal);
+                    !String.Equals(dependencyState.Status, StepStatusCompleted, StringComparison.Ordinal);
             });
 
             if (hasUnmetDependency)
@@ -545,8 +551,8 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         List<OnboardingStepComputation> normalizedStepStates = [];
         foreach (OnboardingStepComputation stepState in baseStepStates)
         {
-            if (string.Equals(stepState.Definition.Name, currentStep, StringComparison.Ordinal) &&
-                string.Equals(stepState.Status, StepStatusNotStarted, StringComparison.Ordinal))
+            if (String.Equals(stepState.Definition.Name, currentStep, StringComparison.Ordinal) &&
+                String.Equals(stepState.Status, StepStatusNotStarted, StringComparison.Ordinal))
             {
                 normalizedStepStates.Add(new OnboardingStepComputation(stepState.Definition, StepStatusInProgress));
                 continue;
@@ -556,9 +562,9 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         }
 
         bool hasIncompleteRequiredSteps = normalizedStepStates.Any(item =>
-            (string.Equals(item.Definition.Name, "square_connect", StringComparison.Ordinal) || !item.Definition.IsSkippable) &&
-            !string.Equals(item.Definition.Name, "finalize", StringComparison.Ordinal) &&
-            !string.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal));
+            (String.Equals(item.Definition.Name, "square_connect", StringComparison.Ordinal) || !item.Definition.IsSkippable) &&
+            !String.Equals(item.Definition.Name, "finalize", StringComparison.Ordinal) &&
+            !String.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal));
 
         bool canFinalize = !hasIncompleteRequiredSteps;
         bool finalizeComplete = completedByStep["finalize"];
@@ -591,17 +597,17 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
     private static string ResolveCurrentStep(string configuredCurrentStep, IReadOnlyCollection<OnboardingStepComputation> baseStepStates)
     {
         OnboardingStepComputation? configured = baseStepStates.SingleOrDefault(item =>
-            string.Equals(item.Definition.Name, configuredCurrentStep, StringComparison.Ordinal));
+            String.Equals(item.Definition.Name, configuredCurrentStep, StringComparison.Ordinal));
 
         if (configured is not null &&
-            (string.Equals(configured.Status, StepStatusNotStarted, StringComparison.Ordinal) ||
-             string.Equals(configured.Status, StepStatusInProgress, StringComparison.Ordinal)))
+            (String.Equals(configured.Status, StepStatusNotStarted, StringComparison.Ordinal) ||
+             String.Equals(configured.Status, StepStatusInProgress, StringComparison.Ordinal)))
         {
             return configured.Definition.Name;
         }
 
         OnboardingStepComputation? nextNotStarted = baseStepStates.FirstOrDefault(item =>
-            string.Equals(item.Status, StepStatusNotStarted, StringComparison.Ordinal));
+            String.Equals(item.Status, StepStatusNotStarted, StringComparison.Ordinal));
 
         return nextNotStarted?.Definition.Name ?? "finalize";
     }
@@ -610,7 +616,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
     {
         int index = Array.FindIndex(
             StepDefinitions,
-            item => string.Equals(item.Name, step, StringComparison.Ordinal));
+            item => String.Equals(item.Name, step, StringComparison.Ordinal));
 
         return index < 0 ? 0 : index;
     }
@@ -620,8 +626,8 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         for (int currentIndex = index + 1; currentIndex < states.Count; currentIndex++)
         {
             string status = states[currentIndex].Status;
-            if (string.Equals(status, StepStatusNotStarted, StringComparison.Ordinal) ||
-                string.Equals(status, StepStatusInProgress, StringComparison.Ordinal))
+            if (String.Equals(status, StepStatusNotStarted, StringComparison.Ordinal) ||
+                String.Equals(status, StepStatusInProgress, StringComparison.Ordinal))
             {
                 return states[currentIndex].Definition.Name;
             }
@@ -637,8 +643,8 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(connection.EncryptedAccessToken) ||
-            string.IsNullOrWhiteSpace(connection.EncryptedRefreshToken))
+        if (String.IsNullOrWhiteSpace(connection.EncryptedAccessToken) ||
+            String.IsNullOrWhiteSpace(connection.EncryptedRefreshToken))
         {
             return false;
         }
@@ -653,7 +659,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
     private static bool IsProfileComplete(Agent? agent)
     {
         return agent is not null &&
-            !string.IsNullOrWhiteSpace(agent.Name) &&
+            !String.IsNullOrWhiteSpace(agent.Name) &&
             agent.Personality.HasValue;
     }
 
@@ -661,15 +667,15 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
     {
         return agent is not null &&
             (
-                !string.IsNullOrWhiteSpace(agent.TwilioPhoneNumber) ||
-                !string.IsNullOrWhiteSpace(agent.TelegramBotToken) ||
-                !string.IsNullOrWhiteSpace(agent.WhatsappNumber)
+                !String.IsNullOrWhiteSpace(agent.TwilioPhoneNumber) ||
+                !String.IsNullOrWhiteSpace(agent.TelegramBotToken) ||
+                !String.IsNullOrWhiteSpace(agent.WhatsappNumber)
             );
     }
 
     private static string? NormalizeOptionalChannel(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (String.IsNullOrWhiteSpace(value))
         {
             return null;
         }
@@ -680,7 +686,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
     private static OnboardingStepDefinition? GetStepDefinition(string step)
     {
         return StepDefinitions.SingleOrDefault(item =>
-            string.Equals(item.Name, step, StringComparison.Ordinal));
+            String.Equals(item.Name, step, StringComparison.Ordinal));
     }
 
     private static void ValidateStepDefinitions()
@@ -717,9 +723,9 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         }
 
         bool hasProgress = steps.Any(item =>
-            string.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal) ||
-            string.Equals(item.Status, StepStatusSkipped, StringComparison.Ordinal) ||
-            string.Equals(item.Status, StepStatusInProgress, StringComparison.Ordinal));
+            String.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal) ||
+            String.Equals(item.Status, StepStatusSkipped, StringComparison.Ordinal) ||
+            String.Equals(item.Status, StepStatusInProgress, StringComparison.Ordinal));
 
         return hasProgress
             ? SubscriptionOnboardingStatus.InProgress
@@ -748,14 +754,14 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
 
     private static OnboardingStateResult ApplyResumeMode(OnboardingStateResult state)
     {
-        if (string.Equals(state.Status, SubscriptionOnboardingStatus.Completed.ToString(), StringComparison.Ordinal))
+        if (String.Equals(state.Status, SubscriptionOnboardingStatus.Completed.ToString(), StringComparison.Ordinal))
         {
             return state;
         }
 
         bool squareCompleted = state.Steps.Any(item =>
-            string.Equals(item.Step, "square_connect", StringComparison.Ordinal) &&
-            string.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal));
+            String.Equals(item.Step, "square_connect", StringComparison.Ordinal) &&
+            String.Equals(item.Status, StepStatusCompleted, StringComparison.Ordinal));
 
         if (squareCompleted)
         {
@@ -765,7 +771,7 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         OnboardingStepState[] steps = state.Steps
             .Select(item =>
             {
-                if (!string.Equals(item.Step, "square_connect", StringComparison.Ordinal))
+                if (!String.Equals(item.Step, "square_connect", StringComparison.Ordinal))
                 {
                     return item;
                 }
@@ -793,8 +799,8 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return false;
         }
 
-        return string.Equals(postgresException.SqlState, PostgresErrorCodes.UniqueViolation, StringComparison.Ordinal) &&
-            !string.IsNullOrWhiteSpace(postgresException.ConstraintName) &&
+        return String.Equals(postgresException.SqlState, PostgresErrorCodes.UniqueViolation, StringComparison.Ordinal) &&
+            !String.IsNullOrWhiteSpace(postgresException.ConstraintName) &&
             postgresException.ConstraintName.Contains("telegram_bot_token", StringComparison.Ordinal);
     }
 

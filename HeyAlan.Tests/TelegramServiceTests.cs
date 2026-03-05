@@ -197,7 +197,7 @@ public class TelegramServiceTests
     private static string ReadRequiredString(JsonElement root, string propertyName)
     {
         JsonElement value = root.GetProperty(propertyName);
-        return value.GetString() ?? string.Empty;
+        return value.GetString() ?? String.Empty;
     }
 
     private sealed class FakeHttpClientFactory : IHttpClientFactory
@@ -232,7 +232,7 @@ public class TelegramServiceTests
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             this.LastRequestContent = request.Content is null
-                ? string.Empty
+                ? String.Empty
                 : await request.Content.ReadAsStringAsync(cancellationToken);
 
             HttpResponseMessage response = this.responseFactory(request);

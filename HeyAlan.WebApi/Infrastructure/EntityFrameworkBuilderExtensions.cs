@@ -11,7 +11,7 @@ public static class EntityFrameworkBuilderExtensions
         builder.Services.AddDbContext<MainDataContext>(options =>
         {
             var connStr = builder.Configuration.GetConnectionString("heyalan");
-            if (string.IsNullOrWhiteSpace(connStr))
+            if (String.IsNullOrWhiteSpace(connStr))
             {
                 throw new InvalidOperationException("DB Connection Missing");
             }

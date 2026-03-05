@@ -10,12 +10,21 @@ builder.Configuration
 builder.Configuration.AddEnvFile("./.env");
 builder.Configuration.AddEnvironmentVariables();
 
-string? ngrokDomain = builder.Configuration["NGROK_DOMAIN"];
-string publicBaseUrl = ngrokDomain ?? "http://localhost:5000";
+string publicBaseUrl = builder.Configuration["PUBLIC_BASE_URL"];
+string ngrokDomain = builder.Configuration["NGROK_DOMAIN"];
 
-string telegramSecretToken = builder.Configuration["TELEGRAM_SECRET_TOKEN"] 
+if (String.IsNullOrEmpty(publicBaseUrl))
+{
+    publicBaseUrl = ngrokDomain;
+}
+
+if (String.IsNullOrEmpty(publicBaseUrl))
+{
+    publicBaseUrl = "http://localhost:5000";
+}
+
+string telegramSecretToken = builder.Configuration["TELEGRAM_SECRET_TOKEN"]
     ?? throw new InvalidOperationException("TELEGRAM_SECRET_TOKEN is missing in host configuration.");
-
 
 #endregion
 
@@ -64,11 +73,11 @@ var initializer = builder.AddProject<Projects.HeyAlan_Initializer>("initializer"
     .WithEnvironment("RABBITMQ_PASS", rabbitPass)
     .WithEnvironment("RABBITMQ_VHOST", "heyalan") // The vhost name you want to use
     .WithReference(rabbitmq)
-    .WithEnvironment("ConnectionStrings__rabbitmq", ReferenceExpression.Create($"{rabbitmq}/heyalan"))    
+    .WithEnvironment("ConnectionStrings__rabbitmq", ReferenceExpression.Create($"{rabbitmq}/heyalan"))
     .WaitFor(postgres)
-    .WaitFor(rabbitmq); 
+    .WaitFor(rabbitmq);
 
-#endregion 
+#endregion
 
 #region Application: Web API
 
@@ -85,30 +94,17 @@ var webapi = builder.AddProject<Projects.HeyAlan_WebApi>("webapi")
     .WithEnvironment("AUTH_SQUARE_CLIENT_SECRET", builder.Configuration["AUTH_SQUARE_CLIENT_SECRET"])
     .WithEnvironment("SQUARE_CLIENT_ID", builder.Configuration["SQUARE_CLIENT_ID"])
     .WithEnvironment("SQUARE_CLIENT_SECRET", builder.Configuration["SQUARE_CLIENT_SECRET"])
+    .WithEnvironment("SENDGRID_API_KEY", builder.Configuration["SENDGRID_API_KEY"])
+    .WithEnvironment("SENDGRID_NEWSLETTER_LIST_ID", builder.Configuration["SENDGRID_NEWSLETTER_LIST_ID"])
+    .WithEnvironment("SENDGRID_NEWSLETTER_CONFIRM_TEMPLATE_ID", builder.Configuration["SENDGRID_NEWSLETTER_CONFIRM_TEMPLATE_ID"])
+    .WithEnvironment("SENDGRID_NEWSLETTER_FROM_EMAIL", builder.Configuration["SENDGRID_NEWSLETTER_FROM_EMAIL"])
+    .WithEnvironment("NEWSLETTER_CONFIRM_TOKEN_TTL_MINUTES", builder.Configuration["NEWSLETTER_CONFIRM_TOKEN_TTL_MINUTES"])
     .WithReference(rabbitmq)
     .WithEnvironment("ConnectionStrings__rabbitmq", ReferenceExpression.Create($"{rabbitmq}/heyalan"))
     .WithReference(heyalanDb)
     .WaitFor(postgres)
     .WaitFor(rabbitmq)
     .WaitForCompletion(initializer);
-
-#endregion
-
-#region Infrastructure: ngrok
-
-if (!String.IsNullOrEmpty(ngrokDomain))
-{
-    string ngrokAuthToken = builder.Configuration["NGROK_AUTHTOKEN"]
-        ?? throw new InvalidOperationException("NGROK_AUTHTOKEN is missing in host configuration.");
-
-    builder.AddContainer("ngrok", "ngrok/ngrok")
-        .WithContainerName("heyalan-ngrok")
-        .WithProjectName("heyalan")
-        .WithEnvironment("NGROK_AUTHTOKEN", ngrokAuthToken)
-        .WithHttpEndpoint(targetPort: 4040, port: 4040, name: "inspect")
-        .WithArgs("http", $"--url={ngrokDomain}", "--log=stdout", "http://host.docker.internal:5000")
-        .WaitFor(webapi);
-}
 
 #endregion
 
@@ -127,21 +123,38 @@ if (!String.IsNullOrEmpty(ngrokDomain))
     .WithEnvironment("NODE_OPTIONS", "--inspect=0.0.0.0:9229");
 */
 
-if (false)
+
+// if WebApp run is via yarn/npm, use AddExecutable
+var webapp = builder.AddExecutable("webapp", "yarn.cmd", "../HeyAlan.WebApp", "dev")
+    // explicitly allow unsecure transport for local dev if needed, or use https
+    .WithHttpEndpoint(env: "PORT", port: 5010, name: "http")
+    .WithExternalHttpEndpoints()
+    .WithReference(webapi)
+    .WaitFor(webapi)
+    .WithOtlpExporter()
+    .WithEnvironment("APP_VERSION", "1.2.3")
+    .WithEnvironment("WEBAPI_ENDPOINT", webapi.GetEndpoint("http"))
+    .WithEnvironment("NODE_OPTIONS", "--inspect=0.0.0.0:9229");
+
+#endregion
+
+#region Infrastructure: ngrok
+
+if (!String.IsNullOrEmpty(ngrokDomain))
 {
-    // if WebApp run is via yarn/npm, use AddExecutable
-    var webapp = builder.AddExecutable("webapp", "yarn.cmd", "../HeyAlan.WebApp", "dev")
-        // explicitly allow unsecure transport for local dev if needed, or use https
-        .WithHttpEndpoint(env: "PORT", port: 5010, name: "http")
-        .WithExternalHttpEndpoints()
-        .WithReference(webapi)
-        .WaitFor(webapi)
-        .WithOtlpExporter()
-        .WithEnvironment("APP_VERSION", "1.2.3")
-        .WithEnvironment("WEBAPI_ENDPOINT", webapi.GetEndpoint("http"))
-        .WithEnvironment("NODE_OPTIONS", "--inspect=0.0.0.0:9229");
+    string ngrokAuthToken = builder.Configuration["NGROK_AUTHTOKEN"]
+        ?? throw new InvalidOperationException("NGROK_AUTHTOKEN is missing in host configuration.");
+
+    builder.AddContainer("ngrok", "ngrok/ngrok")
+        .WithContainerName("heyalan-ngrok")
+        .WithProjectName("heyalan")
+        .WithEnvironment("NGROK_AUTHTOKEN", ngrokAuthToken)
+        .WithHttpEndpoint(targetPort: 4040, port: 4040, name: "inspect")
+        .WithArgs("http", $"--url={ngrokDomain}", "--log=stdout", "http://host.docker.internal:5010")
+        .WaitFor(webapp);
 }
 
 #endregion
+
 
 builder.Build().Run();
