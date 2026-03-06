@@ -104,13 +104,6 @@ export type GetSubscriptionOnboardingStateResult = {
     channelsPrefill: OnboardingChannelsPrefill;
 };
 
-export type GetSubscriptionSquareConnectionProbeResult = {
-    isConnected: boolean;
-    merchantId: string;
-    accessTokenExpiresAtUtc: string;
-    scopes: Array<string>;
-};
-
 export type IngestTelegramMessageInput = {
     message?: null | TelegramMessageInput;
 };
@@ -273,7 +266,7 @@ export type PostWebhooksTelegramByBotTokenResponses = {
     200: unknown;
 };
 
-export type GetOnboardingSquareConnectCallbackData = {
+export type GetSubscriptionsSquareCallbackData = {
     body?: never;
     path?: never;
     query?: {
@@ -281,10 +274,10 @@ export type GetOnboardingSquareConnectCallbackData = {
         state?: string;
         error?: string;
     };
-    url: '/onboarding/square/connect/callback';
+    url: '/subscriptions/square/callback';
 };
 
-export type GetOnboardingSquareConnectCallbackResponses = {
+export type GetSubscriptionsSquareCallbackResponses = {
     /**
      * OK
      */
@@ -608,7 +601,7 @@ export type PatchAgentsByAgentIdConversationsByConversationIdReadResponses = {
 
 export type PatchAgentsByAgentIdConversationsByConversationIdReadResponse = PatchAgentsByAgentIdConversationsByConversationIdReadResponses[keyof PatchAgentsByAgentIdConversationsByConversationIdReadResponses];
 
-export type PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeData = {
+export type PostSubscriptionsBySubscriptionIdSquareAuthorizeData = {
     body?: never;
     path: {
         subscriptionId: string;
@@ -616,10 +609,10 @@ export type PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeDat
     query?: {
         returnUrl?: string;
     };
-    url: '/onboarding/subscriptions/{subscriptionId}/square/connect/authorize';
+    url: '/subscriptions/{subscriptionId}/square/authorize';
 };
 
-export type PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeErrors = {
+export type PostSubscriptionsBySubscriptionIdSquareAuthorizeErrors = {
     /**
      * Bad Request
      */
@@ -634,53 +627,16 @@ export type PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeErr
     403: SquareConnectionErrorResult;
 };
 
-export type PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeError = PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeErrors[keyof PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeErrors];
+export type PostSubscriptionsBySubscriptionIdSquareAuthorizeError = PostSubscriptionsBySubscriptionIdSquareAuthorizeErrors[keyof PostSubscriptionsBySubscriptionIdSquareAuthorizeErrors];
 
-export type PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponses = {
+export type PostSubscriptionsBySubscriptionIdSquareAuthorizeResponses = {
     /**
      * OK
      */
     200: StartSubscriptionSquareConnectAuthorizeResult;
 };
 
-export type PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponse = PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponses[keyof PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponses];
-
-export type PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeData = {
-    body?: never;
-    path: {
-        subscriptionId: string;
-    };
-    query?: {
-        returnUrl?: string;
-    };
-    url: '/subscriptions/{subscriptionId}/square/connect/authorize';
-};
-
-export type PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeErrors = {
-    /**
-     * Bad Request
-     */
-    400: SquareConnectionErrorResult;
-    /**
-     * Unauthorized
-     */
-    401: SquareConnectionErrorResult;
-    /**
-     * Forbidden
-     */
-    403: SquareConnectionErrorResult;
-};
-
-export type PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeError = PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeErrors[keyof PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeErrors];
-
-export type PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponses = {
-    /**
-     * OK
-     */
-    200: StartSubscriptionSquareConnectAuthorizeResult;
-};
-
-export type PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponse = PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponses[keyof PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponses];
+export type PostSubscriptionsBySubscriptionIdSquareAuthorizeResponse = PostSubscriptionsBySubscriptionIdSquareAuthorizeResponses[keyof PostSubscriptionsBySubscriptionIdSquareAuthorizeResponses];
 
 export type DeleteSubscriptionsBySubscriptionIdSquareConnectionData = {
     body?: never;
@@ -720,45 +676,6 @@ export type DeleteSubscriptionsBySubscriptionIdSquareConnectionResponses = {
 };
 
 export type DeleteSubscriptionsBySubscriptionIdSquareConnectionResponse = DeleteSubscriptionsBySubscriptionIdSquareConnectionResponses[keyof DeleteSubscriptionsBySubscriptionIdSquareConnectionResponses];
-
-export type GetSubscriptionsBySubscriptionIdSquareConnectionProbeData = {
-    body?: never;
-    path: {
-        subscriptionId: string;
-    };
-    query?: never;
-    url: '/subscriptions/{subscriptionId}/square/connection/probe';
-};
-
-export type GetSubscriptionsBySubscriptionIdSquareConnectionProbeErrors = {
-    /**
-     * Bad Request
-     */
-    400: SquareConnectionErrorResult;
-    /**
-     * Unauthorized
-     */
-    401: SquareConnectionErrorResult;
-    /**
-     * Forbidden
-     */
-    403: SquareConnectionErrorResult;
-    /**
-     * Not Found
-     */
-    404: SquareConnectionErrorResult;
-};
-
-export type GetSubscriptionsBySubscriptionIdSquareConnectionProbeError = GetSubscriptionsBySubscriptionIdSquareConnectionProbeErrors[keyof GetSubscriptionsBySubscriptionIdSquareConnectionProbeErrors];
-
-export type GetSubscriptionsBySubscriptionIdSquareConnectionProbeResponses = {
-    /**
-     * OK
-     */
-    200: GetSubscriptionSquareConnectionProbeResult;
-};
-
-export type GetSubscriptionsBySubscriptionIdSquareConnectionProbeResponse = GetSubscriptionsBySubscriptionIdSquareConnectionProbeResponses[keyof GetSubscriptionsBySubscriptionIdSquareConnectionProbeResponses];
 
 export type GetOnboardingSubscriptionsActiveData = {
     body?: never;

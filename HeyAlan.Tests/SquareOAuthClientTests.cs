@@ -42,7 +42,7 @@ public class SquareOAuthClientTests
 
         SquareTokenExchangeResult result = await client.ExchangeAuthorizationCodeAsync(
             "auth-code",
-            "https://heyalan.test/onboarding/square/connect/callback");
+            "https://heyalan.test/subscriptions/square/callback");
 
         SquareTokenExchangeResult.Success success = Assert.IsType<SquareTokenExchangeResult.Success>(result);
         Assert.Contains("ITEMS_READ", success.Payload.Scopes, StringComparer.Ordinal);
@@ -72,7 +72,7 @@ public class SquareOAuthClientTests
 
         SquareTokenExchangeResult result = await client.ExchangeAuthorizationCodeAsync(
             "auth-code",
-            "https://heyalan.test/onboarding/square/connect/callback");
+            "https://heyalan.test/subscriptions/square/callback");
 
         SquareTokenExchangeResult.Success success = Assert.IsType<SquareTokenExchangeResult.Success>(result);
         Assert.Contains("ITEMS_READ", success.Payload.Scopes, StringComparer.Ordinal);
@@ -108,7 +108,7 @@ public class SquareOAuthClientTests
 
         SquareTokenExchangeResult result = await client.ExchangeAuthorizationCodeAsync(
             "auth-code",
-            "https://heyalan.test/onboarding/square/connect/callback");
+            "https://heyalan.test/subscriptions/square/callback");
 
         SquareTokenExchangeResult.Success success = Assert.IsType<SquareTokenExchangeResult.Success>(result);
         Assert.Empty(success.Payload.Scopes);

@@ -9,25 +9,6 @@ public static class SquareConnectionEndpoints
 {
     public static IEndpointRouteBuilder MapSquareConnectionEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
-        RouteGroupBuilder onboardingGroup = routeBuilder
-            .MapGroup("/onboarding")
-            .WithTags("Onboarding")
-            .RequireAuthorization();
-
-        onboardingGroup
-            .MapPost(
-                "/subscriptions/{subscriptionId:guid}/square/connect/authorize",
-                StartOnboardingSquareConnectAuthorizeAsync)
-            .Produces<StartSubscriptionSquareConnectAuthorizeResult>(StatusCodes.Status200OK)
-            .Produces<SquareConnectionErrorResult>(StatusCodes.Status400BadRequest)
-            .Produces<SquareConnectionErrorResult>(StatusCodes.Status401Unauthorized)
-            .Produces<SquareConnectionErrorResult>(StatusCodes.Status403Forbidden);
-
-        routeBuilder
-            .MapGet("/onboarding/square/connect/callback", CompleteSquareConnectCallbackAsync)
-            .WithTags("Onboarding")
-            .AllowAnonymous();
-
         RouteGroupBuilder subscriptionsGroup = routeBuilder
             .MapGroup("/subscriptions")
             .WithTags("SubscriptionSquareConnections")
@@ -35,8 +16,8 @@ public static class SquareConnectionEndpoints
 
         subscriptionsGroup
             .MapPost(
-                "/{subscriptionId:guid}/square/connect/authorize",
-                StartAdminSquareConnectAuthorizeAsync)
+                "/{subscriptionId:guid}/square/authorize",
+                StartSquareConnectAuthorizeAsync)
             .Produces<StartSubscriptionSquareConnectAuthorizeResult>(StatusCodes.Status200OK)
             .Produces<SquareConnectionErrorResult>(StatusCodes.Status400BadRequest)
             .Produces<SquareConnectionErrorResult>(StatusCodes.Status401Unauthorized)
@@ -52,20 +33,15 @@ public static class SquareConnectionEndpoints
             .Produces<SquareConnectionErrorResult>(StatusCodes.Status403Forbidden)
             .Produces<SquareConnectionErrorResult>(StatusCodes.Status404NotFound);
 
-        subscriptionsGroup
-            .MapGet(
-                "/{subscriptionId:guid}/square/connection/probe",
-                ProbeSquareConnectionAsync)
-            .Produces<GetSubscriptionSquareConnectionProbeResult>(StatusCodes.Status200OK)
-            .Produces<SquareConnectionErrorResult>(StatusCodes.Status400BadRequest)
-            .Produces<SquareConnectionErrorResult>(StatusCodes.Status401Unauthorized)
-            .Produces<SquareConnectionErrorResult>(StatusCodes.Status403Forbidden)
-            .Produces<SquareConnectionErrorResult>(StatusCodes.Status404NotFound);
+        routeBuilder
+            .MapGet("/subscriptions/square/callback", CompleteSquareConnectCallbackAsync)
+            .WithTags("SubscriptionSquareConnections")
+            .AllowAnonymous();
 
         return routeBuilder;
     }
 
-    private static async Task<IResult> StartOnboardingSquareConnectAuthorizeAsync(
+    private static async Task<IResult> StartSquareConnectAuthorizeAsync(
         [FromRoute] Guid subscriptionId,
         [AsParameters] StartSubscriptionSquareConnectAuthorizeInput input,
         ClaimsPrincipal user,
@@ -79,33 +55,7 @@ public static class SquareConnectionEndpoints
         }
 
         StartSquareConnectResult result = await service.StartConnectAsync(
-            new StartSquareConnectInput(subscriptionId, userId.Value, input.ReturnUrl, SquareConnectIntent.Onboarding),
-            cancellationToken);
-
-        if (result is StartSquareConnectResult.Failure failure)
-        {
-            return MapError(failure.ErrorCode);
-        }
-
-        StartSquareConnectResult.Success success = (StartSquareConnectResult.Success)result;
-        return TypedResults.Ok(new StartSubscriptionSquareConnectAuthorizeResult(success.AuthorizeUrl));
-    }
-
-    private static async Task<IResult> StartAdminSquareConnectAuthorizeAsync(
-        [FromRoute] Guid subscriptionId,
-        [AsParameters] StartSubscriptionSquareConnectAuthorizeInput input,
-        ClaimsPrincipal user,
-        ISubscriptionSquareConnectionService service,
-        CancellationToken cancellationToken)
-    {
-        Guid? userId = user.GetUserId();
-        if (userId is null)
-        {
-            return UnauthorizedError("unauthenticated");
-        }
-
-        StartSquareConnectResult result = await service.StartConnectAsync(
-            new StartSquareConnectInput(subscriptionId, userId.Value, input.ReturnUrl, SquareConnectIntent.AdminSettings),
+            new StartSquareConnectInput(subscriptionId, userId.Value, input.ReturnUrl ?? String.Empty),
             cancellationToken);
 
         if (result is StartSquareConnectResult.Failure failure)
@@ -161,35 +111,6 @@ public static class SquareConnectionEndpoints
         return TypedResults.Ok(new DeleteSubscriptionSquareConnectionResult(true));
     }
 
-    private static async Task<IResult> ProbeSquareConnectionAsync(
-        [FromRoute] Guid subscriptionId,
-        ClaimsPrincipal user,
-        ISubscriptionSquareConnectionService service,
-        CancellationToken cancellationToken)
-    {
-        Guid? userId = user.GetUserId();
-        if (userId is null)
-        {
-            return UnauthorizedError("unauthenticated");
-        }
-
-        ProbeSquareConnectionResult result = await service.ProbeAsync(
-            new ProbeSquareConnectionInput(subscriptionId, userId.Value),
-            cancellationToken);
-
-        if (result is ProbeSquareConnectionResult.Failure failure)
-        {
-            return MapError(failure.ErrorCode);
-        }
-
-        ProbeSquareConnectionResult.Success success = (ProbeSquareConnectionResult.Success)result;
-        return TypedResults.Ok(new GetSubscriptionSquareConnectionProbeResult(
-            true,
-            success.MerchantId,
-            success.AccessTokenExpiresAtUtc,
-            success.Scopes));
-    }
-
     private static IResult UnauthorizedError(string errorCode)
     {
         SquareConnectionErrorResult payload = new(errorCode, "Authentication is required.");
@@ -216,6 +137,7 @@ public static class SquareConnectionEndpoints
         {
             "subscription_owner_required" => "Subscription owner permissions are required.",
             "square_not_configured" => "Square integration is not configured.",
+            "return_url_required" => "A valid internal returnUrl is required.",
             "square_oauth_state_invalid" => "The Square connect state is invalid or expired.",
             "square_oauth_code_missing" => "The Square authorization code is missing.",
             "square_oauth_access_denied" => "Square authorization was denied by the user.",

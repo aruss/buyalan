@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactElement, useEffect } from "react";
+import { ReactElement, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NEWSLETTER_CONFIRMATION_COOKIE_NAME } from "@/components/landing/newsletter-constants";
 
@@ -21,7 +21,7 @@ async function confirmSubscriptionAsync(token: string): Promise<void> {
     });
 }
 
-export default function NewsletterConfirmPage(): ReactElement {
+function NewsletterConfirmPageContent(): ReactElement {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -57,5 +57,28 @@ export default function NewsletterConfirmPage(): ReactElement {
                 </p>
             </div>
         </main>
+    );
+}
+
+function NewsletterConfirmFallback(): ReactElement {
+    return (
+        <main className="mx-auto flex min-h-[60vh] max-w-3xl items-center justify-center px-6 py-24">
+            <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center shadow-sm" aria-hidden="true">
+                <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+                    Thank you for subscribing to our newsletter.
+                </h1>
+                <p className="mt-3 text-sm text-zinc-600">
+                    You are being redirected to the landing page...
+                </p>
+            </div>
+        </main>
+    );
+}
+
+export default function NewsletterConfirmPage(): ReactElement {
+    return (
+        <Suspense fallback={<NewsletterConfirmFallback />}>
+            <NewsletterConfirmPageContent />
+        </Suspense>
     );
 }

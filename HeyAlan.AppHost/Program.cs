@@ -151,6 +151,7 @@ if (!String.IsNullOrEmpty(ngrokDomain))
         .WithEnvironment("NGROK_AUTHTOKEN", ngrokAuthToken)
         .WithHttpEndpoint(targetPort: 4040, port: 4040, name: "inspect")
         .WithArgs("http", $"--url={ngrokDomain}", "--log=stdout", "http://host.docker.internal:5010")
+        .WithLifetime(ContainerLifetime.Persistent)
         .WaitFor(webapp);
 }
 

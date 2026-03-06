@@ -10,10 +10,15 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
     private readonly IHttpClientFactory httpClientFactory;
     private readonly AppOptions appOptions;
 
-    public SquareOAuthClient(IHttpClientFactory httpClientFactory, AppOptions appOptions)
+    public SquareOAuthClient(
+        IHttpClientFactory httpClientFactory,
+        AppOptions appOptions)
     {
-        this.httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-        this.appOptions = appOptions ?? throw new ArgumentNullException(nameof(appOptions));
+        this.httpClientFactory = httpClientFactory ?? 
+            throw new ArgumentNullException(nameof(httpClientFactory));
+
+        this.appOptions = appOptions ?? 
+            throw new ArgumentNullException(nameof(appOptions));
     }
 
     public async Task<SquareTokenExchangeResult> ExchangeAuthorizationCodeAsync(
@@ -26,7 +31,8 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
             return new SquareTokenExchangeResult.Failure("square_oauth_code_missing");
         }
 
-        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
+        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) ||
+            String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
         {
             return new SquareTokenExchangeResult.Failure("square_not_configured");
         }
@@ -43,7 +49,9 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
 
         try
         {
-            ObtainTokenResponse response = await client.OAuth.ObtainTokenAsync(request, null, cancellationToken);
+            ObtainTokenResponse response =
+                await client.OAuth.ObtainTokenAsync(request, null, cancellationToken);
+
             string[] resolvedScopes = await this.ResolveScopesWithTokenStatusFallbackAsync(
                 response,
                 cancellationToken);
@@ -71,7 +79,8 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
             return new SquareRevokeResult.InvalidOrRevoked();
         }
 
-        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
+        if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || 
+            String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
         {
             return new SquareRevokeResult.Failure("square_not_configured");
         }
@@ -93,7 +102,9 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
 
         try
         {
-            RevokeTokenResponse response = await client.OAuth.RevokeTokenAsync(request, requestOptions, cancellationToken);
+            RevokeTokenResponse response = await client.OAuth
+                .RevokeTokenAsync(request, requestOptions, cancellationToken);
+
             if (response.Success == true)
             {
                 return new SquareRevokeResult.Success();
@@ -129,7 +140,8 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
 
     private SquareClient CreateAppClient()
     {
-        string baseUrl = this.appOptions.SquareClientId!.StartsWith("sandbox-", StringComparison.OrdinalIgnoreCase)
+        string baseUrl = this.appOptions.SquareClientId!
+            .StartsWith("sandbox-", StringComparison.OrdinalIgnoreCase)
             ? "https://connect.squareupsandbox.com"
             : "https://connect.squareup.com";
 
@@ -144,7 +156,8 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
 
     private SquareClient CreateAccessTokenClient(string accessToken)
     {
-        string baseUrl = this.appOptions.SquareClientId!.StartsWith("sandbox-", StringComparison.OrdinalIgnoreCase)
+        string baseUrl = this.appOptions.SquareClientId!
+            .StartsWith("sandbox-", StringComparison.OrdinalIgnoreCase)
             ? "https://connect.squareupsandbox.com"
             : "https://connect.squareup.com";
 
@@ -172,10 +185,14 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
             return [];
         }
 
-        SquareClient accessTokenClient = this.CreateAccessTokenClient(response.AccessToken);
+        SquareClient accessTokenClient =
+            this.CreateAccessTokenClient(response.AccessToken);
+
         try
         {
-            RetrieveTokenStatusResponse tokenStatus = await accessTokenClient.OAuth.RetrieveTokenStatusAsync(null, cancellationToken);
+            RetrieveTokenStatusResponse tokenStatus =
+                await accessTokenClient.OAuth.RetrieveTokenStatusAsync(null, cancellationToken);
+
             return NormalizeScopes(tokenStatus.Scopes);
         }
         catch (SquareApiException)
@@ -228,7 +245,8 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
             return expiresAtOffset.UtcDateTime;
         }
 
-        if (DateTimeOffset.TryParse(expiresAtRaw.ToString(), out DateTimeOffset parsedOffset))
+        if (DateTimeOffset.TryParse(expiresAtRaw.ToString(), 
+            out DateTimeOffset parsedOffset))
         {
             return parsedOffset.UtcDateTime;
         }
@@ -238,7 +256,8 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
 
     private static string[] ResolveScopes(ObtainTokenResponse response)
     {
-        if (response.AdditionalProperties is null || response.AdditionalProperties.Count == 0)
+        if (response.AdditionalProperties is null ||
+            response.AdditionalProperties.Count == 0)
         {
             return [];
         }
@@ -261,8 +280,8 @@ public sealed class SquareOAuthClient : ISquareOAuthClient
             string? scopeRaw = scopeElement.GetString();
             if (!String.IsNullOrWhiteSpace(scopeRaw))
             {
-                return scopeRaw
-                    .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                return scopeRaw.Split(' ', 
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             }
         }
 

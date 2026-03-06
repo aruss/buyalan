@@ -13,8 +13,9 @@ public sealed class OAuthStateProtector : IOAuthStateProtector
 
     public OAuthStateProtector(IDataProtectionProvider dataProtectionProvider)
     {
-        this.dataProtector = (dataProtectionProvider ?? throw new ArgumentNullException(nameof(dataProtectionProvider)))
-            .CreateProtector(DataProtectionPurpose);
+        this.dataProtector = (dataProtectionProvider ??
+            throw new ArgumentNullException(nameof(dataProtectionProvider)))
+                .CreateProtector(DataProtectionPurpose);
     }
 
     public string Protect(SquareConnectStatePayload payload)
@@ -24,7 +25,9 @@ public sealed class OAuthStateProtector : IOAuthStateProtector
         return protectedPayload;
     }
 
-    public bool TryUnprotect(string protectedState, out SquareConnectStatePayload? payload)
+    public bool TryUnprotect(
+        string protectedState, 
+        out SquareConnectStatePayload? payload)
     {
         payload = null;
 
@@ -36,7 +39,10 @@ public sealed class OAuthStateProtector : IOAuthStateProtector
         try
         {
             string rawPayload = this.dataProtector.Unprotect(protectedState);
-            SquareConnectStatePayload? parsedPayload = JsonSerializer.Deserialize<SquareConnectStatePayload>(rawPayload);
+
+            SquareConnectStatePayload? parsedPayload = 
+                JsonSerializer.Deserialize<SquareConnectStatePayload>(rawPayload);
+
             if (parsedPayload is null)
             {
                 return false;

@@ -25,7 +25,7 @@ To keep redirect URLs correct and isolated, each flow uses its own app credentia
 - `SQUARE_CLIENT_ID`
 - `SQUARE_CLIENT_SECRET`
 - Redirect URL:
-  - `<PUBLIC_BASE_URL>/onboarding/square/connect/callback`
+  - `<PUBLIC_BASE_URL>/subscriptions/square/callback`
 
 ## Setup Checklist
 

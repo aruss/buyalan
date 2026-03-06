@@ -4,7 +4,6 @@ public sealed record SquareConnectStatePayload(
     Guid SubscriptionId,
     Guid UserId,
     string ReturnUrl,
-    SquareConnectIntent Intent,
     DateTime IssuedAtUtc);
 
 public interface IOAuthStateProtector

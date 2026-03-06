@@ -23,17 +23,17 @@ public class SubscriptionSquareConnectionServiceTests
             dbContext,
             stateProtector,
             new StubSquareOAuthClient(),
-            new StubSquareTokenService(),
-            new StubSquareMerchantClient());
+            new StubSquareTokenService());
 
         StartSquareConnectResult result = await service.StartConnectAsync(
-            new StartSquareConnectInput(subscriptionId, userId, "/onboarding/start", SquareConnectIntent.Onboarding));
+            new StartSquareConnectInput(subscriptionId, userId, "/onboarding/start"));
 
         StartSquareConnectResult.Success success = Assert.IsType<StartSquareConnectResult.Success>(result);
         Assert.Contains("ITEMS_READ", success.AuthorizeUrl, StringComparison.Ordinal);
         Assert.Contains("CUSTOMERS_READ", success.AuthorizeUrl, StringComparison.Ordinal);
         Assert.Contains("PAYMENTS_WRITE", success.AuthorizeUrl, StringComparison.Ordinal);
         Assert.Contains("state=", success.AuthorizeUrl, StringComparison.Ordinal);
+        Assert.Contains("redirect_uri=", success.AuthorizeUrl, StringComparison.Ordinal);
         Assert.NotNull(stateProtector.LastProtectedPayload);
         Assert.Equal(subscriptionId, stateProtector.LastProtectedPayload!.SubscriptionId);
     }
@@ -50,11 +50,10 @@ public class SubscriptionSquareConnectionServiceTests
             dbContext,
             stateProtector,
             new StubSquareOAuthClient(),
-            new StubSquareTokenService(),
-            new StubSquareMerchantClient());
+            new StubSquareTokenService());
 
         StartSquareConnectResult result = await service.StartConnectAsync(
-            new StartSquareConnectInput(subscriptionId, userId, "/onboarding", SquareConnectIntent.Onboarding));
+            new StartSquareConnectInput(subscriptionId, userId, "/onboarding"));
 
         StartSquareConnectResult.Failure failure = Assert.IsType<StartSquareConnectResult.Failure>(result);
         Assert.Equal("subscription_owner_required", failure.ErrorCode);
@@ -74,7 +73,6 @@ public class SubscriptionSquareConnectionServiceTests
                 subscriptionId,
                 userId,
                 "/onboarding",
-                SquareConnectIntent.Onboarding,
                 DateTime.UtcNow)
         };
 
@@ -94,8 +92,7 @@ public class SubscriptionSquareConnectionServiceTests
             dbContext,
             stateProtector,
             oauthClient,
-            tokenService,
-            new StubSquareMerchantClient());
+            tokenService);
 
         CompleteSquareConnectResult result = await service.CompleteConnectAsync(
             new CompleteSquareConnectInput("valid-state", "auth-code", null));
@@ -121,7 +118,6 @@ public class SubscriptionSquareConnectionServiceTests
                 subscriptionId,
                 userId,
                 "/onboarding",
-                SquareConnectIntent.Onboarding,
                 DateTime.UtcNow)
         };
 
@@ -129,8 +125,7 @@ public class SubscriptionSquareConnectionServiceTests
             dbContext,
             stateProtector,
             new StubSquareOAuthClient(),
-            new StubSquareTokenService(),
-            new StubSquareMerchantClient());
+            new StubSquareTokenService());
 
         CompleteSquareConnectResult result = await service.CompleteConnectAsync(
             new CompleteSquareConnectInput("valid-state", null, "access_denied"));
@@ -173,8 +168,7 @@ public class SubscriptionSquareConnectionServiceTests
             dbContext,
             new RecordingOAuthStateProtector(),
             oauthClient,
-            tokenService,
-            new StubSquareMerchantClient());
+            tokenService);
 
         DisconnectSquareConnectionResult result = await service.DisconnectAsync(
             new DisconnectSquareConnectionInput(subscriptionId, userId));
@@ -185,32 +179,7 @@ public class SubscriptionSquareConnectionServiceTests
         Assert.Null(persisted);
     }
 
-    [Fact]
-    public async Task ProbeAsync_WhenTokenReconnectRequired_ReturnsReconnectRequiredCode()
-    {
-        MainDataContext dbContext = CreateContext();
-        Guid subscriptionId = Guid.NewGuid();
-        Guid userId = Guid.NewGuid();
-        await SeedOwnerMembershipAsync(dbContext, subscriptionId, userId);
-
-        StubSquareTokenService tokenService = new()
-        {
-            TokenResolution = new SquareTokenResolution.ReconnectRequired("refresh_invalid_or_revoked")
-        };
-
-        SubscriptionSquareConnectionService service = CreateService(
-            dbContext,
-            new RecordingOAuthStateProtector(),
-            new StubSquareOAuthClient(),
-            tokenService,
-            new StubSquareMerchantClient());
-
-        ProbeSquareConnectionResult result = await service.ProbeAsync(
-            new ProbeSquareConnectionInput(subscriptionId, userId));
-
-        ProbeSquareConnectionResult.Failure failure = Assert.IsType<ProbeSquareConnectionResult.Failure>(result);
-        Assert.Equal("square_reconnect_required", failure.ErrorCode);
-    }
+ 
 
     [Fact]
     public async Task StartConnectAsync_WhenConnectionSquareCredentialsMissing_ReturnsSquareNotConfigured()
@@ -234,14 +203,34 @@ public class SubscriptionSquareConnectionServiceTests
             new RecordingOAuthStateProtector(),
             new StubSquareOAuthClient(),
             new StubSquareTokenService(),
-            new StubSquareMerchantClient(),
             appOptions);
 
         StartSquareConnectResult result = await service.StartConnectAsync(
-            new StartSquareConnectInput(subscriptionId, userId, "/onboarding", SquareConnectIntent.Onboarding));
+            new StartSquareConnectInput(subscriptionId, userId, "/onboarding"));
 
         StartSquareConnectResult.Failure failure = Assert.IsType<StartSquareConnectResult.Failure>(result);
         Assert.Equal("square_not_configured", failure.ErrorCode);
+    }
+
+    [Fact]
+    public async Task StartConnectAsync_WhenReturnUrlInvalid_ReturnsReturnUrlRequired()
+    {
+        MainDataContext dbContext = CreateContext();
+        Guid subscriptionId = Guid.NewGuid();
+        Guid userId = Guid.NewGuid();
+        await SeedOwnerMembershipAsync(dbContext, subscriptionId, userId);
+
+        SubscriptionSquareConnectionService service = CreateService(
+            dbContext,
+            new RecordingOAuthStateProtector(),
+            new StubSquareOAuthClient(),
+            new StubSquareTokenService());
+
+        StartSquareConnectResult result = await service.StartConnectAsync(
+            new StartSquareConnectInput(subscriptionId, userId, "https://malicious.example/redirect"));
+
+        StartSquareConnectResult.Failure failure = Assert.IsType<StartSquareConnectResult.Failure>(result);
+        Assert.Equal("return_url_required", failure.ErrorCode);
     }
 
     private static SubscriptionSquareConnectionService CreateService(
@@ -249,7 +238,6 @@ public class SubscriptionSquareConnectionServiceTests
         IOAuthStateProtector stateProtector,
         ISquareOAuthClient squareOAuthClient,
         ISquareTokenService squareTokenService,
-        ISquareMerchantClient squareMerchantClient,
         AppOptions? appOptions = null)
     {
         AppOptions resolvedAppOptions = appOptions ?? new AppOptions
@@ -265,7 +253,6 @@ public class SubscriptionSquareConnectionServiceTests
             stateProtector,
             squareOAuthClient,
             squareTokenService,
-            squareMerchantClient,
             new StubSubscriptionOnboardingService(),
             NullLogger<SubscriptionSquareConnectionService>.Instance);
     }
@@ -344,17 +331,6 @@ public class SubscriptionSquareConnectionServiceTests
         public Task<SquareRevokeResult> RevokeAccessTokenAsync(string accessToken, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(this.RevokeResult);
-        }
-    }
-
-    private sealed class StubSquareMerchantClient : ISquareMerchantClient
-    {
-        public SquareMerchantProfileResult Result { get; init; } =
-            new SquareMerchantProfileResult.Success(new SquareMerchantProfile("merchant-1"));
-
-        public Task<SquareMerchantProfileResult> GetMerchantProfileAsync(string accessToken, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(this.Result);
         }
     }
 

@@ -25,7 +25,6 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
     private readonly IOAuthStateProtector stateProtector;
     private readonly ISquareOAuthClient squareOAuthClient;
     private readonly ISquareTokenService squareTokenService;
-    private readonly ISquareMerchantClient squareMerchantClient;
     private readonly ISubscriptionOnboardingService subscriptionOnboardingService;
     private readonly ILogger<SubscriptionSquareConnectionService> logger;
 
@@ -35,7 +34,6 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
         IOAuthStateProtector stateProtector,
         ISquareOAuthClient squareOAuthClient,
         ISquareTokenService squareTokenService,
-        ISquareMerchantClient squareMerchantClient,
         ISubscriptionOnboardingService subscriptionOnboardingService,
         ILogger<SubscriptionSquareConnectionService> logger)
     {
@@ -44,7 +42,6 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
         this.stateProtector = stateProtector ?? throw new ArgumentNullException(nameof(stateProtector));
         this.squareOAuthClient = squareOAuthClient ?? throw new ArgumentNullException(nameof(squareOAuthClient));
         this.squareTokenService = squareTokenService ?? throw new ArgumentNullException(nameof(squareTokenService));
-        this.squareMerchantClient = squareMerchantClient ?? throw new ArgumentNullException(nameof(squareMerchantClient));
         this.subscriptionOnboardingService = subscriptionOnboardingService ?? throw new ArgumentNullException(nameof(subscriptionOnboardingService));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -63,14 +60,17 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
             return new StartSquareConnectResult.Failure("square_not_configured");
         }
 
-        string safeReturnUrl = NormalizeReturnUrl(input.ReturnUrl, input.Intent);
-        string callbackUrl = BuildAbsoluteCallbackUrl(this.appOptions.PublicBaseUrl, "/onboarding/square/connect/callback");
+        if (!TryNormalizeReturnUrl(input.ReturnUrl, out string safeReturnUrl))
+        {
+            return new StartSquareConnectResult.Failure("return_url_required");
+        }
+
+        string callbackUrl = BuildAbsoluteCallbackUrl(this.appOptions.PublicBaseUrl, "/subscriptions/square/callback");
 
         SquareConnectStatePayload payload = new(
             input.SubscriptionId,
             input.UserId,
             safeReturnUrl,
-            input.Intent,
             DateTime.UtcNow);
 
         string protectedState = this.stateProtector.Protect(payload);
@@ -83,7 +83,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
             ["client_id"] = this.appOptions.SquareClientId,
             ["scope"] = String.Join(' ', RequiredFullScopes),
             ["state"] = protectedState,
-            // ["redirect_uri"] = callbackUrl,
+            ["redirect_uri"] = callbackUrl,
             ["response_type"] = "code"
         };
 
@@ -137,7 +137,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
 
         string callbackUrl = BuildAbsoluteCallbackUrl(
             this.appOptions.PublicBaseUrl, 
-            "/onboarding/square/connect/callback");
+            "/subscriptions/square/callback");
 
         SquareTokenExchangeResult tokenExchange = await this.squareOAuthClient.ExchangeAuthorizationCodeAsync(
             input.AuthorizationCode.Trim(),
@@ -227,64 +227,6 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
         return new DisconnectSquareConnectionResult.Success();
     }
 
-    public async Task<ProbeSquareConnectionResult> ProbeAsync(
-        ProbeSquareConnectionInput input,
-        CancellationToken cancellationToken = default)
-    {
-        if (!await this.IsSubscriptionOwnerAsync(input.SubscriptionId, input.UserId, cancellationToken))
-        {
-            return new ProbeSquareConnectionResult.Failure("subscription_owner_required");
-        }
-
-        SquareTokenResolution tokenResolution = await this.squareTokenService.GetValidAccessTokenAsync(
-            input.SubscriptionId,
-            cancellationToken);
-
-        if (tokenResolution is SquareTokenResolution.ConnectionMissing)
-        {
-            return new ProbeSquareConnectionResult.Failure("connection_not_found");
-        }
-
-        if (tokenResolution is SquareTokenResolution.ReconnectRequired)
-        {
-            return new ProbeSquareConnectionResult.Failure("square_reconnect_required");
-        }
-
-        if (tokenResolution is SquareTokenResolution.RefreshFailed)
-        {
-            return new ProbeSquareConnectionResult.Failure("square_token_refresh_failed");
-        }
-
-        SquareTokenResolution.Success tokenSuccess = (SquareTokenResolution.Success)tokenResolution;
-        SquareMerchantProfileResult merchantResult = await this.squareMerchantClient.GetMerchantProfileAsync(
-            tokenSuccess.AccessToken,
-            cancellationToken);
-
-        if (merchantResult is SquareMerchantProfileResult.ReconnectRequired)
-        {
-            return new ProbeSquareConnectionResult.Failure("square_reconnect_required");
-        }
-
-        if (merchantResult is SquareMerchantProfileResult.Failure merchantFailure)
-        {
-            return new ProbeSquareConnectionResult.Failure(merchantFailure.ErrorCode);
-        }
-
-        SquareMerchantProfileResult.Success merchantSuccess = (SquareMerchantProfileResult.Success)merchantResult;
-        SubscriptionSquareConnection? connection = await this.dbContext.SubscriptionSquareConnections
-            .SingleOrDefaultAsync(item => item.SubscriptionId == input.SubscriptionId, cancellationToken);
-
-        string[] scopes = connection is null
-            ? []
-            : connection.Scopes
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        return new ProbeSquareConnectionResult.Success(
-            merchantSuccess.Profile.MerchantId,
-            tokenSuccess.AccessTokenExpiresAtUtc,
-            scopes);
-    }
-
     private async Task<bool> IsSubscriptionOwnerAsync(Guid subscriptionId, Guid userId, CancellationToken cancellationToken)
     {
         if (subscriptionId == Guid.Empty || userId == Guid.Empty)
@@ -313,31 +255,33 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
         return RequiredFullScopes.All(grantedScopes.Contains);
     }
 
-    private static string NormalizeReturnUrl(string? rawReturnUrl, SquareConnectIntent intent)
+    private static bool TryNormalizeReturnUrl(string rawReturnUrl, out string safeReturnUrl)
     {
-        string fallback = intent == SquareConnectIntent.Onboarding ? "/onboarding" : "/admin";
+        safeReturnUrl = String.Empty;
+
         if (String.IsNullOrWhiteSpace(rawReturnUrl))
         {
-            return fallback;
+            return false;
         }
 
         string trimmed = rawReturnUrl.Trim();
         if (!trimmed.StartsWith('/'))
         {
-            return fallback;
+            return false;
         }
 
         if (trimmed.StartsWith("//", StringComparison.Ordinal))
         {
-            return fallback;
+            return false;
         }
 
         if (Uri.TryCreate(trimmed, UriKind.Absolute, out _))
         {
-            return fallback;
+            return false;
         }
 
-        return trimmed;
+        safeReturnUrl = trimmed;
+        return true;
     }
 
     private static string BuildAbsoluteCallbackUrl(Uri publicBaseUrl, string callbackPath)

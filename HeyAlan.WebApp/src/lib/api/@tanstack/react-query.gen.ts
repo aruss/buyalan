@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteSubscriptionsBySubscriptionIdSquareConnection, getAgentsByAgentIdConversations, getAgentsByAgentIdConversationsByConversationIdMessages, getAppInfo, getAuthExternalCallback, getAuthMe, getAuthProviders, getAuthProvidersByProviderAuthorize, getOnboardingSquareConnectCallback, getOnboardingSubscriptionsActive, getOnboardingSubscriptionsBySubscriptionIdState, getSubscriptionsBySubscriptionIdSquareConnectionProbe, ingestText, type Options, patchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdRead, patchAgentsByAgentIdConversationsByConversationIdRead, patchOnboardingAgentsByAgentIdChannels, patchOnboardingAgentsByAgentIdProfile, postAuthLogout, postNewsletterConfirm, postNewsletterSubscribe, postOnboardingSubscriptionsBySubscriptionIdAgents, postOnboardingSubscriptionsBySubscriptionIdFinalize, postOnboardingSubscriptionsBySubscriptionIdMembersInvitations, postOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorize, postSubscriptionsBySubscriptionIdSquareConnectAuthorize, postWebhooksTelegramByBotToken } from '../sdk.gen';
-import type { DeleteSubscriptionsBySubscriptionIdSquareConnectionData, DeleteSubscriptionsBySubscriptionIdSquareConnectionError, DeleteSubscriptionsBySubscriptionIdSquareConnectionResponse, GetAgentsByAgentIdConversationsByConversationIdMessagesData, GetAgentsByAgentIdConversationsByConversationIdMessagesError, GetAgentsByAgentIdConversationsByConversationIdMessagesResponse, GetAgentsByAgentIdConversationsData, GetAgentsByAgentIdConversationsError, GetAgentsByAgentIdConversationsResponse, GetAppInfoData, GetAppInfoResponse, GetAuthExternalCallbackData, GetAuthExternalCallbackError, GetAuthMeData, GetAuthMeError, GetAuthMeResponse, GetAuthProvidersByProviderAuthorizeData, GetAuthProvidersByProviderAuthorizeError, GetAuthProvidersData, GetAuthProvidersError, GetAuthProvidersResponse, GetOnboardingSquareConnectCallbackData, GetOnboardingSubscriptionsActiveData, GetOnboardingSubscriptionsActiveError, GetOnboardingSubscriptionsActiveResponse, GetOnboardingSubscriptionsBySubscriptionIdStateData, GetOnboardingSubscriptionsBySubscriptionIdStateError, GetOnboardingSubscriptionsBySubscriptionIdStateResponse, GetSubscriptionsBySubscriptionIdSquareConnectionProbeData, GetSubscriptionsBySubscriptionIdSquareConnectionProbeError, GetSubscriptionsBySubscriptionIdSquareConnectionProbeResponse, IngestTextData, IngestTextError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdReadData, PatchAgentsByAgentIdConversationsByConversationIdReadError, PatchAgentsByAgentIdConversationsByConversationIdReadResponse, PatchOnboardingAgentsByAgentIdChannelsData, PatchOnboardingAgentsByAgentIdChannelsError, PatchOnboardingAgentsByAgentIdChannelsResponse, PatchOnboardingAgentsByAgentIdProfileData, PatchOnboardingAgentsByAgentIdProfileError, PatchOnboardingAgentsByAgentIdProfileResponse, PostAuthLogoutData, PostAuthLogoutError, PostNewsletterConfirmData, PostNewsletterConfirmResponse, PostNewsletterSubscribeData, PostNewsletterSubscribeError, PostNewsletterSubscribeResponse, PostOnboardingSubscriptionsBySubscriptionIdAgentsData, PostOnboardingSubscriptionsBySubscriptionIdAgentsError, PostOnboardingSubscriptionsBySubscriptionIdAgentsResponse, PostOnboardingSubscriptionsBySubscriptionIdFinalizeData, PostOnboardingSubscriptionsBySubscriptionIdFinalizeError, PostOnboardingSubscriptionsBySubscriptionIdFinalizeResponse, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsData, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsError, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsResponse, PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeData, PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeError, PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponse, PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeData, PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeError, PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponse, PostWebhooksTelegramByBotTokenData, PostWebhooksTelegramByBotTokenError } from '../types.gen';
+import { deleteSubscriptionsBySubscriptionIdSquareConnection, getAgentsByAgentIdConversations, getAgentsByAgentIdConversationsByConversationIdMessages, getAppInfo, getAuthExternalCallback, getAuthMe, getAuthProviders, getAuthProvidersByProviderAuthorize, getOnboardingSubscriptionsActive, getOnboardingSubscriptionsBySubscriptionIdState, getSubscriptionsSquareCallback, ingestText, type Options, patchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdRead, patchAgentsByAgentIdConversationsByConversationIdRead, patchOnboardingAgentsByAgentIdChannels, patchOnboardingAgentsByAgentIdProfile, postAuthLogout, postNewsletterConfirm, postNewsletterSubscribe, postOnboardingSubscriptionsBySubscriptionIdAgents, postOnboardingSubscriptionsBySubscriptionIdFinalize, postOnboardingSubscriptionsBySubscriptionIdMembersInvitations, postSubscriptionsBySubscriptionIdSquareAuthorize, postWebhooksTelegramByBotToken } from '../sdk.gen';
+import type { DeleteSubscriptionsBySubscriptionIdSquareConnectionData, DeleteSubscriptionsBySubscriptionIdSquareConnectionError, DeleteSubscriptionsBySubscriptionIdSquareConnectionResponse, GetAgentsByAgentIdConversationsByConversationIdMessagesData, GetAgentsByAgentIdConversationsByConversationIdMessagesError, GetAgentsByAgentIdConversationsByConversationIdMessagesResponse, GetAgentsByAgentIdConversationsData, GetAgentsByAgentIdConversationsError, GetAgentsByAgentIdConversationsResponse, GetAppInfoData, GetAppInfoResponse, GetAuthExternalCallbackData, GetAuthExternalCallbackError, GetAuthMeData, GetAuthMeError, GetAuthMeResponse, GetAuthProvidersByProviderAuthorizeData, GetAuthProvidersByProviderAuthorizeError, GetAuthProvidersData, GetAuthProvidersError, GetAuthProvidersResponse, GetOnboardingSubscriptionsActiveData, GetOnboardingSubscriptionsActiveError, GetOnboardingSubscriptionsActiveResponse, GetOnboardingSubscriptionsBySubscriptionIdStateData, GetOnboardingSubscriptionsBySubscriptionIdStateError, GetOnboardingSubscriptionsBySubscriptionIdStateResponse, GetSubscriptionsSquareCallbackData, IngestTextData, IngestTextError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdReadData, PatchAgentsByAgentIdConversationsByConversationIdReadError, PatchAgentsByAgentIdConversationsByConversationIdReadResponse, PatchOnboardingAgentsByAgentIdChannelsData, PatchOnboardingAgentsByAgentIdChannelsError, PatchOnboardingAgentsByAgentIdChannelsResponse, PatchOnboardingAgentsByAgentIdProfileData, PatchOnboardingAgentsByAgentIdProfileError, PatchOnboardingAgentsByAgentIdProfileResponse, PostAuthLogoutData, PostAuthLogoutError, PostNewsletterConfirmData, PostNewsletterConfirmResponse, PostNewsletterSubscribeData, PostNewsletterSubscribeError, PostNewsletterSubscribeResponse, PostOnboardingSubscriptionsBySubscriptionIdAgentsData, PostOnboardingSubscriptionsBySubscriptionIdAgentsError, PostOnboardingSubscriptionsBySubscriptionIdAgentsResponse, PostOnboardingSubscriptionsBySubscriptionIdFinalizeData, PostOnboardingSubscriptionsBySubscriptionIdFinalizeError, PostOnboardingSubscriptionsBySubscriptionIdFinalizeResponse, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsData, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsError, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsResponse, PostSubscriptionsBySubscriptionIdSquareAuthorizeData, PostSubscriptionsBySubscriptionIdSquareAuthorizeError, PostSubscriptionsBySubscriptionIdSquareAuthorizeResponse, PostWebhooksTelegramByBotTokenData, PostWebhooksTelegramByBotTokenError } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -68,11 +68,11 @@ export const postWebhooksTelegramByBotTokenMutation = (options?: Partial<Options
     return mutationOptions;
 };
 
-export const getOnboardingSquareConnectCallbackQueryKey = (options?: Options<GetOnboardingSquareConnectCallbackData>) => createQueryKey('getOnboardingSquareConnectCallback', options);
+export const getSubscriptionsSquareCallbackQueryKey = (options?: Options<GetSubscriptionsSquareCallbackData>) => createQueryKey('getSubscriptionsSquareCallback', options);
 
-export const getOnboardingSquareConnectCallbackOptions = (options?: Options<GetOnboardingSquareConnectCallbackData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getOnboardingSquareConnectCallbackQueryKey>>({
+export const getSubscriptionsSquareCallbackOptions = (options?: Options<GetSubscriptionsSquareCallbackData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getSubscriptionsSquareCallbackQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getOnboardingSquareConnectCallback({
+        const { data } = await getSubscriptionsSquareCallback({
             ...options,
             ...queryKey[0],
             signal,
@@ -80,7 +80,7 @@ export const getOnboardingSquareConnectCallbackOptions = (options?: Options<GetO
         });
         return data;
     },
-    queryKey: getOnboardingSquareConnectCallbackQueryKey(options)
+    queryKey: getSubscriptionsSquareCallbackQueryKey(options)
 });
 
 export const ingestTextMutation = (options?: Partial<Options<IngestTextData>>): UseMutationOptions<unknown, IngestTextError, Options<IngestTextData>> => {
@@ -229,24 +229,10 @@ export const patchAgentsByAgentIdConversationsByConversationIdReadMutation = (op
     return mutationOptions;
 };
 
-export const postOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeMutation = (options?: Partial<Options<PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeData>>): UseMutationOptions<PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponse, PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeError, Options<PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeData>> => {
-    const mutationOptions: UseMutationOptions<PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponse, PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeError, Options<PostOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorizeData>> = {
+export const postSubscriptionsBySubscriptionIdSquareAuthorizeMutation = (options?: Partial<Options<PostSubscriptionsBySubscriptionIdSquareAuthorizeData>>): UseMutationOptions<PostSubscriptionsBySubscriptionIdSquareAuthorizeResponse, PostSubscriptionsBySubscriptionIdSquareAuthorizeError, Options<PostSubscriptionsBySubscriptionIdSquareAuthorizeData>> => {
+    const mutationOptions: UseMutationOptions<PostSubscriptionsBySubscriptionIdSquareAuthorizeResponse, PostSubscriptionsBySubscriptionIdSquareAuthorizeError, Options<PostSubscriptionsBySubscriptionIdSquareAuthorizeData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await postOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorize({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const postSubscriptionsBySubscriptionIdSquareConnectAuthorizeMutation = (options?: Partial<Options<PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeData>>): UseMutationOptions<PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponse, PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeError, Options<PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeData>> => {
-    const mutationOptions: UseMutationOptions<PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeResponse, PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeError, Options<PostSubscriptionsBySubscriptionIdSquareConnectAuthorizeData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postSubscriptionsBySubscriptionIdSquareConnectAuthorize({
+            const { data } = await postSubscriptionsBySubscriptionIdSquareAuthorize({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -270,21 +256,6 @@ export const deleteSubscriptionsBySubscriptionIdSquareConnectionMutation = (opti
     };
     return mutationOptions;
 };
-
-export const getSubscriptionsBySubscriptionIdSquareConnectionProbeQueryKey = (options: Options<GetSubscriptionsBySubscriptionIdSquareConnectionProbeData>) => createQueryKey('getSubscriptionsBySubscriptionIdSquareConnectionProbe', options);
-
-export const getSubscriptionsBySubscriptionIdSquareConnectionProbeOptions = (options: Options<GetSubscriptionsBySubscriptionIdSquareConnectionProbeData>) => queryOptions<GetSubscriptionsBySubscriptionIdSquareConnectionProbeResponse, GetSubscriptionsBySubscriptionIdSquareConnectionProbeError, GetSubscriptionsBySubscriptionIdSquareConnectionProbeResponse, ReturnType<typeof getSubscriptionsBySubscriptionIdSquareConnectionProbeQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getSubscriptionsBySubscriptionIdSquareConnectionProbe({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getSubscriptionsBySubscriptionIdSquareConnectionProbeQueryKey(options)
-});
 
 export const getOnboardingSubscriptionsActiveQueryKey = (options?: Options<GetOnboardingSubscriptionsActiveData>) => createQueryKey('getOnboardingSubscriptionsActive', options);
 

@@ -30,15 +30,25 @@ public sealed class SquareTokenService : ISquareTokenService
         IDataProtectionProvider dataProtectionProvider,
         ILogger<SquareTokenService> logger)
     {
-        this.dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        this.httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-        this.appOptions = appOptions ?? throw new ArgumentNullException(nameof(appOptions));
-        this.dataProtector = (dataProtectionProvider ?? throw new ArgumentNullException(nameof(dataProtectionProvider)))
+        this.dbContext = dbContext ??
+            throw new ArgumentNullException(nameof(dbContext));
+
+        this.httpClientFactory = httpClientFactory ?? 
+            throw new ArgumentNullException(nameof(httpClientFactory));
+
+        this.appOptions = appOptions ?? 
+            throw new ArgumentNullException(nameof(appOptions));
+
+        this.dataProtector = (dataProtectionProvider ?? 
+            throw new ArgumentNullException(nameof(dataProtectionProvider)))
             .CreateProtector(DataProtectionPurpose);
+
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task StoreConnectionAsync(SquareTokenStoreInput input, CancellationToken cancellationToken = default)
+    public async Task StoreConnectionAsync(
+        SquareTokenStoreInput input,
+        CancellationToken cancellationToken = default)
     {
         if (input.SubscriptionId == Guid.Empty)
         {
@@ -70,7 +80,8 @@ public sealed class SquareTokenService : ISquareTokenService
             throw new ArgumentException("AccessTokenExpiresAtUtc must be in the future.", nameof(input));
         }
 
-        SubscriptionSquareConnection? existingConnection = await this.dbContext.SubscriptionSquareConnections
+        SubscriptionSquareConnection? existingConnection = 
+            await this.dbContext.SubscriptionSquareConnections
             .SingleOrDefaultAsync(connection => connection.SubscriptionId == input.SubscriptionId, cancellationToken);
 
         string normalizedScopes = NormalizeScopes(input.Scopes);
@@ -111,7 +122,9 @@ public sealed class SquareTokenService : ISquareTokenService
             input.MerchantId);
     }
 
-    public async Task<SquareTokenResolution> GetValidAccessTokenAsync(Guid subscriptionId, CancellationToken cancellationToken = default)
+    public async Task<SquareTokenResolution> GetValidAccessTokenAsync(
+        Guid subscriptionId, 
+        CancellationToken cancellationToken = default)
     {
         SubscriptionSquareConnection? connection = await this.dbContext.SubscriptionSquareConnections
             .SingleOrDefaultAsync(item => item.SubscriptionId == subscriptionId, cancellationToken);
@@ -247,7 +260,8 @@ public sealed class SquareTokenService : ISquareTokenService
         }
     }
 
-    private async Task<RefreshTokenApiOutcome> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
+    private async Task<RefreshTokenApiOutcome> RefreshTokenAsync(
+        string refreshToken, CancellationToken cancellationToken)
     {
         if (String.IsNullOrWhiteSpace(this.appOptions.SquareClientId) || String.IsNullOrWhiteSpace(this.appOptions.SquareClientSecret))
         {

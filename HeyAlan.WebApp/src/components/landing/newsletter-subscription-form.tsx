@@ -5,7 +5,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { postNewsletterSubscriptions } from "@/lib/api";
+import { postNewsletterSubscribe } from "@/lib/api";
 import { NEWSLETTER_CONFIRMATION_COOKIE_NAME } from "./newsletter-constants";
 
 type NewsletterFormValues = {
@@ -39,7 +39,7 @@ export const NewsletterSubscriptionForm = ({
         setSubmitError(null);
 
         try {
-            await postNewsletterSubscriptions({
+            await postNewsletterSubscribe({
                 body: {
                     email: values.email.trim()
                 },

@@ -1,16 +1,9 @@
 namespace HeyAlan.SquareIntegration;
 
-public enum SquareConnectIntent
-{
-    Onboarding = 0,
-    AdminSettings = 1
-}
-
 public sealed record StartSquareConnectInput(
     Guid SubscriptionId,
     Guid UserId,
-    string? ReturnUrl,
-    SquareConnectIntent Intent);
+    string ReturnUrl);
 
 public abstract record StartSquareConnectResult
 {
@@ -63,6 +56,4 @@ public interface ISubscriptionSquareConnectionService
     Task<CompleteSquareConnectResult> CompleteConnectAsync(CompleteSquareConnectInput input, CancellationToken cancellationToken = default);
 
     Task<DisconnectSquareConnectionResult> DisconnectAsync(DisconnectSquareConnectionInput input, CancellationToken cancellationToken = default);
-
-    Task<ProbeSquareConnectionResult> ProbeAsync(ProbeSquareConnectionInput input, CancellationToken cancellationToken = default);
 }
