@@ -133,3 +133,53 @@ public record GetBoardsResult : CursorList<Board>;
 
 // Return the concrete type
 return TypedResults.Ok(new GetBoardsResult(data));
+```
+
+## API Endpoint Response Shape Pattern
+
+The API response contract MUST follow a consistent shape across endpoint groups.
+
+### 1. List Endpoints MUST Use CursorList with `FooItem`
+
+For list/read-many endpoints:
+
+* You MUST define a dedicated item DTO named `FooItem` (example: `AgentItem`, `ConversationListItem`).
+* You MUST define a concrete list result DTO inheriting from `CursorList<FooItem>` (example: `GetAgentsResult : CursorList<AgentItem>`).
+* You MUST return the concrete list result type from handlers instead of raw generic collections.
+* You SHOULD support `skip` and `take` query params using `Constants.Skip*` and `Constants.Take*` ranges/defaults.
+
+### 2. Resource Endpoints MUST Return Raw Resource DTOs (No Envelope)
+
+For single-resource endpoints (GET by id, create/update operations that return the resource):
+
+* You MUST return the resource DTO directly (example: `AgentResult`).
+* You MUST NOT wrap the resource in an envelope object like `{ agent: ... }`.
+* You MUST NOT create wrapper result DTOs such as `GetAgentResult(AgentResult Agent)` or `PostAgentResult(AgentResult Agent)` for resource payloads.
+
+### 3. Do / Don't
+
+```csharp
+// DO: list endpoint shape
+public sealed record AgentItem(Guid AgentId, string Name);
+
+public sealed record GetAgentsResult : CursorList<AgentItem>
+{
+    public GetAgentsResult(IReadOnlyCollection<AgentItem> items, int skip, int take)
+        : base(items, skip, take)
+    {
+    }
+}
+
+// DO: resource endpoint shape (unwrapped)
+return TypedResults.Ok(new AgentResult(...));
+
+// DON'T: wrapped list/resource envelopes
+public sealed record GetAgentsResult(IReadOnlyList<AgentItem> Agents);
+public sealed record GetAgentResult(AgentResult Agent);
+```
+
+### 4. Why This Pattern
+
+* Predictable OpenAPI schemas for list/result types.
+* Stable generated client contracts across endpoint groups.
+* Less frontend ambiguity (same shape conventions everywhere).

@@ -1,13 +1,9 @@
 "use client"
 
 import { Button } from "@/components/admin/Button";
-import { Card } from "@/components/admin/Card";
-import { Divider } from "@/components/admin/Divider";
 import { Input } from "@/components/admin/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/admin/Select";
 import { Textarea } from "@/components/admin/Textarea";
-import { ArrowDownToDot, Plus, Trash2 } from "lucide-react";
-import { SiGooglemessages, SiTelegram, SiWhatsapp } from "react-icons/si";
 
 // https://dashboard.tremor.so/settings/general#
 // https://insights.tremor.so/settings/users

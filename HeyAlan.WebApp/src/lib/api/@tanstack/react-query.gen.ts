@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteSubscriptionsBySubscriptionIdSquareConnection, getAgentsByAgentIdConversations, getAgentsByAgentIdConversationsByConversationIdMessages, getAppInfo, getAuthExternalCallback, getAuthMe, getAuthProviders, getAuthProvidersByProviderAuthorize, getOnboardingSubscriptionsActive, getOnboardingSubscriptionsBySubscriptionIdState, getSubscriptionsSquareCallback, ingestText, type Options, patchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdRead, patchAgentsByAgentIdConversationsByConversationIdRead, patchOnboardingAgentsByAgentIdChannels, patchOnboardingAgentsByAgentIdProfile, postAuthLogout, postNewsletterConfirm, postNewsletterSubscribe, postOnboardingSubscriptionsBySubscriptionIdAgents, postOnboardingSubscriptionsBySubscriptionIdFinalize, postOnboardingSubscriptionsBySubscriptionIdMembersInvitations, postSubscriptionsBySubscriptionIdSquareAuthorize, postWebhooksTelegramByBotToken } from '../sdk.gen';
-import type { DeleteSubscriptionsBySubscriptionIdSquareConnectionData, DeleteSubscriptionsBySubscriptionIdSquareConnectionError, DeleteSubscriptionsBySubscriptionIdSquareConnectionResponse, GetAgentsByAgentIdConversationsByConversationIdMessagesData, GetAgentsByAgentIdConversationsByConversationIdMessagesError, GetAgentsByAgentIdConversationsByConversationIdMessagesResponse, GetAgentsByAgentIdConversationsData, GetAgentsByAgentIdConversationsError, GetAgentsByAgentIdConversationsResponse, GetAppInfoData, GetAppInfoResponse, GetAuthExternalCallbackData, GetAuthExternalCallbackError, GetAuthMeData, GetAuthMeError, GetAuthMeResponse, GetAuthProvidersByProviderAuthorizeData, GetAuthProvidersByProviderAuthorizeError, GetAuthProvidersData, GetAuthProvidersError, GetAuthProvidersResponse, GetOnboardingSubscriptionsActiveData, GetOnboardingSubscriptionsActiveError, GetOnboardingSubscriptionsActiveResponse, GetOnboardingSubscriptionsBySubscriptionIdStateData, GetOnboardingSubscriptionsBySubscriptionIdStateError, GetOnboardingSubscriptionsBySubscriptionIdStateResponse, GetSubscriptionsSquareCallbackData, IngestTextData, IngestTextError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdReadData, PatchAgentsByAgentIdConversationsByConversationIdReadError, PatchAgentsByAgentIdConversationsByConversationIdReadResponse, PatchOnboardingAgentsByAgentIdChannelsData, PatchOnboardingAgentsByAgentIdChannelsError, PatchOnboardingAgentsByAgentIdChannelsResponse, PatchOnboardingAgentsByAgentIdProfileData, PatchOnboardingAgentsByAgentIdProfileError, PatchOnboardingAgentsByAgentIdProfileResponse, PostAuthLogoutData, PostAuthLogoutError, PostNewsletterConfirmData, PostNewsletterConfirmResponse, PostNewsletterSubscribeData, PostNewsletterSubscribeError, PostNewsletterSubscribeResponse, PostOnboardingSubscriptionsBySubscriptionIdAgentsData, PostOnboardingSubscriptionsBySubscriptionIdAgentsError, PostOnboardingSubscriptionsBySubscriptionIdAgentsResponse, PostOnboardingSubscriptionsBySubscriptionIdFinalizeData, PostOnboardingSubscriptionsBySubscriptionIdFinalizeError, PostOnboardingSubscriptionsBySubscriptionIdFinalizeResponse, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsData, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsError, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsResponse, PostSubscriptionsBySubscriptionIdSquareAuthorizeData, PostSubscriptionsBySubscriptionIdSquareAuthorizeError, PostSubscriptionsBySubscriptionIdSquareAuthorizeResponse, PostWebhooksTelegramByBotTokenData, PostWebhooksTelegramByBotTokenError } from '../types.gen';
+import { deleteAgentsByAgentId, deleteSubscriptionsBySubscriptionIdSquareConnection, getAgents, getAgentsByAgentId, getAgentsByAgentIdConversations, getAgentsByAgentIdConversationsByConversationIdMessages, getAppInfo, getAuthExternalCallback, getAuthMe, getAuthProviders, getAuthProvidersByProviderAuthorize, getOnboardingSubscriptionsActive, getOnboardingSubscriptionsBySubscriptionIdState, getSubscriptionsSquareCallback, ingestText, type Options, patchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdRead, patchAgentsByAgentIdConversationsByConversationIdRead, patchOnboardingAgentsByAgentIdChannels, patchOnboardingAgentsByAgentIdProfile, postAgents, postAgentsByAgentId, postAuthLogout, postNewsletterConfirm, postNewsletterSubscribe, postOnboardingSubscriptionsBySubscriptionIdAgents, postOnboardingSubscriptionsBySubscriptionIdFinalize, postOnboardingSubscriptionsBySubscriptionIdMembersInvitations, postSubscriptionsBySubscriptionIdSquareAuthorize, postWebhooksTelegramByBotToken } from '../sdk.gen';
+import type { DeleteAgentsByAgentIdData, DeleteAgentsByAgentIdError, DeleteAgentsByAgentIdResponse, DeleteSubscriptionsBySubscriptionIdSquareConnectionData, DeleteSubscriptionsBySubscriptionIdSquareConnectionError, DeleteSubscriptionsBySubscriptionIdSquareConnectionResponse, GetAgentsByAgentIdConversationsByConversationIdMessagesData, GetAgentsByAgentIdConversationsByConversationIdMessagesError, GetAgentsByAgentIdConversationsByConversationIdMessagesResponse, GetAgentsByAgentIdConversationsData, GetAgentsByAgentIdConversationsError, GetAgentsByAgentIdConversationsResponse, GetAgentsByAgentIdData, GetAgentsByAgentIdError, GetAgentsByAgentIdResponse, GetAgentsData, GetAgentsError, GetAgentsResponse, GetAppInfoData, GetAppInfoResponse, GetAuthExternalCallbackData, GetAuthExternalCallbackError, GetAuthMeData, GetAuthMeError, GetAuthMeResponse, GetAuthProvidersByProviderAuthorizeData, GetAuthProvidersByProviderAuthorizeError, GetAuthProvidersData, GetAuthProvidersError, GetAuthProvidersResponse, GetOnboardingSubscriptionsActiveData, GetOnboardingSubscriptionsActiveError, GetOnboardingSubscriptionsActiveResponse, GetOnboardingSubscriptionsBySubscriptionIdStateData, GetOnboardingSubscriptionsBySubscriptionIdStateError, GetOnboardingSubscriptionsBySubscriptionIdStateResponse, GetSubscriptionsSquareCallbackData, IngestTextData, IngestTextError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadData, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadError, PatchAgentsByAgentIdConversationsByConversationIdMessagesByMessageIdReadResponse, PatchAgentsByAgentIdConversationsByConversationIdReadData, PatchAgentsByAgentIdConversationsByConversationIdReadError, PatchAgentsByAgentIdConversationsByConversationIdReadResponse, PatchOnboardingAgentsByAgentIdChannelsData, PatchOnboardingAgentsByAgentIdChannelsError, PatchOnboardingAgentsByAgentIdChannelsResponse, PatchOnboardingAgentsByAgentIdProfileData, PatchOnboardingAgentsByAgentIdProfileError, PatchOnboardingAgentsByAgentIdProfileResponse, PostAgentsByAgentIdData, PostAgentsByAgentIdError, PostAgentsByAgentIdResponse, PostAgentsData, PostAgentsError, PostAgentsResponse, PostAuthLogoutData, PostAuthLogoutError, PostNewsletterConfirmData, PostNewsletterConfirmResponse, PostNewsletterSubscribeData, PostNewsletterSubscribeError, PostNewsletterSubscribeResponse, PostOnboardingSubscriptionsBySubscriptionIdAgentsData, PostOnboardingSubscriptionsBySubscriptionIdAgentsError, PostOnboardingSubscriptionsBySubscriptionIdAgentsResponse, PostOnboardingSubscriptionsBySubscriptionIdFinalizeData, PostOnboardingSubscriptionsBySubscriptionIdFinalizeError, PostOnboardingSubscriptionsBySubscriptionIdFinalizeResponse, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsData, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsError, PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsResponse, PostSubscriptionsBySubscriptionIdSquareAuthorizeData, PostSubscriptionsBySubscriptionIdSquareAuthorizeError, PostSubscriptionsBySubscriptionIdSquareAuthorizeResponse, PostWebhooksTelegramByBotTokenData, PostWebhooksTelegramByBotTokenError } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -161,6 +161,78 @@ export const postAuthLogoutMutation = (options?: Partial<Options<PostAuthLogoutD
     const mutationOptions: UseMutationOptions<unknown, PostAuthLogoutError, Options<PostAuthLogoutData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postAuthLogout({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getAgentsQueryKey = (options: Options<GetAgentsData>) => createQueryKey('getAgents', options);
+
+export const getAgentsOptions = (options: Options<GetAgentsData>) => queryOptions<GetAgentsResponse, GetAgentsError, GetAgentsResponse, ReturnType<typeof getAgentsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAgents({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAgentsQueryKey(options)
+});
+
+export const postAgentsMutation = (options?: Partial<Options<PostAgentsData>>): UseMutationOptions<PostAgentsResponse, PostAgentsError, Options<PostAgentsData>> => {
+    const mutationOptions: UseMutationOptions<PostAgentsResponse, PostAgentsError, Options<PostAgentsData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postAgents({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const deleteAgentsByAgentIdMutation = (options?: Partial<Options<DeleteAgentsByAgentIdData>>): UseMutationOptions<DeleteAgentsByAgentIdResponse, DeleteAgentsByAgentIdError, Options<DeleteAgentsByAgentIdData>> => {
+    const mutationOptions: UseMutationOptions<DeleteAgentsByAgentIdResponse, DeleteAgentsByAgentIdError, Options<DeleteAgentsByAgentIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteAgentsByAgentId({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getAgentsByAgentIdQueryKey = (options: Options<GetAgentsByAgentIdData>) => createQueryKey('getAgentsByAgentId', options);
+
+export const getAgentsByAgentIdOptions = (options: Options<GetAgentsByAgentIdData>) => queryOptions<GetAgentsByAgentIdResponse, GetAgentsByAgentIdError, GetAgentsByAgentIdResponse, ReturnType<typeof getAgentsByAgentIdQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAgentsByAgentId({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAgentsByAgentIdQueryKey(options)
+});
+
+export const postAgentsByAgentIdMutation = (options?: Partial<Options<PostAgentsByAgentIdData>>): UseMutationOptions<PostAgentsByAgentIdResponse, PostAgentsByAgentIdError, Options<PostAgentsByAgentIdData>> => {
+    const mutationOptions: UseMutationOptions<PostAgentsByAgentIdResponse, PostAgentsByAgentIdError, Options<PostAgentsByAgentIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postAgentsByAgentId({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

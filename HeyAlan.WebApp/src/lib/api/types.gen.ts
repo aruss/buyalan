@@ -4,7 +4,35 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:5000/' | (string & {});
 };
 
+export type AgentErrorResult = {
+    errorCode: string;
+    message: string;
+};
+
+export type AgentItem = {
+    agentId: string;
+    name: string;
+    personality: null | AgentPersonality;
+    isOperationalReady: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
 export type AgentPersonality = 'Casual' | 'Balanced' | 'Business';
+
+export type AgentResult = {
+    agentId: string;
+    subscriptionId: string;
+    name: string;
+    personality: null | AgentPersonality;
+    personalityPromptRaw: null | string;
+    twilioPhoneNumber: null | string;
+    whatsappNumber: null | string;
+    telegramBotToken: null | string;
+    isOperationalReady: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
 
 export type AppInfo = {
     appName: string;
@@ -63,6 +91,10 @@ export type CurrentUserResult = {
     isOnboarded: boolean;
 };
 
+export type DeleteAgentResult = {
+    deleted: boolean;
+};
+
 export type DeleteSubscriptionSquareConnectionResult = {
     disconnected: boolean;
 };
@@ -78,6 +110,13 @@ export type GetActiveSubscriptionResult = {
 
 export type GetAgentConversationsResult = {
     items?: Array<ConversationListItem>;
+    hasNextPage?: boolean;
+    skip?: number;
+    take?: number;
+};
+
+export type GetAgentsResult = {
+    items?: Array<AgentItem>;
     hasNextPage?: boolean;
     skip?: number;
     take?: number;
@@ -179,6 +218,15 @@ export type PatchOnboardingAgentChannelsInput = {
 export type PatchOnboardingAgentProfileInput = {
     name: null | string;
     personality: null | AgentPersonality;
+};
+
+export type PostAgentInput = {
+    name: null | string;
+    personality: null | AgentPersonality;
+    personalityPromptRaw: null | string;
+    twilioPhoneNumber: null | string;
+    telegramBotToken: null | string;
+    whatsappNumber: null | string;
 };
 
 export type ProblemDetails = {
@@ -450,6 +498,179 @@ export type PostAuthLogoutResponses = {
      */
     200: unknown;
 };
+
+export type GetAgentsData = {
+    body?: never;
+    path?: never;
+    query: {
+        subscription: string;
+        skip?: number;
+        take?: number;
+    };
+    url: '/agents';
+};
+
+export type GetAgentsErrors = {
+    /**
+     * Unauthorized
+     */
+    401: AgentErrorResult;
+    /**
+     * Forbidden
+     */
+    403: AgentErrorResult;
+};
+
+export type GetAgentsError = GetAgentsErrors[keyof GetAgentsErrors];
+
+export type GetAgentsResponses = {
+    /**
+     * OK
+     */
+    200: GetAgentsResult;
+};
+
+export type GetAgentsResponse = GetAgentsResponses[keyof GetAgentsResponses];
+
+export type PostAgentsData = {
+    body?: never;
+    path?: never;
+    query: {
+        subscription: string;
+    };
+    url: '/agents';
+};
+
+export type PostAgentsErrors = {
+    /**
+     * Unauthorized
+     */
+    401: AgentErrorResult;
+    /**
+     * Forbidden
+     */
+    403: AgentErrorResult;
+};
+
+export type PostAgentsError = PostAgentsErrors[keyof PostAgentsErrors];
+
+export type PostAgentsResponses = {
+    /**
+     * OK
+     */
+    200: AgentResult;
+};
+
+export type PostAgentsResponse = PostAgentsResponses[keyof PostAgentsResponses];
+
+export type DeleteAgentsByAgentIdData = {
+    body?: never;
+    path: {
+        agentId: string;
+    };
+    query?: never;
+    url: '/agents/{agentId}';
+};
+
+export type DeleteAgentsByAgentIdErrors = {
+    /**
+     * Unauthorized
+     */
+    401: AgentErrorResult;
+    /**
+     * Forbidden
+     */
+    403: AgentErrorResult;
+    /**
+     * Not Found
+     */
+    404: AgentErrorResult;
+};
+
+export type DeleteAgentsByAgentIdError = DeleteAgentsByAgentIdErrors[keyof DeleteAgentsByAgentIdErrors];
+
+export type DeleteAgentsByAgentIdResponses = {
+    /**
+     * OK
+     */
+    200: DeleteAgentResult;
+};
+
+export type DeleteAgentsByAgentIdResponse = DeleteAgentsByAgentIdResponses[keyof DeleteAgentsByAgentIdResponses];
+
+export type GetAgentsByAgentIdData = {
+    body?: never;
+    path: {
+        agentId: string;
+    };
+    query?: never;
+    url: '/agents/{agentId}';
+};
+
+export type GetAgentsByAgentIdErrors = {
+    /**
+     * Unauthorized
+     */
+    401: AgentErrorResult;
+    /**
+     * Forbidden
+     */
+    403: AgentErrorResult;
+    /**
+     * Not Found
+     */
+    404: AgentErrorResult;
+};
+
+export type GetAgentsByAgentIdError = GetAgentsByAgentIdErrors[keyof GetAgentsByAgentIdErrors];
+
+export type GetAgentsByAgentIdResponses = {
+    /**
+     * OK
+     */
+    200: AgentResult;
+};
+
+export type GetAgentsByAgentIdResponse = GetAgentsByAgentIdResponses[keyof GetAgentsByAgentIdResponses];
+
+export type PostAgentsByAgentIdData = {
+    body: PostAgentInput;
+    path: {
+        agentId: string;
+    };
+    query?: never;
+    url: '/agents/{agentId}';
+};
+
+export type PostAgentsByAgentIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: AgentErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: AgentErrorResult;
+    /**
+     * Forbidden
+     */
+    403: AgentErrorResult;
+    /**
+     * Not Found
+     */
+    404: AgentErrorResult;
+};
+
+export type PostAgentsByAgentIdError = PostAgentsByAgentIdErrors[keyof PostAgentsByAgentIdErrors];
+
+export type PostAgentsByAgentIdResponses = {
+    /**
+     * OK
+     */
+    200: AgentResult;
+};
+
+export type PostAgentsByAgentIdResponse = PostAgentsByAgentIdResponses[keyof PostAgentsByAgentIdResponses];
 
 export type GetAgentsByAgentIdConversationsData = {
     body?: never;
