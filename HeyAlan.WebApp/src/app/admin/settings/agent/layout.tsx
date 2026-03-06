@@ -1,6 +1,7 @@
 "use client"
 
-import { TabNavigation, TabNavigationLink } from "@/components/admin/TabNavigation";
+import { TabNavigation, TabNavigationLink } from "@/components/admin/tab-navigation";
+import { AgentSettingsProvider } from "./agent-settings-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -18,23 +19,24 @@ export default function Layout({
 }>) {
     const pathname = usePathname()
 
-    return (<>
-        <div className="min-h-dvh bg-white p-4 dark:bg-gray-925 lg:dark:border-gray-900">
-    
-            <TabNavigation className="mt-6">
-                {navigationSettings.map((item) => (
-                    <TabNavigationLink
-                        key={item.name}
-                        asChild
-                        active={pathname === item.href}
-                        className="px-5"
-                    >
-                        <Link href={item.href}>{item.name}</Link>
-                    </TabNavigationLink>
-                ))}
-            </TabNavigation>
+    return (
+        <AgentSettingsProvider>
+            <div className="min-h-dvh bg-white p-4 dark:bg-gray-925 lg:dark:border-gray-900">
+                <TabNavigation className="">
+                    {navigationSettings.map((item) => (
+                        <TabNavigationLink
+                            key={item.name}
+                            asChild
+                            active={pathname === item.href}
+                            className="px-5"
+                        >
+                            <Link href={item.href}>{item.name}</Link>
+                        </TabNavigationLink>
+                    ))}
+                </TabNavigation>
 
-            <div className="pt-6 max-w-5xl">{children}</div>
-        </div>
-    </>);
+                <div className="pt-6 max-w-5xl">{children}</div>
+            </div>
+        </AgentSettingsProvider>
+    );
 }

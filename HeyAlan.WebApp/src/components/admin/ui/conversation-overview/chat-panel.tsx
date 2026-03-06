@@ -1,10 +1,10 @@
-import { Button } from "@/components/admin/Button"
+import { Button } from "@/components/admin/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/admin/DropdownMenu"
+} from "@/components/admin/dropdown-menu"
 import { ConversationChannel, ConversationItem, MessageItem } from "@/data/data"
 import { Bot, ChevronLeft, ChevronRight, MessageSquare, MoreHorizontal, Phone, Send } from "lucide-react"
 import type { ElementType } from "react"

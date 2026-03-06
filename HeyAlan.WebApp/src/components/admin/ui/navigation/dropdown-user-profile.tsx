@@ -13,7 +13,7 @@ import {
   DropdownMenuSubMenuContent,
   DropdownMenuSubMenuTrigger,
   DropdownMenuTrigger,
-} from "@/components/admin/DropdownMenu"
+} from "@/components/admin/dropdown-menu"
 import { triggerLogoutFromBrowser } from "@/lib/logout-action"
 import { ArrowUpRight, Monitor, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"

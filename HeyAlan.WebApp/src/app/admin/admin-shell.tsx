@@ -4,7 +4,7 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/admin/Sidebar"
+} from "@/components/admin/sidebar"
 import { AppSidebar } from "@/components/admin/ui/navigation/app-sidebar"
 import { Breadcrumbs } from "@/components/admin/ui/navigation/breadcrumbs"
 import { BreadcrumbProvider } from "@/lib/breadcrumb-context"

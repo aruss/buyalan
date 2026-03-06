@@ -36,8 +36,8 @@ import {
   constructCategoryColors,
   getColorClassName,
   getYAxisDomain,
-} from "@/lib/chartUtils"
-import { useOnWindowResize } from "@/lib/useOnWindowResize"
+} from "@/lib/chart-utils"
+import { useOnWindowResize } from "@/lib/use-on-window-resize"
 import { cx } from "@/lib/utils"
 
 //#region Shape

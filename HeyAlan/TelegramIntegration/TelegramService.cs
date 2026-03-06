@@ -47,7 +47,7 @@ public sealed class TelegramService : ITelegramService
 
         Uri webhookUri = new(
             this.appOptions.PublicBaseUrl,
-            $"webhooks/telegram/{normalizedBotToken}");
+            $"/api/webhooks/telegram/{normalizedBotToken}");
 
         this.logger.LogInformation(
             "Registering Telegram webhook URL for bot id {BotId}.", 

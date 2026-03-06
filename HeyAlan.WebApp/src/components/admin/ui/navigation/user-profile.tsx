@@ -1,11 +1,11 @@
 "use client"
 
-import { Button } from "@/components/admin/Button"
+import { Button } from "@/components/admin/button"
 import { useSession } from "@/lib/session-context"
 import { cx, focusRing } from "@/lib/utils"
 import { ChevronsUpDown } from "lucide-react"
 
-import { DropdownUserProfile } from "./DropdownUserProfile"
+import { DropdownUserProfile } from "./dropdown-user-profile"
 
 const EMPTY_INITIALS = "??"
 const LOADING_LABEL = "Loading..."

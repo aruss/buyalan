@@ -1,7 +1,7 @@
 "use client"
 
-import { Button } from "@/components/admin/Button"
-import { useMobileState } from "@/lib/useMobile"
+import { Button } from "@/components/admin/button"
+import { useMobileState } from "@/lib/use-mobile"
 import { cx } from "@/lib/utils"
 import { ChevronLeft } from "lucide-react"
 import { ChatInfoPanel } from "./chat-info-panel"

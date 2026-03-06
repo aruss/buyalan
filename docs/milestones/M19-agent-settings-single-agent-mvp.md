@@ -85,57 +85,57 @@ MVP scope is one agent per subscription in UI flow:
 - [x] Expose new `/agents` operations in OpenAPI from WebAPI annotations/signatures.
 - [x] Hand off for client generation (`yarn openapi-ts`) after WebAPI interface changes.
 - [x] Confirm generated SDK/react-query helpers include all new `/agents` operations.
-- [ ] WebApp implementation uses generated client methods only; no direct `fetch`.
+- [x] WebApp implementation uses generated client methods only; no direct `fetch`.
 
 ### Gate B Acceptance Criteria
 - [x] `HeyAlan.WebApp/src/lib/api/*.gen.ts` contains `/agents` operations.
-- [ ] Agent settings provider and tabs call generated methods only.
+- [x] Agent settings provider and tabs call generated methods only.
 
 ## Gate C - WebApp Agent Settings Provider
-- [ ] Add an agent settings context provider under agent settings layout scope.
-- [ ] Resolve active subscription id from session context.
-- [ ] Load `GET /agents?subscription={subscriptionId}` and select first agent.
-- [ ] Fetch selected agent details via `GET /agents/{agentId}`.
-- [ ] Expose shared state and mutations to tabs:
-  - [ ] `agent`
-  - [ ] `isLoading`
-  - [ ] `errorMessage`
-  - [ ] `refresh()`
-  - [ ] `updateProfile(...)`
-  - [ ] `updateChannels(...)`
-- [ ] Keep cache/state sync after successful updates.
-- [ ] Expose and cache `isOperationalReady` for settings status UI.
+- [x] Add an agent settings context provider under agent settings layout scope.
+- [x] Resolve active subscription id from session context.
+- [x] Load `GET /agents?subscription={subscriptionId}` and select first agent.
+- [x] Fetch selected agent details via `GET /agents/{agentId}`.
+- [x] Expose shared state and mutations to tabs:
+  - [x] `agent`
+  - [x] `isLoading`
+  - [x] `errorMessage`
+  - [x] `refresh()`
+  - [x] `updateProfile(...)`
+  - [x] `updateChannels(...)`
+- [x] Keep cache/state sync after successful updates.
+- [x] Expose and cache `isOperationalReady` for settings status UI.
 
 ### Gate C Acceptance Criteria
-- [ ] Personality and Channels tabs consume same in-memory agent instance from provider.
-- [ ] Navigation between tabs does not lose unsaved loaded state.
+- [x] Personality and Channels tabs consume same in-memory agent instance from provider.
+- [x] Navigation between tabs does not lose unsaved loaded state.
 
 ## Gate D - Personality Tab (Working Form + Validation)
-- [ ] Replace static personality form with `react-hook-form` + `zodResolver`.
-- [ ] Implement field validation aligned with onboarding style:
-  - [ ] `agentName` required
-  - [ ] `agentPersonality` required enum (`casual|balanced|business` mapped to API enum)
-  - [ ] `personalityPromptRaw` optional
-- [ ] Submit updates through generated `POST /agents/{agentId}` client call.
-- [ ] Display save success/error feedback.
+- [x] Replace static personality form with `react-hook-form` + `zodResolver`.
+- [x] Implement field validation aligned with onboarding style:
+  - [x] `agentName` required
+  - [x] `agentPersonality` required enum (`casual|balanced|business` mapped to API enum)
+  - [x] `personalityPromptRaw` optional
+- [x] Submit updates through generated `POST /agents/{agentId}` client call.
+- [x] Display save success/error feedback.
 
 ### Gate D Acceptance Criteria
-- [ ] Invalid inputs show form-level/field-level errors.
-- [ ] Valid save persists and refreshes shared agent state.
+- [x] Invalid inputs show form-level/field-level errors.
+- [x] Valid save persists and refreshes shared agent state.
 
 ## Gate E - Channels Tab (Per-Card Save + Cross-Field Rules)
-- [ ] Keep per-card saves for Telegram/WhatsApp/SMS UX.
-- [ ] Use one shared channels form model with settings-specific validation:
-  - [ ] E.164-like validation for phone/whatsapp fields
-  - [ ] No cross-field requirement that at least one channel must be configured
-- [ ] Each card save submits merged channel state via generated `POST /agents/{agentId}` call.
-- [ ] Preserve existing value on partial card edits; do not accidentally clear other channels unless explicitly changed.
-- [ ] Show warning/notice when `isOperationalReady` is false.
+- [x] Keep per-card saves for Telegram/WhatsApp/SMS UX.
+- [x] Use one shared channels form model with settings-specific validation:
+  - [x] E.164-like validation for phone/whatsapp fields
+  - [x] No cross-field requirement that at least one channel must be configured
+- [x] Each card save submits merged channel state via generated `POST /agents/{agentId}` call.
+- [x] Preserve existing value on partial card edits; do not accidentally clear other channels unless explicitly changed.
+- [x] Show warning/notice when `isOperationalReady` is false.
 
 ### Gate E Acceptance Criteria
-- [ ] Per-card save works when all channels are empty or partially configured.
-- [ ] API errors (including token conflicts/telegram registration failures) are surfaced clearly.
-- [ ] UI clearly indicates non-ready agent when no channels are configured.
+- [x] Per-card save works when all channels are empty or partially configured.
+- [x] API errors (including token conflicts/telegram registration failures) are surfaced clearly.
+- [x] UI clearly indicates non-ready agent when no channels are configured.
 
 ## Gate F - Testing and Verification
 - [ ] Backend tests:
@@ -161,9 +161,21 @@ MVP scope is one agent per subscription in UI flow:
 
 ## Handoff Notes for Next Context Window
 - [x] Gate A and Gate B backend/OpenAPI baseline is complete, including regenerated WebApp client with `/agents` operations.
-- [ ] Next window scope: implement Gate C (shared agent settings provider) and Gate E (channels tab per-card save + optional-channel behavior + `isOperationalReady` warning).
-- [ ] Gate D remains open and intentionally deferred unless pulled into next window scope.
-- [ ] Suggested execution order in fresh context: Gate C first (provider contract), then Gate E (consumer integration), then Gate F verification for C/E paths.
+- [x] Gate C is complete with shared provider and tab consumption.
+- [x] Provider file added: `HeyAlan.WebApp/src/app/admin/settings/agent/agent-settings-context.tsx`
+- [x] Provider is mounted in: `HeyAlan.WebApp/src/app/admin/settings/agent/layout.tsx`
+- [x] Tabs now consume provider read state:
+  - [x] `HeyAlan.WebApp/src/app/admin/settings/agent/page.tsx`
+  - [x] `HeyAlan.WebApp/src/app/admin/settings/agent/channels/page.tsx`
+- [x] Channels tab already shows non-ready warning when `isOperationalReady = false`.
+- [x] Gate E completed in channels tab (shared form model, per-card saves, validation, merged updates, save feedback).
+- [x] Gate D completed in settings personality tab (react-hook-form + zod validation + provider update/save feedback).
+- [ ] Suggested execution order in fresh context:
+  - [x] Implement Gate E save flows using `updateChannels(...)` from provider.
+  - [x] Implement Gate D form/save flow using `updateProfile(...)` from provider.
+  - [ ] Run Gate F verification for C/D/E paths.
+- [ ] Known repo-wide TypeScript issue exists outside M19 scope:
+  - [ ] `HeyAlan.WebApp/src/app/onboarding/page.tsx` imports `postOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorize` which is not exported by current generated API index.
 - [ ] Do not edit `.gen.ts` files manually.
 - [ ] Keep `Skills`/`Inventory` untouched aside from navigation continuity.
 - [ ] Keep manual `fetch` out of agent settings work; use generated SDK/react-query helpers exclusively.

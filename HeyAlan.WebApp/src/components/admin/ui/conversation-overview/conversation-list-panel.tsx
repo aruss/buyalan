@@ -1,4 +1,4 @@
-import { Input } from "@/components/admin/Input"
+import { Input } from "@/components/admin/input"
 import { ConversationItem } from "@/data/data"
 import { cx } from "@/lib/utils"
 

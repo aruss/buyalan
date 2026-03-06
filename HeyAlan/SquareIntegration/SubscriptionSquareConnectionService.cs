@@ -65,7 +65,8 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
             return new StartSquareConnectResult.Failure("return_url_required");
         }
 
-        string callbackUrl = BuildAbsoluteCallbackUrl(this.appOptions.PublicBaseUrl, "/subscriptions/square/callback");
+        string callbackUrl = BuildAbsoluteCallbackUrl(
+            this.appOptions.PublicBaseUrl, "/api/subscriptions/square/callback");
 
         SquareConnectStatePayload payload = new(
             input.SubscriptionId,
@@ -137,7 +138,7 @@ public sealed class SubscriptionSquareConnectionService : ISubscriptionSquareCon
 
         string callbackUrl = BuildAbsoluteCallbackUrl(
             this.appOptions.PublicBaseUrl, 
-            "/subscriptions/square/callback");
+            "/api/subscriptions/square/callback");
 
         SquareTokenExchangeResult tokenExchange = await this.squareOAuthClient.ExchangeAuthorizationCodeAsync(
             input.AuthorizationCode.Trim(),

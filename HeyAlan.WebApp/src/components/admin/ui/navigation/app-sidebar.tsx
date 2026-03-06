@@ -13,14 +13,14 @@ import {
   SidebarMenuSub,
   SidebarSubLink,
   useSidebar,
-} from "@/components/admin/Sidebar"
+} from "@/components/admin/sidebar"
 import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
 import { PackageSearch, Settings, Bug, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react"
 import { Logo } from "../../../../../public/Logo"
-import { UserProfile } from "./UserProfile"
+import { UserProfile } from "./user-profile"
 import Link from "next/link"
 
 type NavigationChild = {

@@ -123,18 +123,22 @@ var webapi = builder.AddProject<Projects.HeyAlan_WebApi>("webapi")
     .WithEnvironment("NODE_OPTIONS", "--inspect=0.0.0.0:9229");
 */
 
+var runFronend = false;
+IResourceBuilder<ExecutableResource> webapp = null!;
 
-// if WebApp run is via yarn/npm, use AddExecutable
-var webapp = builder.AddExecutable("webapp", "yarn.cmd", "../HeyAlan.WebApp", "dev")
-    // explicitly allow unsecure transport for local dev if needed, or use https
-    .WithHttpEndpoint(env: "PORT", port: 5010, name: "http")
-    .WithExternalHttpEndpoints()
-    .WithReference(webapi)
-    .WaitFor(webapi)
-    .WithOtlpExporter()
-    .WithEnvironment("APP_VERSION", "1.2.3")
-    .WithEnvironment("WEBAPI_ENDPOINT", webapi.GetEndpoint("http"))
-    .WithEnvironment("NODE_OPTIONS", "--inspect=0.0.0.0:9229");
+if (runFronend) {
+    // if WebApp run is via yarn/npm, use AddExecutable
+    webapp = builder.AddExecutable("webapp", "yarn.cmd", "../HeyAlan.WebApp", "dev")
+        // explicitly allow unsecure transport for local dev if needed, or use https
+        .WithHttpEndpoint(env: "PORT", port: 5010, name: "http")
+        .WithExternalHttpEndpoints()
+        .WithReference(webapi)
+        .WaitFor(webapi)
+        .WithOtlpExporter()
+        .WithEnvironment("APP_VERSION", "1.2.3")
+        .WithEnvironment("WEBAPI_ENDPOINT", webapi.GetEndpoint("http"))
+        .WithEnvironment("NODE_OPTIONS", "--inspect=0.0.0.0:9229");
+}
 
 #endregion
 
@@ -145,14 +149,18 @@ if (!String.IsNullOrEmpty(ngrokDomain))
     string ngrokAuthToken = builder.Configuration["NGROK_AUTHTOKEN"]
         ?? throw new InvalidOperationException("NGROK_AUTHTOKEN is missing in host configuration.");
 
-    builder.AddContainer("ngrok", "ngrok/ngrok")
+    var ngrok = builder.AddContainer("ngrok", "ngrok/ngrok")
         .WithContainerName("heyalan-ngrok")
         .WithProjectName("heyalan")
         .WithEnvironment("NGROK_AUTHTOKEN", ngrokAuthToken)
         .WithHttpEndpoint(targetPort: 4040, port: 4040, name: "inspect")
         .WithArgs("http", $"--url={ngrokDomain}", "--log=stdout", "http://host.docker.internal:5010")
-        .WithLifetime(ContainerLifetime.Persistent)
-        .WaitFor(webapp);
+        .WithLifetime(ContainerLifetime.Persistent);
+
+    if (webapp != null)
+    {
+        ngrok.WaitFor(webapp); 
+    }
 }
 
 #endregion

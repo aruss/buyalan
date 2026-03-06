@@ -5,7 +5,7 @@ import { RiCloseLine } from "@remixicon/react"
 
 import { cx, focusRing } from "@/lib/utils"
 
-import { Button } from "./Button"
+import { Button } from "./button"
 import {
   forwardRef,
   type ComponentPropsWithoutRef,

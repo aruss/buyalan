@@ -5,8 +5,8 @@ import {
   DrawerClose,
   DrawerContent,
   DrawerTitle,
-} from "@/components/admin/Drawer"
-import { useIsMobile } from "@/lib/useMobile"
+} from "@/components/admin/drawer"
+import { useIsMobile } from "@/lib/use-mobile"
 import { cx, focusRing } from "@/lib/utils"
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden"
 import { RiCloseLine } from "@remixicon/react"
@@ -25,7 +25,7 @@ import {
   type ElementType,
   type ReactNode,
 } from "react"
-import { Button } from "./Button"
+import { Button } from "./button"
 
 // This component is based on shadcn's sidebar component
 

@@ -10,6 +10,9 @@ export function Breadcrumbs() {
   const pathname = usePathname();
   const { override } = useBreadcrumbs();
   const routeItems = getAdminBreadcrumbs(pathname);
+
+  console.log(routeItems);
+
   const hasOverride =
     override?.pathname === pathname && override.items.length > 0;
   const items = hasOverride ? override.items : routeItems;
@@ -17,10 +20,8 @@ export function Breadcrumbs() {
 
   return (
     <div className="ml-2 flex flex-col gap-0.5">
-      <div className="text-base font-semibold text-gray-900 dark:text-gray-50">
-        {title}
-      </div>
-      {items.length > 1 &&
+
+      {items.length > 1 ?
         <nav aria-label="Breadcrumb">
           <ol role="list" className="flex items-center gap-2 text-xs">
             {items.map((item, index) => {
@@ -51,7 +52,9 @@ export function Breadcrumbs() {
               );
             })}
           </ol>
-        </nav>}
+        </nav> : <div className="text-base font-semibold text-gray-900 dark:text-gray-50">
+          {title}
+        </div>}
 
     </div>
   );
