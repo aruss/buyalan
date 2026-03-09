@@ -229,6 +229,10 @@ export type PostAgentInput = {
     whatsappNumber: null | string;
 };
 
+export type PostSubscriptionSquareCatalogSyncResult = {
+    enqueued: boolean;
+};
+
 export type ProblemDetails = {
     type?: null | string;
     title?: null | string;
@@ -244,6 +248,11 @@ export type SquareConnectionErrorResult = {
 
 export type StartSubscriptionSquareConnectAuthorizeResult = {
     authorizeUrl: string;
+};
+
+export type SubscriptionCatalogSyncErrorResult = {
+    errorCode: string;
+    message: string;
 };
 
 export type TelegramChatInput = {
@@ -308,6 +317,27 @@ export type PostWebhooksTelegramByBotTokenErrors = {
 export type PostWebhooksTelegramByBotTokenError = PostWebhooksTelegramByBotTokenErrors[keyof PostWebhooksTelegramByBotTokenErrors];
 
 export type PostWebhooksTelegramByBotTokenResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostWebhooksSquareCatalogData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/webhooks/square/catalog';
+};
+
+export type PostWebhooksSquareCatalogErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+};
+
+export type PostWebhooksSquareCatalogResponses = {
     /**
      * OK
      */
@@ -858,6 +888,37 @@ export type PostSubscriptionsBySubscriptionIdSquareAuthorizeResponses = {
 };
 
 export type PostSubscriptionsBySubscriptionIdSquareAuthorizeResponse = PostSubscriptionsBySubscriptionIdSquareAuthorizeResponses[keyof PostSubscriptionsBySubscriptionIdSquareAuthorizeResponses];
+
+export type PostSubscriptionsBySubscriptionIdSquareCatalogSyncData = {
+    body?: never;
+    path: {
+        subscriptionId: string;
+    };
+    query?: never;
+    url: '/subscriptions/{subscriptionId}/square/catalog/sync';
+};
+
+export type PostSubscriptionsBySubscriptionIdSquareCatalogSyncErrors = {
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionCatalogSyncErrorResult;
+    /**
+     * Forbidden
+     */
+    403: SubscriptionCatalogSyncErrorResult;
+};
+
+export type PostSubscriptionsBySubscriptionIdSquareCatalogSyncError = PostSubscriptionsBySubscriptionIdSquareCatalogSyncErrors[keyof PostSubscriptionsBySubscriptionIdSquareCatalogSyncErrors];
+
+export type PostSubscriptionsBySubscriptionIdSquareCatalogSyncResponses = {
+    /**
+     * OK
+     */
+    200: PostSubscriptionSquareCatalogSyncResult;
+};
+
+export type PostSubscriptionsBySubscriptionIdSquareCatalogSyncResponse = PostSubscriptionsBySubscriptionIdSquareCatalogSyncResponses[keyof PostSubscriptionsBySubscriptionIdSquareCatalogSyncResponses];
 
 export type DeleteSubscriptionsBySubscriptionIdSquareConnectionData = {
     body?: never;

@@ -2,8 +2,10 @@ namespace HeyAlan.WebApi.SquareIntegration;
 
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using HeyAlan.SquareIntegration;
 using System.Security.Claims;
+using HeyAlan.Data;
 
 public static class SquareConnectionEndpoints
 {
@@ -22,6 +24,14 @@ public static class SquareConnectionEndpoints
             .Produces<SquareConnectionErrorResult>(StatusCodes.Status400BadRequest)
             .Produces<SquareConnectionErrorResult>(StatusCodes.Status401Unauthorized)
             .Produces<SquareConnectionErrorResult>(StatusCodes.Status403Forbidden);
+
+        subscriptionsGroup
+            .MapPost(
+                "/{subscriptionId:guid}/square/catalog/sync",
+                PostSubscriptionSquareCatalogSyncAsync)
+            .Produces<PostSubscriptionSquareCatalogSyncResult>(StatusCodes.Status200OK)
+            .Produces<SubscriptionCatalogSyncErrorResult>(StatusCodes.Status401Unauthorized)
+            .Produces<SubscriptionCatalogSyncErrorResult>(StatusCodes.Status403Forbidden);
 
         subscriptionsGroup
             .MapDelete(
@@ -111,6 +121,41 @@ public static class SquareConnectionEndpoints
         return TypedResults.Ok(new DeleteSubscriptionSquareConnectionResult(true));
     }
 
+    private static async Task<IResult> PostSubscriptionSquareCatalogSyncAsync(
+        [FromRoute] Guid subscriptionId,
+        ClaimsPrincipal user,
+        MainDataContext dbContext,
+        ISubscriptionCatalogSyncTriggerService triggerService,
+        CancellationToken cancellationToken)
+    {
+        Guid? userId = user.GetUserId();
+        if (userId is null)
+        {
+            return UnauthorizedCatalogSyncError("unauthenticated");
+        }
+
+        bool isMember = await dbContext.SubscriptionUsers
+            .AnyAsync(
+                membership =>
+                    membership.SubscriptionId == subscriptionId &&
+                    membership.UserId == userId.Value,
+                cancellationToken);
+
+        if (!isMember)
+        {
+            return MapCatalogSyncError("subscription_member_required");
+        }
+
+        SubscriptionCatalogSyncRequestResult result = await triggerService.RequestSyncAsync(
+            new SubscriptionCatalogSyncRequestInput(
+                subscriptionId,
+                HeyAlan.Data.Entities.CatalogSyncTriggerSource.Manual,
+                true),
+            cancellationToken);
+
+        return TypedResults.Ok(new PostSubscriptionSquareCatalogSyncResult(result.Enqueued));
+    }
+
     private static IResult UnauthorizedError(string errorCode)
     {
         SquareConnectionErrorResult payload = new(errorCode, "Authentication is required.");
@@ -125,6 +170,25 @@ public static class SquareConnectionEndpoints
         {
             "subscription_owner_required" => StatusCodes.Status403Forbidden,
             "connection_not_found" => StatusCodes.Status404NotFound,
+            _ => StatusCodes.Status400BadRequest
+        };
+
+        return TypedResults.Json(payload, statusCode: statusCode);
+    }
+
+    private static IResult UnauthorizedCatalogSyncError(string errorCode)
+    {
+        SubscriptionCatalogSyncErrorResult payload = new(errorCode, "Authentication is required.");
+        return TypedResults.Json(payload, statusCode: StatusCodes.Status401Unauthorized);
+    }
+
+    private static IResult MapCatalogSyncError(string errorCode)
+    {
+        SubscriptionCatalogSyncErrorResult payload = new(errorCode, ResolveCatalogSyncErrorMessage(errorCode));
+
+        int statusCode = errorCode switch
+        {
+            "subscription_member_required" => StatusCodes.Status403Forbidden,
             _ => StatusCodes.Status400BadRequest
         };
 
@@ -151,6 +215,15 @@ public static class SquareConnectionEndpoints
             "square_connection_persist_failed" => "Failed to persist the Square connection.",
             "square_probe_failed" => "Square probe request failed.",
             _ => "Square connection request failed."
+        };
+    }
+
+    private static string ResolveCatalogSyncErrorMessage(string errorCode)
+    {
+        return errorCode switch
+        {
+            "subscription_member_required" => "You must be a member of the subscription.",
+            _ => "Square catalog sync request failed."
         };
     }
 }

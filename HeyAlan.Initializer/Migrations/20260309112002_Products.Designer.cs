@@ -3,6 +3,7 @@ using System;
 using HeyAlan.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HeyAlan.Initializer.Migrations
 {
     [DbContext(typeof(MainDataContext))]
-    partial class MainDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260309112002_Products")]
+    partial class Products
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -558,17 +561,17 @@ namespace HeyAlan.Initializer.Migrations
                         .HasName("srbd_ak_srbd_subscription_catalog_products_subscription_id_id");
 
                     b.HasIndex("SubscriptionId", "SearchText")
-                        .HasDatabaseName("srbd_ix_catalog_product_subscription_search");
+                        .HasDatabaseName("srbd_ix_srbd_subscription_catalog_products_subscription_id_search_text");
 
                     b.HasIndex("SubscriptionId", "SquareItemId")
-                        .HasDatabaseName("srbd_ix_catalog_product_subscription_item");
+                        .HasDatabaseName("srbd_ix_srbd_subscription_catalog_products_subscription_id_square_ite~");
 
                     b.HasIndex("SubscriptionId", "SquareVariationId")
                         .IsUnique()
-                        .HasDatabaseName("srbd_ix_catalog_product_subscription_variation");
+                        .HasDatabaseName("srbd_ix_srbd_subscription_catalog_products_subscription_id_square_var~");
 
                     b.HasIndex("SubscriptionId", "IsDeleted", "IsSellable", "ItemName", "Id")
-                        .HasDatabaseName("srbd_ix_catalog_product_subscription_active_name");
+                        .HasDatabaseName("srbd_ix_srbd_subscription_catalog_products_subscription_id_is_deleted~");
 
                     b.ToTable("srbd_subscription_catalog_products");
                 });

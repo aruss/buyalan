@@ -86,138 +86,138 @@ M23 is a prerequisite milestone. It does not own LLM response generation, conver
   - [ ] M23 stores independent agent-product and agent-zip rules for later intersection.
 
 ## Gate A - Data Model Foundation (Catalog Cache + Sync State + Webhook Dedupe)
-- [ ] Add `SubscriptionCatalogSyncState` entity keyed by subscription:
-  - [ ] Last successful watermark (`LastSyncedBeginTimeUtc` or equivalent)
-  - [ ] `NextScheduledSyncAtUtc`
-  - [ ] `LastSyncStartedAtUtc`
-  - [ ] `LastSyncCompletedAtUtc`
-  - [ ] `LastTriggerSource` (`periodic|webhook|manual|connect`)
-  - [ ] `SyncInProgress`
-  - [ ] `PendingResync`
-  - [ ] Last error code/message (sanitized)
-- [ ] Add `SubscriptionCatalogProduct` normalized variation-level cache entity:
-  - [ ] `SubscriptionId`
-  - [ ] `SquareItemId`
-  - [ ] `SquareVariationId`
-  - [ ] Item/variation names
-  - [ ] Description
-  - [ ] SKU
-  - [ ] Base price/currency
-  - [ ] Sellable/deleted flags
-  - [ ] Square `UpdatedAt` / `Version`
-  - [ ] Search text column for internal lookup
-- [ ] Add `SubscriptionCatalogProductLocation` entity for per-location overrides:
-  - [ ] `SubscriptionId`
-  - [ ] `SquareVariationId`
-  - [ ] `LocationId`
-  - [ ] Effective price override
-  - [ ] Availability/sold-out flags from catalog location fields
-- [ ] Add `SquareWebhookReceipt` dedupe entity:
-  - [ ] Unique `EventId`
-  - [ ] Event type
-  - [ ] Merchant id
-  - [ ] Received at
-  - [ ] Processed status
-- [ ] Add `AgentCatalogProductAccess` relation entity:
-  - [ ] `AgentId`
-  - [ ] `SubscriptionId`
-  - [ ] Catalog product key (`SubscriptionCatalogProductId` or stable product key)
-  - [ ] `CreatedAt`
-  - [ ] `UpdatedAt`
-- [ ] Add `AgentSalesZipCode` relation entity:
-  - [ ] `AgentId`
-  - [ ] `SubscriptionId`
-  - [ ] `ZipCodeNormalized`
-  - [ ] `CreatedAt`
-  - [ ] `UpdatedAt`
-- [ ] Enforce relation constraints/indexes:
-  - [ ] Unique assignment per agent/product pair
-  - [ ] Unique zip entry per agent/zip pair
-  - [ ] Tenant-safe indexes with `SubscriptionId` prefix
-  - [ ] Prevent cross-subscription assignment joins
-- [ ] Register new `DbSet<>` mappings and indexes/constraints in `MainDataContext`.
-- [ ] Add tenant-safe composite indexes (`SubscriptionId` first) for all read paths.
-- [ ] Stop and hand off for migration creation/run per repository rule.
+- [x] Add `SubscriptionCatalogSyncState` entity keyed by subscription:
+  - [x] Last successful watermark (`LastSyncedBeginTimeUtc` or equivalent)
+  - [x] `NextScheduledSyncAtUtc`
+  - [x] `LastSyncStartedAtUtc`
+  - [x] `LastSyncCompletedAtUtc`
+  - [x] `LastTriggerSource` (`periodic|webhook|manual|connect`)
+  - [x] `SyncInProgress`
+  - [x] `PendingResync`
+  - [x] Last error code/message (sanitized)
+- [x] Add `SubscriptionCatalogProduct` normalized variation-level cache entity:
+  - [x] `SubscriptionId`
+  - [x] `SquareItemId`
+  - [x] `SquareVariationId`
+  - [x] Item/variation names
+  - [x] Description
+  - [x] SKU
+  - [x] Base price/currency
+  - [x] Sellable/deleted flags
+  - [x] Square `UpdatedAt` / `Version`
+  - [x] Search text column for internal lookup
+- [x] Add `SubscriptionCatalogProductLocation` entity for per-location overrides:
+  - [x] `SubscriptionId`
+  - [x] `SquareVariationId`
+  - [x] `LocationId`
+  - [x] Effective price override
+  - [x] Availability/sold-out flags from catalog location fields
+- [x] Add `SquareWebhookReceipt` dedupe entity:
+  - [x] Unique `EventId`
+  - [x] Event type
+  - [x] Merchant id
+  - [x] Received at
+  - [x] Processed status
+- [x] Add `AgentCatalogProductAccess` relation entity:
+  - [x] `AgentId`
+  - [x] `SubscriptionId`
+  - [x] Catalog product key (`SubscriptionCatalogProductId` or stable product key)
+  - [x] `CreatedAt`
+  - [x] `UpdatedAt`
+- [x] Add `AgentSalesZipCode` relation entity:
+  - [x] `AgentId`
+  - [x] `SubscriptionId`
+  - [x] `ZipCodeNormalized`
+  - [x] `CreatedAt`
+  - [x] `UpdatedAt`
+- [x] Enforce relation constraints/indexes:
+  - [x] Unique assignment per agent/product pair
+  - [x] Unique zip entry per agent/zip pair
+  - [x] Tenant-safe indexes with `SubscriptionId` prefix
+  - [x] Prevent cross-subscription assignment joins
+- [x] Register new `DbSet<>` mappings and indexes/constraints in `MainDataContext`.
+- [x] Add tenant-safe composite indexes (`SubscriptionId` first) for all read paths.
+- [x] Stop and hand off for migration creation/run per repository rule.
 
 ### Gate A Acceptance Criteria
-- [ ] Schema supports incremental sync watermarking, schedule reset, and webhook dedupe.
-- [ ] No cross-subscription reads are possible by model/query shape.
-- [ ] Schema supports agent default-all and filtered-subset product access semantics.
-- [ ] Schema supports exact zip allowlist storage per agent.
+- [x] Schema supports incremental sync watermarking, schedule reset, and webhook dedupe.
+- [x] No cross-subscription reads are possible by model/query shape.
+- [x] Schema supports agent default-all and filtered-subset product access semantics.
+- [x] Schema supports exact zip allowlist storage per agent.
 
 ## Gate B - Catalog Sync Services (Square Pull + Local Upsert)
-- [ ] Introduce `ISubscriptionCatalogSyncService` contract and implementation in `HeyAlan`.
-- [ ] Introduce `ISubscriptionCatalogReadService` for internal read/query use by current message processing paths and later agent runtime flows.
-- [ ] Extend `ISubscriptionCatalogReadService` with agent-aware reads:
-  - [ ] Agent-aware list/search/get operations take `subscriptionId` + `agentId`.
-  - [ ] Default mode behavior: no assignments for agent returns all active products.
-  - [ ] Filter mode behavior: assigned rows restrict returned products.
-  - [ ] Agent zip allowlist data is stored for future enforcement but is not applied by M23 catalog read methods.
-  - [ ] Internal reads expose or can be paired with freshness metadata through sync-state diagnostics.
-- [ ] Implement sync modes:
-  - [ ] Full sync (initial connect/manual force)
-  - [ ] Incremental sync (`begin_time` from watermark)
-- [ ] Use Square SDK Catalog API (`client.Catalog.SearchAsync`) with:
-  - [ ] `cursor` pagination loop
-  - [ ] `object_types` constrained for v1 scope
-  - [ ] `include_deleted_objects = true` for incremental updates
-  - [ ] `limit` configured within API bounds
-- [ ] Map Square catalog objects to normalized entities:
-  - [ ] Flatten item + variation fields
-  - [ ] Persist per-location overrides
-  - [ ] Handle deletes as tombstone or soft-delete semantics
-- [ ] Implement idempotent upsert/delete behavior.
-- [ ] Enforce one sync at a time per subscription.
-- [ ] Update sync state (`last*`, watermark, errors, trigger source).
-- [ ] Ensure sync does not clear or mutate agent-product assignments or zip allowlists.
-- [ ] Register services in DI via builder extensions.
+- [x] Introduce `ISubscriptionCatalogSyncService` contract and implementation in `HeyAlan`.
+- [x] Introduce `ISubscriptionCatalogReadService` for internal read/query use by current message processing paths and later agent runtime flows.
+- [x] Extend `ISubscriptionCatalogReadService` with agent-aware reads:
+  - [x] Agent-aware list/search/get operations take `subscriptionId` + `agentId`.
+  - [x] Default mode behavior: no assignments for agent returns all active products.
+  - [x] Filter mode behavior: assigned rows restrict returned products.
+  - [x] Agent zip allowlist data is stored for future enforcement but is not applied by M23 catalog read methods.
+  - [x] Internal reads expose or can be paired with freshness metadata through sync-state diagnostics.
+- [x] Implement sync modes:
+  - [x] Full sync (initial connect/manual force)
+  - [x] Incremental sync (`begin_time` from watermark)
+- [x] Use Square SDK Catalog API (`client.Catalog.SearchAsync`) with:
+  - [x] `cursor` pagination loop
+  - [x] `object_types` constrained for v1 scope
+  - [x] `include_deleted_objects = true` for incremental updates
+  - [x] `limit` configured within API bounds
+- [x] Map Square catalog objects to normalized entities:
+  - [x] Flatten item + variation fields
+  - [x] Persist per-location overrides
+  - [x] Handle deletes as tombstone or soft-delete semantics
+- [x] Implement idempotent upsert/delete behavior.
+- [x] Enforce one sync at a time per subscription.
+- [x] Update sync state (`last*`, watermark, errors, trigger source).
+- [x] Ensure sync does not clear or mutate agent-product assignments or zip allowlists.
+- [x] Register services in DI via builder extensions.
 
 ### Gate B Acceptance Criteria
-- [ ] A connected subscription can complete full and incremental sync without duplicate rows.
-- [ ] Sync failures are recorded with deterministic error codes and no secret leakage.
-- [ ] Agent-aware reads correctly enforce default-all and filtered-subset behavior.
-- [ ] Agent zip allowlist data is preserved independently of catalog sync behavior.
+- [x] A connected subscription can complete full and incremental sync without duplicate rows.
+- [x] Sync failures are recorded with deterministic error codes and no secret leakage.
+- [x] Agent-aware reads correctly enforce default-all and filtered-subset behavior.
+- [x] Agent zip allowlist data is preserved independently of catalog sync behavior.
 
 ## Gate C - Triggering and Scheduling (15-Minute Cadence + Reset Semantics)
-- [ ] Add durable message contract `SquareCatalogSyncRequested`.
-- [ ] Add Wolverine consumer that executes sync by subscription id.
-- [ ] Add periodic background scheduler (1-minute tick is sufficient) that:
-  - [ ] selects subscriptions where `UtcNow >= NextScheduledSyncAtUtc`
-  - [ ] enqueues periodic sync
-- [ ] Implement reset semantics:
-  - [ ] on accepted webhook event: set `NextScheduledSyncAtUtc = UtcNow + 15m`
-  - [ ] on periodic run start: set next due to `UtcNow + 15m`
-  - [ ] if sync is in progress and a trigger arrives: set `PendingResync = true`
-  - [ ] after run completes, if `PendingResync` is true: enqueue one follow-up run and clear flag
-- [ ] Add Square connection hook:
-  - [ ] after successful Square connection persistence, enqueue full sync for that subscription
-  - [ ] do not assume a separate reconnect endpoint or reconnect completion flow exists in current code
-- [ ] Add manual sync API endpoint:
-  - [ ] `POST /subscriptions/{subscriptionId}/square/catalog/sync`
-  - [ ] auth + subscription membership checks
+- [x] Add durable message contract `SquareCatalogSyncRequested`.
+- [x] Add Wolverine consumer that executes sync by subscription id.
+- [x] Add periodic background scheduler (1-minute tick is sufficient) that:
+  - [x] selects subscriptions where `UtcNow >= NextScheduledSyncAtUtc`
+  - [x] enqueues periodic sync
+- [x] Implement reset semantics:
+  - [x] on accepted webhook event: set `NextScheduledSyncAtUtc = UtcNow + 15m`
+  - [x] on periodic run start: set next due to `UtcNow + 15m`
+  - [x] if sync is in progress and a trigger arrives: set `PendingResync = true`
+  - [x] after run completes, if `PendingResync` is true: enqueue one follow-up run and clear flag
+- [x] Add Square connection hook:
+  - [x] after successful Square connection persistence, enqueue full sync for that subscription
+  - [x] do not assume a separate reconnect endpoint or reconnect completion flow exists in current code
+- [x] Add manual sync API endpoint:
+  - [x] `POST /subscriptions/{subscriptionId}/square/catalog/sync`
+  - [x] auth + subscription membership checks
 
 ### Gate C Acceptance Criteria
-- [ ] Periodic sync runs every 15 minutes per connected subscription.
-- [ ] Webhook-triggered sync occurs promptly and resets that subscription timer.
-- [ ] Bursty triggers coalesce safely without concurrent sync overlap.
+- [x] Periodic sync runs every 15 minutes per connected subscription.
+- [x] Webhook-triggered sync occurs promptly and resets that subscription timer.
+- [x] Bursty triggers coalesce safely without concurrent sync overlap.
 
 ## Gate D - Square Catalog Webhook Endpoint (Secure Ingest + Dedupe + Route)
-- [ ] Add anonymous endpoint:
-  - [ ] `POST /webhooks/square/catalog`
-- [ ] Add app config key:
-  - [ ] `SQUARE_WEBHOOK_SIGNATURE_KEY`
-- [ ] Implement signature validation using raw request body + notification URL + Square signature header.
-- [ ] Parse event envelope and handle only `catalog.version.updated`.
-- [ ] Resolve subscription via `SubscriptionSquareConnection.SquareMerchantId`.
-- [ ] Persist dedupe receipt (`SquareWebhookReceipt`) before enqueueing.
-- [ ] Publish `SquareCatalogSyncRequested` with trigger source `webhook`.
-- [ ] Return `200` quickly for valid/ignored/duplicate events; reject bad signature with `401`.
-- [ ] Map the new webhook endpoint explicitly in WebAPI endpoint composition.
+  - [x] Add anonymous endpoint:
+    - [x] `POST /webhooks/square/catalog`
+  - [x] Add app config key:
+    - [x] `SQUARE_WEBHOOK_SIGNATURE_KEY`
+  - [x] Implement signature validation using raw request body + notification URL + Square signature header.
+  - [x] Parse event envelope and handle only `catalog.version.updated`.
+  - [x] Resolve subscription via `SubscriptionSquareConnection.SquareMerchantId`.
+  - [x] Persist dedupe receipt (`SquareWebhookReceipt`) before enqueueing.
+  - [x] Publish `SquareCatalogSyncRequested` with trigger source `webhook`.
+  - [x] Return `200` quickly for valid/ignored/duplicate events; reject bad signature with `401`.
+  - [x] Map the new webhook endpoint explicitly in WebAPI endpoint composition.
 
 ### Gate D Acceptance Criteria
-- [ ] Valid catalog webhook triggers sync enqueue and timer reset.
-- [ ] Duplicate deliveries do not trigger duplicate processing.
-- [ ] Invalid signatures are rejected.
+  - [x] Valid catalog webhook triggers sync enqueue and timer reset.
+  - [x] Duplicate deliveries do not trigger duplicate processing.
+  - [x] Invalid signatures are rejected.
 
 ## Gate E - Internal Catalog Read Integration for Message Processing
 - [ ] Integrate `ISubscriptionCatalogReadService` into the current incoming message processing path as a product-context seam.
@@ -367,10 +367,10 @@ M23 is a prerequisite milestone. It does not own LLM response generation, conver
 - [ ] Existing Square integration behavior is not regressed.
 
 ## Implementation Sequence (Handoff Order)
-- [ ] 1) Gate A schema/entities and migration handoff.
-- [ ] 2) Gate B sync/read services + mapping/upsert logic.
-- [ ] 3) Gate C scheduler + trigger message orchestration.
-- [ ] 4) Gate D secure webhook ingest + dedupe + routing.
+- [x] 1) Gate A schema/entities and migration handoff.
+- [x] 2) Gate B sync/read services + mapping/upsert logic.
+- [x] 3) Gate C scheduler + trigger message orchestration.
+- [x] 4) Gate D secure webhook ingest + dedupe + routing.
 - [ ] 5) Gate H agent product access domain behavior.
 - [ ] 6) Gate J agent zip allowlist domain behavior.
 - [ ] 7) Gate I admin endpoints for assignment management.
@@ -387,6 +387,17 @@ M23 is a prerequisite milestone. It does not own LLM response generation, conver
 - [ ] Customer address-to-zip lookup is explicitly out of scope for this milestone; this milestone consumes normalized zip as input only.
 - [ ] Runtime zip-based sellability enforcement is explicitly out of scope for M23 and belongs to later runtime/skill milestones.
 - [ ] M23 stores per-location product data but does not select a final checkout location.
+- [x] Handoff note after Gate B:
+  - [x] `SubscriptionCatalogSyncService` and `SubscriptionCatalogReadService` are implemented in `HeyAlan/SquareIntegration`.
+  - [x] Targeted tests for Gate B live in `HeyAlan.Tests/SubscriptionCatalogServicesTests.cs` and pass in isolation.
+  - [x] Full solution test run still has unrelated pre-existing failures in `IdentityEndpointsSecurityTests`, `SubscriptionOnboardingServiceTests`, and `TelegramServiceTests`.
+  - [x] Next context should continue with Gate C scheduler/trigger orchestration unless priorities change.
+- [x] Handoff note after Gate C:
+  - [x] Trigger orchestration now lives in `HeyAlan/SquareIntegration/SubscriptionCatalogSyncTriggerService.cs`, `SubscriptionCatalogSyncConsumer.cs`, and `SubscriptionCatalogSyncScheduler.cs`.
+  - [x] Manual sync endpoint `POST /subscriptions/{subscriptionId}/square/catalog/sync` is mapped in `HeyAlan.WebApi/SquareIntegration/SquareConnectionEndpoints.cs`.
+  - [x] Successful Square connect now enqueues an initial full catalog sync without failing the connect callback if enqueueing itself fails.
+  - [x] Webhook timer-reset behavior is implemented in the trigger service, but the actual Square webhook ingest path remains Gate D work.
+  - [x] Targeted tests passing in isolation: `SubscriptionCatalogServicesTests`, `SubscriptionCatalogSyncTriggerServiceTests`, and `SubscriptionSquareConnectionServiceTests`.
 
 ## Out of Scope Features
 - [ ] LLM prompt strategy, conversation policy, and autonomous response generation logic.
