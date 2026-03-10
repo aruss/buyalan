@@ -374,7 +374,7 @@ M23 is a prerequisite milestone. It does not own LLM response generation, conver
 - [x] 5) Gate H agent product access domain behavior.
 - [x] 6) Gate J agent zip allowlist domain behavior.
 - [x] 7) Gate I admin endpoints for assignment management.
-- [ ] 8) Gate E current message-path integration seam.
+- [x] 8) Gate E current message-path integration seam.
 - [ ] 9) Gate F observability/diagnostics.
 - [ ] 10) Gate K WebApp inventory sync operations UI.
 - [ ] 11) Gate G complete test pass and regression verification.
