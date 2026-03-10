@@ -21,11 +21,10 @@ public static class IConfigurationBuilderExtensions
 
 
     [DebuggerStepThrough]
-    public static string GetTrimmedValue(this IConfiguration configuration, string key, bool required = false)
+    public static string GetTrimmedValue(this IConfiguration configuration, string key)
     {
-        string rawValue = configuration[key];
-
-        if (required && String.IsNullOrWhiteSpace(rawValue))
+        string? rawValue = configuration[key];
+        if (String.IsNullOrWhiteSpace(rawValue))
         {
             throw ConfigurationErrors.Missing(key);
         }
@@ -37,5 +36,17 @@ public static class IConfigurationBuilderExtensions
         }
 
         return normalizedValue;
+    }
+
+    [DebuggerStepThrough]
+    public static string? GetOptionalTrimmedValue(this IConfiguration configuration, string key)
+    {
+        string? rawValue = configuration[key];
+        if (String.IsNullOrWhiteSpace(rawValue))
+        {
+            return null;
+        }
+
+        return rawValue.Trim();
     }
 }

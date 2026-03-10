@@ -4,13 +4,13 @@ using HeyAlan.Email;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wolverine;
 
-public class EmailServiceTests
+public class EmailQueuingServiceTests
 {
     [Fact]
     public async Task EnqueueAsync_WhenMessageValid_SendsNormalizedMessage()
     {
         RecordingMessageBus messageBus = new();
-        EmailService service = new(messageBus, NullLogger<EmailService>.Instance);
+        EmailQueuingService service = new(messageBus, NullLogger<EmailQueuingService>.Instance);
 
         await service.EnqueueAsync(new EmailSendRequested(
             " person@example.com ",
@@ -30,7 +30,7 @@ public class EmailServiceTests
     public async Task EnqueueAsync_WhenTemplateKeyUnsupported_Throws()
     {
         RecordingMessageBus messageBus = new();
-        EmailService service = new(messageBus, NullLogger<EmailService>.Instance);
+        EmailQueuingService service = new(messageBus, NullLogger<EmailQueuingService>.Instance);
 
         await Assert.ThrowsAsync<ArgumentException>(() => service.EnqueueAsync(new EmailSendRequested(
             "person@example.com",

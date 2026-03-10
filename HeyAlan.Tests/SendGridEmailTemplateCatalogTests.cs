@@ -8,19 +8,21 @@ public class SendGridEmailTemplateCatalogTests
     [Fact]
     public void ResolveTemplateId_WhenTemplateKeyIsKnown_ReturnsConfiguredTemplateId()
     {
-        SendGridEmailOptions options = new()
+        SendGridOptions options = new()
         {
             ApiKey = "sendgrid-api-key",
             FromEmail = "notifications@heyalan.app",
+            NewsletterListId = "newsletter-list-id",
+            GenericTemplateId = "d-generic",
             IdentityConfirmationLinkTemplateId = "d-confirm",
             IdentityPasswordResetLinkTemplateId = "d-reset-link",
             IdentityPasswordResetCodeTemplateId = "d-reset-code",
             NewsletterConfirmationTemplateId = "d-newsletter"
         };
 
-        SendGridEmailTemplateCatalog catalog = new(options);
+        SendGridTransactionalEmailService service = new(new FakeHttpClientFactory(), options);
 
-        string templateId = catalog.ResolveTemplateId(EmailTemplateKey.IdentityPasswordResetCode);
+        string templateId = service.ResolveTemplateId(EmailTemplateKey.IdentityPasswordResetCode);
 
         Assert.Equal("d-reset-code", templateId);
     }
@@ -28,21 +30,34 @@ public class SendGridEmailTemplateCatalogTests
     [Fact]
     public void ResolveTemplateId_WhenTemplateKeyIsUnknown_Throws()
     {
-        SendGridEmailOptions options = new()
+        SendGridOptions options = new()
         {
             ApiKey = "sendgrid-api-key",
             FromEmail = "notifications@heyalan.app",
+            NewsletterListId = "newsletter-list-id",
+            GenericTemplateId = "d-generic",
             IdentityConfirmationLinkTemplateId = "d-confirm",
             IdentityPasswordResetLinkTemplateId = "d-reset-link",
             IdentityPasswordResetCodeTemplateId = "d-reset-code",
             NewsletterConfirmationTemplateId = "d-newsletter"
         };
 
-        SendGridEmailTemplateCatalog catalog = new(options);
+        SendGridTransactionalEmailService service = new(new FakeHttpClientFactory(), options);
 
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            catalog.ResolveTemplateId("missing-template"));
+            service.ResolveTemplateId("missing-template"));
 
         Assert.Contains("missing-template", exception.Message);
+    }
+
+    private sealed class FakeHttpClientFactory : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name)
+        {
+            return new HttpClient
+            {
+                BaseAddress = new Uri("https://api.sendgrid.com")
+            };
+        }
     }
 }

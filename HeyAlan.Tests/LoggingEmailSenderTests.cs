@@ -47,7 +47,7 @@ public class LoggingEmailSenderTests
         Assert.Equal("123456", emailService.LastMessage.TemplateData["reset_code"]);
     }
 
-    private sealed class RecordingEmailService : IEmailService
+    private sealed class RecordingEmailService : IEmailQueuingService
     {
         public EmailSendRequested? LastMessage { get; private set; }
 

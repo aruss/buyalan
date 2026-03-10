@@ -25,14 +25,14 @@ public static class SendGridOptionsConfigurationExtensions
 {
     public static SendGridOptions TryGetSendGridOptions(this IConfiguration configuration)
     {
-        string apiKey = configuration.GetTrimmedValue("SENDGRID_API_KEY", true); 
+        string apiKey = configuration.GetTrimmedValue("SENDGRID_API_KEY");
         string fromEmail = configuration.GetTrimmedValue("SENDGRID_EMAIL_FROM");
-        string newsletterListId = configuration.GetTrimmedValue("SENDGRID_NEWSLETTER_LIST_ID", true);
-        string genericTemplateId = configuration.GetTrimmedValue("SENDGRID_TEMPLATE_GENERIC", true);
-        string identityConfirmationLinkTemplateId = configuration.GetTrimmedValue( "SENDGRID_TEMPLATE_IDENTITY_CONFIRMATION_LINK");
-        string identityPasswordResetLinkTemplateId = configuration.GetTrimmedValue( "SENDGRID_TEMPLATE_IDENTITY_PASSWORD_RESET_LINK");
+        string newsletterListId = configuration.GetTrimmedValue("SENDGRID_NEWSLETTER_LIST_ID");
+        string genericTemplateId = configuration.GetTrimmedValue("SENDGRID_TEMPLATE_GENERIC");
+        string identityConfirmationLinkTemplateId = configuration.GetTrimmedValue("SENDGRID_TEMPLATE_IDENTITY_CONFIRMATION_LINK");
+        string identityPasswordResetLinkTemplateId = configuration.GetTrimmedValue("SENDGRID_TEMPLATE_IDENTITY_PASSWORD_RESET_LINK");
         string identityPasswordResetCodeTemplateId = configuration.GetTrimmedValue("SENDGRID_TEMPLATE_IDENTITY_PASSWORD_RESET_CODE");
-        string newsletterConfirmationTemplateId = configuration.GetTrimmedValue( "SENDGRID_TEMPLATE_NEWSLETTER_CONFIRMATION");
+        string newsletterConfirmationTemplateId = configuration.GetTrimmedValue("SENDGRID_TEMPLATE_NEWSLETTER_CONFIRMATION");
 
         return new SendGridOptions
         {

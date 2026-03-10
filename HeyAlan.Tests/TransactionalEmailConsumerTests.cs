@@ -6,13 +6,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 public class TransactionalEmailConsumerTests
 {
     [Fact]
-    public async Task Consume_WhenMessageValid_ResolvesTemplateAndSends()
+    public async Task Consume_WhenMessageValid_ForwardsTemplateAndPayload()
     {
-        RecordingEmailTemplateCatalog templateCatalog = new();
-        RecordingTransactionalEmailClient emailClient = new();
+        RecordingTransactionalEmailService emailService = new();
         TransactionalEmailConsumer consumer = new(
-            templateCatalog,
-            emailClient,
+            emailService,
             NullLogger<TransactionalEmailConsumer>.Instance);
 
         EmailSendRequested message = new(
@@ -25,19 +23,17 @@ public class TransactionalEmailConsumerTests
 
         await consumer.Consume(message, CancellationToken.None);
 
-        Assert.Equal(EmailTemplateKey.NewsletterConfirmation, templateCatalog.LastTemplateKey);
-        Assert.Equal("person@example.com", emailClient.LastRecipientEmail);
-        Assert.Equal("d-newsletter", emailClient.LastTemplateId);
-        Assert.Equal("https://heyalan.test/newsletter/confirm?token=abc", emailClient.LastTemplateData!["confirmation_url"]);
+        Assert.Equal("person@example.com", emailService.LastRecipientEmail);
+        Assert.Equal(EmailTemplateKey.NewsletterConfirmation, emailService.LastTemplateKey);
+        Assert.Equal("https://heyalan.test/newsletter/confirm?token=abc", emailService.LastTemplateData!["confirmation_url"]);
     }
 
     [Fact]
     public async Task Consume_WhenTransportFails_Throws()
     {
-        ThrowingTransactionalEmailClient emailClient = new();
+        ThrowingTransactionalEmailService emailService = new();
         TransactionalEmailConsumer consumer = new(
-            new RecordingEmailTemplateCatalog(),
-            emailClient,
+            emailService,
             NullLogger<TransactionalEmailConsumer>.Instance);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => consumer.Consume(
@@ -51,39 +47,28 @@ public class TransactionalEmailConsumerTests
             CancellationToken.None));
     }
 
-    private sealed class RecordingEmailTemplateCatalog : IEmailTemplateCatalog
-    {
-        public string? LastTemplateKey { get; private set; }
-
-        public string ResolveTemplateId(string templateKey)
-        {
-            this.LastTemplateKey = templateKey;
-            return "d-newsletter";
-        }
-    }
-
-    private sealed class RecordingTransactionalEmailClient : ITransactionalEmailClient
+    private sealed class RecordingTransactionalEmailService : ITransactionalEmailService
     {
         public string? LastRecipientEmail { get; private set; }
 
-        public string? LastTemplateId { get; private set; }
+        public string? LastTemplateKey { get; private set; }
 
         public IReadOnlyDictionary<string, string>? LastTemplateData { get; private set; }
 
         public Task SendTemplateAsync(
             string recipientEmail,
-            string templateId,
+            string templateKey,
             IReadOnlyDictionary<string, string> templateData,
             CancellationToken cancellationToken = default)
         {
             this.LastRecipientEmail = recipientEmail;
-            this.LastTemplateId = templateId;
+            this.LastTemplateKey = templateKey;
             this.LastTemplateData = templateData;
             return Task.CompletedTask;
         }
     }
 
-    private sealed class ThrowingTransactionalEmailClient : ITransactionalEmailClient
+    private sealed class ThrowingTransactionalEmailService : ITransactionalEmailService
     {
         public Task SendTemplateAsync(
             string recipientEmail,

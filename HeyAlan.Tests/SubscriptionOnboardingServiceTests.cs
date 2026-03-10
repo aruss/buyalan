@@ -25,7 +25,7 @@ public class SubscriptionOnboardingServiceTests
 
         GetSubscriptionOnboardingStateResult.Success success =
             Assert.IsType<GetSubscriptionOnboardingStateResult.Success>(result);
-        Assert.Equal("Draft", success.State.Status);
+        Assert.Equal("InProgress", success.State.Status);
         Assert.Equal("square_connect", success.State.CurrentStep);
         Assert.False(success.State.CanFinalize);
     }
@@ -274,7 +274,7 @@ public class SubscriptionOnboardingServiceTests
     }
 
     [Fact]
-    public async Task FinalizeAsync_WhenInvitationsNotCompleted_ReturnsValidationError()
+    public async Task FinalizeAsync_WhenInvitationsNotCompleted_StillFinalizes()
     {
         MainDataContext dbContext = CreateContext();
         Guid subscriptionId = Guid.NewGuid();
@@ -303,9 +303,10 @@ public class SubscriptionOnboardingServiceTests
                 "+15550000002"));
 
         UpdateSubscriptionOnboardingStepResult finalizeResult = await service.FinalizeAsync(subscriptionId, userId);
-        UpdateSubscriptionOnboardingStepResult.Failure failure =
-            Assert.IsType<UpdateSubscriptionOnboardingStepResult.Failure>(finalizeResult);
-        Assert.Equal("onboarding_finalize_incomplete", failure.ErrorCode);
+        UpdateSubscriptionOnboardingStepResult.Success success =
+            Assert.IsType<UpdateSubscriptionOnboardingStepResult.Success>(finalizeResult);
+        Assert.Equal("Completed", success.State.Status);
+        Assert.Equal("finalize", success.State.CurrentStep);
     }
 
     [Fact]
@@ -347,8 +348,8 @@ public class SubscriptionOnboardingServiceTests
 
         OnboardingStateResult state = await service.RecomputeStateAsync(subscriptionId);
 
-        Assert.Equal("InProgress", state.Status);
-        Assert.Equal("channels", state.CurrentStep);
+        Assert.Equal("Completed", state.Status);
+        Assert.Equal("finalize", state.CurrentStep);
     }
 
     [Fact]

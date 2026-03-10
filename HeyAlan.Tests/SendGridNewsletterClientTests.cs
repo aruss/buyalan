@@ -1,6 +1,7 @@
 namespace HeyAlan.Tests;
 
 using HeyAlan.Newsletter;
+using HeyAlan.SendGridIntegration;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -22,7 +23,7 @@ public class SendGridNewsletterClientTests
             NewsletterListId = "newsletter-list-id"
         };
 
-        SendGridClient client = new(httpClientFactory, options);
+        SendGridNewsletterUpsertService client = new(httpClientFactory, options);
         await client.UpsertNewsletterContactAsync("person@example.com");
 
         Assert.NotNull(handler.LastRequest);
@@ -61,7 +62,7 @@ public class SendGridNewsletterClientTests
             NewsletterListId = "newsletter-list-id"
         };
 
-        SendGridClient client = new(httpClientFactory, options);
+        SendGridNewsletterUpsertService client = new(httpClientFactory, options);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => client.UpsertNewsletterContactAsync("person@example.com"));
     }

@@ -1,11 +1,12 @@
 namespace HeyAlan.Tests;
 
+using HeyAlan.Email;
 using HeyAlan.SendGridIntegration;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 
-public class SendGridTransactionalEmailClientTests
+public class SendGridTransactionalEmailServiceTests
 {
     [Fact]
     public async Task SendTemplateAsync_SendsExpectedPayload()
@@ -16,21 +17,23 @@ public class SendGridTransactionalEmailClientTests
         });
 
         FakeHttpClientFactory httpClientFactory = new(handler);
-        SendGridEmailOptions options = new()
+        SendGridOptions options = new()
         {
             ApiKey = "sendgrid-api-key",
             FromEmail = "notifications@heyalan.app",
+            NewsletterListId = "newsletter-list-id",
+            GenericTemplateId = "d-generic",
             IdentityConfirmationLinkTemplateId = "d-confirm",
             IdentityPasswordResetLinkTemplateId = "d-reset-link",
             IdentityPasswordResetCodeTemplateId = "d-reset-code",
             NewsletterConfirmationTemplateId = "d-newsletter"
         };
 
-        SendGridTransactionalEmailClient client = new(httpClientFactory, options);
+        SendGridTransactionalEmailService client = new(httpClientFactory, options);
 
         await client.SendTemplateAsync(
             "person@example.com",
-            "d-confirm",
+            EmailTemplateKey.IdentityConfirmationLink,
             new Dictionary<string, string>
             {
                 ["confirmation_url"] = "https://heyalan.app/confirm?token=abc"
@@ -66,22 +69,24 @@ public class SendGridTransactionalEmailClientTests
         });
 
         FakeHttpClientFactory httpClientFactory = new(handler);
-        SendGridEmailOptions options = new()
+        SendGridOptions options = new()
         {
             ApiKey = "sendgrid-api-key",
             FromEmail = "notifications@heyalan.app",
+            NewsletterListId = "newsletter-list-id",
+            GenericTemplateId = "d-generic",
             IdentityConfirmationLinkTemplateId = "d-confirm",
             IdentityPasswordResetLinkTemplateId = "d-reset-link",
             IdentityPasswordResetCodeTemplateId = "d-reset-code",
             NewsletterConfirmationTemplateId = "d-newsletter"
         };
 
-        SendGridTransactionalEmailClient client = new(httpClientFactory, options);
+        SendGridTransactionalEmailService client = new(httpClientFactory, options);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             client.SendTemplateAsync(
                 "person@example.com",
-                "d-confirm",
+                EmailTemplateKey.IdentityConfirmationLink,
                 new Dictionary<string, string>
                 {
                     ["confirmation_url"] = "https://heyalan.app/confirm?token=abc"

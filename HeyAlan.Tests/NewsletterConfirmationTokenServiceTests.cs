@@ -43,10 +43,8 @@ public class NewsletterConfirmationTokenServiceTests
     private static NewsletterConfirmationTokenService CreateService(DateTimeOffset utcNow, int ttlMinutes)
     {
         FakeDataProtectionProvider dataProtectionProvider = new();
-        SendGridOptions options = new()
+        NewsletterOptions options = new()
         {
-            ApiKey = "api-key",
-            NewsletterListId = "list-id",
             ConfirmTokenTtlMinutes = ttlMinutes
         };
 

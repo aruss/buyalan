@@ -27,7 +27,7 @@ public class TelegramServiceTests
         JsonDocument payload = ParseRequestPayload(handler.LastRequestContent!);
         string webhookUrl = ReadRequiredString(payload.RootElement, "url");
 
-        Assert.Equal("https://heyalan.test/webhooks/telegram/12345:token-value", webhookUrl);
+        Assert.Equal("https://heyalan.test/api/webhooks/telegram/12345:token-value", webhookUrl);
     }
 
     [Fact]

@@ -201,16 +201,18 @@ public class IdentityEndpointsSecurityTests
         Guid subscriptionId,
         SubscriptionUserRole role)
     {
-        bool userExists = dbContext.Users.Any(user => user.Id == userId);
-        if (!userExists)
+        ApplicationUser? trackedUser = dbContext.Users.Local.SingleOrDefault(user => user.Id == userId);
+        if (trackedUser is null)
         {
-            dbContext.Users.Add(new ApplicationUser
+            trackedUser = new ApplicationUser
             {
                 Id = userId,
                 DisplayName = "Identity Test User",
                 UserName = "identity-test@example.com",
                 Email = "identity-test@example.com"
-            });
+            };
+
+            dbContext.Users.Add(trackedUser);
         }
 
         dbContext.Subscriptions.Add(new Subscription
@@ -222,6 +224,7 @@ public class IdentityEndpointsSecurityTests
         {
             SubscriptionId = subscriptionId,
             UserId = userId,
+            User = trackedUser,
             Role = role
         });
     }
