@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/admin/button";
-import { Card } from "@/components/admin/card";
+import { Card } from "@/components/admin/card-temp";
 import { Input } from "@/components/admin/input";
 import { SiGooglemessages, SiTelegram, SiWhatsapp } from "react-icons/si";
 import { useAgentSettings } from "../agent-settings-context";

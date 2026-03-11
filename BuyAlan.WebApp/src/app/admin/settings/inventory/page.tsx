@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Alert } from "@/components/admin/alert";
 import { Badge } from "@/components/admin/badge";
 import { Button } from "@/components/admin/button";
-import { Card } from "@/components/admin/card";
+import { Card } from "@/components/admin/card-temp";
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableHeaderCell,
   TableRoot,
   TableRow,
-} from "@/components/admin/table";
+} from "@/components/admin/table-temp";
 import {
   getSubscriptionsBySubscriptionIdSquareCatalogProductsOptions,
   getSubscriptionsBySubscriptionIdSquareCatalogSyncStateOptions,
