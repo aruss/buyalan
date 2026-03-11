@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Alert } from "@/components/admin/alert";
 import { Badge } from "@/components/admin/badge";
 import { Button } from "@/components/admin/button";
-import { Card } from "@/components/admin/card-temp";
+import { Card } from "@/components/admin/card";
 import {
   Table,
   TableBody,
