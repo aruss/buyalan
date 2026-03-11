@@ -30,14 +30,14 @@ if ($env:DOCKER_REGISTRY) {
 
     Write-Host "Pushing images to registry..." -ForegroundColor Cyan
 
-    docker push "$($env:DOCKER_REGISTRY)heyalan-webapp:$AppVersion"
-    docker push "$($env:DOCKER_REGISTRY)heyalan-webapp:latest"
+    docker push "$($env:DOCKER_REGISTRY)buyalan-webapp:$AppVersion"
+    docker push "$($env:DOCKER_REGISTRY)buyalan-webapp:latest"
 
-    docker push "$($env:DOCKER_REGISTRY)heyalan-webapi:$AppVersion"
-    docker push "$($env:DOCKER_REGISTRY)heyalan-webapi:latest"
+    docker push "$($env:DOCKER_REGISTRY)buyalan-webapi:$AppVersion"
+    docker push "$($env:DOCKER_REGISTRY)buyalan-webapi:latest"
 
-    docker push "$($env:DOCKER_REGISTRY)heyalan-initializer:$AppVersion"
-    docker push "$($env:DOCKER_REGISTRY)heyalan-initializer:latest"
+    docker push "$($env:DOCKER_REGISTRY)buyalan-initializer:$AppVersion"
+    docker push "$($env:DOCKER_REGISTRY)buyalan-initializer:latest"
 
 } else {
     Write-Host "Skipping push (DOCKER_REGISTRY not defined)." -ForegroundColor Yellow

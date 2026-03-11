@@ -1,7 +1,7 @@
 # Milestone M29: Order Status Tracking and Proactive Customer Updates
 
 ## Summary
-Build the post-checkout order tracking layer so HeyAlan can answer status questions and proactively inform customers when meaningful order or delivery changes happen.
+Build the post-checkout order tracking layer so BuyAlan can answer status questions and proactively inform customers when meaningful order or delivery changes happen.
 
 This milestone introduces local synchronization and projection of order, payment, and fulfillment state from Square, plus the outbound notification policy that decides when to send customer updates through the existing messaging pipeline.
 
@@ -61,7 +61,7 @@ This milestone does not own checkout completion or human takeover behavior.
   - [ ] sent outcome,
   - [ ] timestamps.
 - [ ] Register EF mappings in `MainDataContext`.
-- [ ] Stop and hand off for migration generation/run from `HeyAlan.Initializer` per repo rule.
+- [ ] Stop and hand off for migration generation/run from `BuyAlan.Initializer` per repo rule.
 
 ### Gate A Acceptance Criteria
 - [ ] Local projections can represent current status plus notification history.
@@ -131,7 +131,7 @@ This milestone does not own checkout completion or human takeover behavior.
 - [ ] 5) Gate E: tests and regression verification.
 
 ## Handoff and Operational Notes
-- [ ] This milestone requires schema changes; stop after schema edits for migration generation/run from `HeyAlan.Initializer`.
+- [ ] This milestone requires schema changes; stop after schema edits for migration generation/run from `BuyAlan.Initializer`.
 - [ ] If WebAPI contract changes affect generated clients, hand off for `yarn openapi-ts`.
 - [ ] This milestone intentionally does not implement manual operator takeover.
 

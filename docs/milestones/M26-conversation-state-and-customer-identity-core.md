@@ -86,7 +86,7 @@ This milestone does not implement LLM orchestration, automated order creation, o
   - [ ] tenant-safe query indexes through `ConversationId` and `AgentId`,
   - [ ] no cross-subscription joins by query shape.
 - [ ] Register EF mappings in `MainDataContext`.
-- [ ] Stop and hand off for migration generation/run from `HeyAlan.Initializer` per repo rule.
+- [ ] Stop and hand off for migration generation/run from `BuyAlan.Initializer` per repo rule.
 
 ### Gate A Acceptance Criteria
 - [ ] Every persisted conversation can have exactly one structured state.
@@ -180,7 +180,7 @@ This milestone does not implement LLM orchestration, automated order creation, o
 - [ ] 5) Gate E: tests and regression verification.
 
 ## Handoff and Operational Notes
-- [ ] This milestone requires schema changes; stop after schema edits for migration generation/run from `HeyAlan.Initializer`.
+- [ ] This milestone requires schema changes; stop after schema edits for migration generation/run from `BuyAlan.Initializer`.
 - [ ] If WebAPI contract changes affect generated clients, hand off for `yarn openapi-ts`.
 - [ ] This milestone intentionally does not implement LLM prompt orchestration or automated human handoff behavior.
 

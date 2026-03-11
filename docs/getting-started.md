@@ -1,11 +1,11 @@
 # Getting Started
 
-This guide describes the fastest local path to run HeyAlan and access the core services.
+This guide describes the fastest local path to run BuyAlan and access the core services.
 
 ## Prerequisites
 
 - .NET SDK (matching the solution target)
-- Node.js and Yarn (for `HeyAlan.WebApp`)
+- Node.js and Yarn (for `BuyAlan.WebApp`)
 - Docker Desktop (for local infrastructure containers)
 
 ## setup git
@@ -30,7 +30,7 @@ This guide describes the fastest local path to run HeyAlan and access the core s
 From the repository root:
 
 ```powershell
-dotnet watch run --project .\HeyAlan.AppHost\HeyAlan.AppHost.csproj
+dotnet watch run --project .\BuyAlan.AppHost\BuyAlan.AppHost.csproj
 ```
 
 This starts the Aspire host and orchestrates local services.

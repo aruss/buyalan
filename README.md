@@ -1,10 +1,10 @@
-# HeyAlan
+# BuyAlan
 
-HeyAlan is an LLM-driven sales and service agent for merchants. It handles customer conversations across SMS, WhatsApp, and Telegram, answers questions about the company and its products, gathers the information required to place an order, creates payment links, tracks order progress, and supports human takeover when automation should stop.
+BuyAlan is an LLM-driven sales and service agent for merchants. It handles customer conversations across SMS, WhatsApp, and Telegram, answers questions about the company and its products, gathers the information required to place an order, creates payment links, tracks order progress, and supports human takeover when automation should stop.
 
 ## Main Goal
 
-The main goal of HeyAlan is to operate the core customer commerce loop end to end:
+The main goal of BuyAlan is to operate the core customer commerce loop end to end:
 
 1. A customer sends a message.
 2. The agent understands the intent.
@@ -20,7 +20,7 @@ Everything in this repository should move the product toward that loop. New feat
 
 ## Core Mechanics
 
-- HeyAlan is multi-tenant. A subscription is the tenant boundary for users, agents, integrations, conversations, customers, and orders.
+- BuyAlan is multi-tenant. A subscription is the tenant boundary for users, agents, integrations, conversations, customers, and orders.
 - A subscription can have multiple agents.
 - An agent can sell all subscription products by default or a restricted assigned subset.
 - An agent can have enabled skills. Skills are the approved execution surface for external side effects.
@@ -80,30 +80,30 @@ Use this README as the product-level planning baseline.
 
 ## System Boundaries
 
-- `HeyAlan.WebApi` owns authenticated HTTP APIs, webhooks, endpoint contracts, and orchestration entry points.
-- `HeyAlan.WebApp` owns admin and operator UI workflows.
-- `HeyAlan` owns core domain logic, orchestration, integrations, runtime behavior, persistence models and EF Core data access foundations.
-- `HeyAlan.AppHost` owns local development orchestration with Aspire.
-- `HeyAlan.Initializer` owns initialization and migration workflow entry points.
-- `HeyAlan.Tests` owns automated verification and regression coverage.
+- `BuyAlan.WebApi` owns authenticated HTTP APIs, webhooks, endpoint contracts, and orchestration entry points.
+- `BuyAlan.WebApp` owns admin and operator UI workflows.
+- `BuyAlan` owns core domain logic, orchestration, integrations, runtime behavior, persistence models and EF Core data access foundations.
+- `BuyAlan.AppHost` owns local development orchestration with Aspire.
+- `BuyAlan.Initializer` owns initialization and migration workflow entry points.
+- `BuyAlan.Tests` owns automated verification and regression coverage.
 
-For v1, Square is the external system of record for merchant commerce operations. HeyAlan may keep local projections and workflow state, but provider-facing customer, order, payment, and catalog operations must remain consistent with Square.
+For v1, Square is the external system of record for merchant commerce operations. BuyAlan may keep local projections and workflow state, but provider-facing customer, order, payment, and catalog operations must remain consistent with Square.
 
 ## Repository Map
 
-- `HeyAlan.WebApi`: API surface, auth, webhooks, endpoint mapping.
-- `HeyAlan.WebApp`: admin application and operator-facing UI.
-- `HeyAlan`: core business logic, integrations, orchestration, messaging flow, entities, DbContext, persistence configuration.
-- `HeyAlan.AppHost`: Aspire host for local development.
-- `HeyAlan.Initializer`: initialization and migration-related entry points.
-- `HeyAlan.Tests`: backend and integration test coverage.
+- `BuyAlan.WebApi`: API surface, auth, webhooks, endpoint mapping.
+- `BuyAlan.WebApp`: admin application and operator-facing UI.
+- `BuyAlan`: core business logic, integrations, orchestration, messaging flow, entities, DbContext, persistence configuration.
+- `BuyAlan.AppHost`: Aspire host for local development.
+- `BuyAlan.Initializer`: initialization and migration-related entry points.
+- `BuyAlan.Tests`: backend and integration test coverage.
 
 ## Run Locally
 
 From the repository root:
 
 ```powershell
-dotnet watch run --project .\HeyAlan.AppHost\HeyAlan.AppHost.csproj
+dotnet watch run --project .\BuyAlan.AppHost\BuyAlan.AppHost.csproj
 ```
 
 For setup and environment details, use the supporting docs below.

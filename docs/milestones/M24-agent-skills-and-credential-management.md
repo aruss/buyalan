@@ -30,7 +30,7 @@ Build an API-first skills system where:
 - [x] Google Maps skill accepts an address string and returns a validated, normalized full address.
 - [x] Google Maps credentials are environment/runtime managed and never user-editable via API.
 - [x] Consumers of credentials do not care whether a credential comes from startup configuration, encrypted subscription storage, or refreshed OAuth token state.
-- [x] System-managed credentials resolve from runtime configuration at application startup and do not require priming in `HeyAlan.Initializer`.
+- [x] System-managed credentials resolve from runtime configuration at application startup and do not require priming in `BuyAlan.Initializer`.
 - [x] For required system-managed providers, missing credentials are a startup configuration error rather than an enable-time runtime readiness state.
 
 ## Public API and Contract Changes
@@ -63,9 +63,9 @@ Build an API-first skills system where:
   - [ ] Unique skill row per `(agentId, skillKey)`.
   - [ ] Unique credential identity per `(subscriptionId, provider, accountKey)`.
 - [ ] Add EF mappings in `MainDataContext` and relationship constraints.
-- [ ] Implement persistence changes in the `HeyAlan` project under the `HeyAlan.Data` namespace (there is no standalone `HeyAlan.Data` project in this repo layout).
+- [ ] Implement persistence changes in the `BuyAlan` project under the `BuyAlan.Data` namespace (there is no standalone `BuyAlan.Data` project in this repo layout).
 - [ ] Implement one-shot data migration mapping existing `SubscriptionSquareConnection` token lifecycle data into `SubscriptionProviderCredential` rows.
-- [ ] Stop and hand off for migration generation/run from `HeyAlan.Initializer` per repo rule.
+- [ ] Stop and hand off for migration generation/run from `BuyAlan.Initializer` per repo rule.
 
 ### Gate A Acceptance Criteria
 - [ ] Schema supports agent skill rows and provider/account credentials.
@@ -98,7 +98,7 @@ Build an API-first skills system where:
   - [ ] Upsert/enable skill per agent.
   - [ ] Disable skill per agent.
   - [ ] Resolve enabled skills into runtime descriptors.
-- [ ] Implement skills endpoints in `HeyAlan.WebApi`:
+- [ ] Implement skills endpoints in `BuyAlan.WebApi`:
   - [ ] `GET /skills` for authenticated users.
   - [ ] `GET /agents/{agentId}/skills`
   - [ ] `PUT /agents/{agentId}/skills/{skillKey}`
@@ -157,7 +157,7 @@ Build an API-first skills system where:
 - [ ] 5) Gate E: tests and regression pass.
 
 ## Handoff and Operational Notes
-- [ ] This milestone requires schema changes; after Gate A schema edits, stop and hand off for migration generation/run from `HeyAlan.Initializer` per repo rule.
+- [ ] This milestone requires schema changes; after Gate A schema edits, stop and hand off for migration generation/run from `BuyAlan.Initializer` per repo rule.
 - [ ] After WebApi interface changes are finalized, hand off for WebApp API client generation (`yarn openapi-ts`).
 - [ ] UI work is intentionally out of scope for this milestone.
 - [ ] LLM tool call execution is intentionally out of scope; this milestone provides enablement/config/descriptor contracts only.

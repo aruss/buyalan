@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/HeyAlan.sln",
+        "${workspaceFolder}/BuyAlan.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -21,7 +21,7 @@
       "args": [
         "run",
         "--project",
-        "${workspaceFolder}/HeyAlan.AppHost/HeyAlan.AppHost.csproj",
+        "${workspaceFolder}/BuyAlan.AppHost/BuyAlan.AppHost.csproj",
         "--launch-profile",
         "https" // Or "http" depending on your preference
       ],

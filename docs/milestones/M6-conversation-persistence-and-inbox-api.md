@@ -14,7 +14,7 @@ Core behavior:
 ## Data Model Changes
 
 ### New entity: `Conversation`
-File target: `HeyAlan/Data/Entities/Conversation.cs`
+File target: `BuyAlan/Data/Entities/Conversation.cs`
 
 Fields:
 - `Guid Id`
@@ -36,7 +36,7 @@ Constraints/indexes:
 - Optional index: `(AgentId, UnreadCount)` for unread filtering later
 
 ### New entity: `ConversationMessage`
-File target: `HeyAlan/Data/Entities/ConversationMessage.cs`
+File target: `BuyAlan/Data/Entities/ConversationMessage.cs`
 
 Fields:
 - `Guid Id`
@@ -60,7 +60,7 @@ Constraints/indexes:
 - Rule: inbound (`Role = Customer`) persisted with `IsRead = false`, `ReadAt = null`
 
 ### DbContext updates
-File target: `HeyAlan/Data/MainDataContext.cs`
+File target: `BuyAlan/Data/MainDataContext.cs`
 - Add `DbSet<Conversation> Conversations`
 - Add `DbSet<ConversationMessage> ConversationMessages`
 - Configure relationships and indexes in `OnModelCreating`
@@ -69,7 +69,7 @@ File target: `HeyAlan/Data/MainDataContext.cs`
 ## Pipeline / Domain Flow Changes
 
 ### Incoming persistence
-File target: `HeyAlan/Consumers/IncomingMessageConsumer.cs`
+File target: `BuyAlan/Consumers/IncomingMessageConsumer.cs`
 
 Before channel-specific branching:
 1. Resolve or create conversation by `(AgentId, From, Channel)`.
@@ -84,7 +84,7 @@ Then keep current routing behavior:
 - Telegram still publishes `OutgoingTelegramMessage` placeholder reply.
 
 ### Outgoing persistence (Telegram)
-File target: `HeyAlan/Consumers/IncomingMessageConsumer.cs` (`OutgoingTelegramMessageConsumer`)
+File target: `BuyAlan/Consumers/IncomingMessageConsumer.cs` (`OutgoingTelegramMessageConsumer`)
 
 After successful Telegram send:
 1. Resolve conversation by `(AgentId, To, Telegram)` where `To` is recipient external id in outgoing message.
@@ -104,7 +104,7 @@ Note:
 ## REST API Surface (new)
 
 Create endpoint module:
-- `HeyAlan.WebApi/Core/ConversationEndpoints.cs`
+- `BuyAlan.WebApi/Core/ConversationEndpoints.cs`
 - Map in `Program.cs` via `app.MapConversationEndpoints();`
 
 Route group:
@@ -215,18 +215,18 @@ Current contracts already include required fields to persist:
 ## Implementation Steps (Decision-Complete)
 
 1. Add entities:
-- `Conversation`, `ConversationMessage` in `HeyAlan/Data/Entities`.
+- `Conversation`, `ConversationMessage` in `BuyAlan/Data/Entities`.
 
 2. Extend `MainDataContext`:
 - Add DbSets and model configuration (FKs, indexes, uniqueness).
 
 3. Add a small persistence service (recommended to keep consumers thin):
-- `HeyAlan/Core/Conversations/IConversationStore.cs`
-- `HeyAlan/Core/Conversations/ConversationStore.cs`
+- `BuyAlan/Core/Conversations/IConversationStore.cs`
+- `BuyAlan/Core/Conversations/ConversationStore.cs`
 - Methods:
   - `UpsertIncomingMessageAsync(IncomingMessage, ct)`
   - `AppendOutgoingTelegramMessageAsync(OutgoingTelegramMessage, occurredAt, ct)`
-- Register service in `HeyAlan.WebApi/Core/CoreBuilderExtensions.cs`.
+- Register service in `BuyAlan.WebApi/Core/CoreBuilderExtensions.cs`.
 
 4. Update `IncomingMessageConsumer`:
 - Inject `IConversationStore`.
@@ -237,18 +237,18 @@ Current contracts already include required fields to persist:
 - After successful `SendMessageAsync`, call store append for outbound.
 
 6. Add conversation endpoints module + DTO files:
-- `HeyAlan.WebApi/Core/ConversationEndpoints.cs`
+- `BuyAlan.WebApi/Core/ConversationEndpoints.cs`
 - DTO files in same folder following `*Input` / `*Result` naming.
 
 7. Map endpoint group in `Program.cs`.
 
-8. Tests in `HeyAlan.Tests`:
+8. Tests in `BuyAlan.Tests`:
 - Add consumer tests for persistence behavior.
 - Add endpoint tests for list/read operations and auth scoping.
 
 9. Migration workflow gate:
 - After schema changes, stop and hand off for developer migration creation as required by repo policy:
-  - `dotnet ef migrations add <Name> --context MainDataContext -o .\Migrations` from `HeyAlan.Initializer`
+  - `dotnet ef migrations add <Name> --context MainDataContext -o .\Migrations` from `BuyAlan.Initializer`
 - Resume implementation only after explicit confirmation.
 
 ## Test Cases and Scenarios

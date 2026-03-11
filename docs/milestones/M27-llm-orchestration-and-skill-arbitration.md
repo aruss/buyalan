@@ -1,7 +1,7 @@
 # Milestone M27: LLM Orchestration and Skill Arbitration
 
 ## Summary
-Build the runtime agent orchestration layer that decides how HeyAlan reacts to customer messages.
+Build the runtime agent orchestration layer that decides how BuyAlan reacts to customer messages.
 
 This milestone introduces the internal LLM-driven control loop that reads conversation history, structured conversation state, customer history, agent configuration, and enabled skills, then chooses whether to answer directly, ask follow-up questions, call a tool, update conversation state, or request human handoff.
 

@@ -1,15 +1,15 @@
 # Milestone M11: Code Organization Refactorings
 
 ## Goal
-Improve code discoverability and maintainability in `HeyAlan` by reorganizing around feature folders (flat within each feature), making data access store-centric, and removing boundary leaks where transport concerns bleed into data access/domain code.
+Improve code discoverability and maintainability in `BuyAlan` by reorganizing around feature folders (flat within each feature), making data access store-centric, and removing boundary leaks where transport concerns bleed into data access/domain code.
 
 ## Scope
-- **Primary target (`HeyAlan`)**
+- **Primary target (`BuyAlan`)**
   - Reorganize files/namespaces into feature-first folders.
   - Keep each feature folder as flat as practical.
   - Introduce and standardize store-centric data access shape (EF-backed stores).
 - **Required dependency updates (no broader redesign)**
-  - Update direct references in `HeyAlan.WebApi`, `HeyAlan.Initializer`, and `HeyAlan.Tests` caused by moved/renamed types.
+  - Update direct references in `BuyAlan.WebApi`, `BuyAlan.Initializer`, and `BuyAlan.Tests` caused by moved/renamed types.
 
 ## Non-Goals (Out of Scope)
 - Database schema changes.
@@ -30,15 +30,15 @@ Improve code discoverability and maintainability in `HeyAlan` by reorganizing ar
 ## Findings from Repository Analysis
 
 ### Structural findings
-- [x] `HeyAlan` already mixes feature folders and technical folders:
+- [x] `BuyAlan` already mixes feature folders and technical folders:
   - `Consumers`, `Core`, `Onboarding`, `Identity`, `SquareIntegration`, `TelegramIntegration`, `Data`, `Configuration`, `Extensions`, `Collections`.
-- [x] `HeyAlan/README.md` project structure is stale versus actual files.
+- [x] `BuyAlan/README.md` project structure is stale versus actual files.
 - [x] `Consumers/IncomingMessageConsumer.cs` combines multiple responsibilities and types in one file:
   - `IncomingMessage`
   - `OutgoingTelegramMessage`
   - `IncomingMessageConsumer`
   - `OutgoingTelegramMessageConsumer`
-- [x] `Core/Conversations` depends on consumer contracts (`using HeyAlan.Consumers`), creating boundary inversion.
+- [x] `Core/Conversations` depends on consumer contracts (`using BuyAlan.Consumers`), creating boundary inversion.
 - [x] Cross-folder coupling confirms Messaging flow is split across `Consumers`, `Core/Conversations`, and integration folders.
 
 ### Naming and quality findings
@@ -48,18 +48,18 @@ Improve code discoverability and maintainability in `HeyAlan` by reorganizing ar
 
 ### Dependency and blast-radius findings
 - [x] Message contract and consumer types are referenced in:
-  - `HeyAlan.WebApi/Infrastructure/MassTransitBuilderExtensions.cs`
-  - `HeyAlan.WebApi/TelegramIntegration/TelegramWebhookEndpoints.cs`
-  - `HeyAlan.WebApi/TwilioIntegration/TwilioWebhookEndpoints.cs`
-  - `HeyAlan.Initializer/Program.cs`
+  - `BuyAlan.WebApi/Infrastructure/MassTransitBuilderExtensions.cs`
+  - `BuyAlan.WebApi/TelegramIntegration/TelegramWebhookEndpoints.cs`
+  - `BuyAlan.WebApi/TwilioIntegration/TwilioWebhookEndpoints.cs`
+  - `BuyAlan.Initializer/Program.cs`
 - [x] Conversation store types are referenced in:
-  - `HeyAlan.WebApi/Core/CoreBuilderExtensions.cs`
-  - `HeyAlan.Initializer/Program.cs`
+  - `BuyAlan.WebApi/Core/CoreBuilderExtensions.cs`
+  - `BuyAlan.Initializer/Program.cs`
 - [x] Any namespace/type move in Messaging requires direct updates in WebApi/Initializer/Tests.
 
 ## Target Organization (Authoritative)
 
-### Top-level folders in `HeyAlan`
+### Top-level folders in `BuyAlan`
 - `Messaging` (new, flat)
 - `Identity` (existing, flat)
 - `Onboarding` (existing, flat)
@@ -89,14 +89,14 @@ Improve code discoverability and maintainability in `HeyAlan` by reorganizing ar
 - [x] Namespaces should align with physical feature locations after moves.
 
 ## Gate A: Messaging Feature Consolidation (Self-Contained)
-- [x] Create `HeyAlan/Messaging` feature folder.
+- [x] Create `BuyAlan/Messaging` feature folder.
 - [x] Split current combined consumer/contracts file into one-type-per-file.
 - [x] Move conversation store interface/implementation from `Core/Conversations` to `Messaging`.
 - [x] Add `MessagingBuilderExtensions` to centralize messaging DI registration.
 - [x] Remove obsolete `Consumers` and `Core/Conversations` usage paths after replacement.
 
 ### Gate A Acceptance Criteria
-- [x] All messaging contracts, consumers, and conversation store types live under `HeyAlan/Messaging`.
+- [x] All messaging contracts, consumers, and conversation store types live under `BuyAlan/Messaging`.
 - [x] No files in Messaging contain unrelated feature responsibilities.
 - [x] Feature is flat and discoverable by file name.
 
@@ -127,7 +127,7 @@ Improve code discoverability and maintainability in `HeyAlan` by reorganizing ar
 - [x] Move root shared primitives (`Constants`, `Enums`) to clearer shared location if part of cleanup diff.
 - [x] Move paging/query helper placement from `Collections` to a clearer shared location if touched.
 - [x] Keep `Configuration` and `Extensions` as cross-feature shared roots.
-- [x] Update stale `HeyAlan/README.md` structure section to match real project layout.
+- [x] Update stale `BuyAlan/README.md` structure section to match real project layout.
 
 ### Gate D Acceptance Criteria
 - [x] Shared primitives are easier to locate from top-level structure.
@@ -135,9 +135,9 @@ Improve code discoverability and maintainability in `HeyAlan` by reorganizing ar
 - [x] No behavior changes introduced by shared-file relocation.
 
 ## Gate E: Cross-Project Reference Update (Self-Contained)
-- [x] Update `HeyAlan.WebApi` references for moved Messaging types/usings.
-- [x] Update `HeyAlan.Initializer` references for moved Messaging types/usings.
-- [x] Update `HeyAlan.Tests` references for moved/renamed symbols.
+- [x] Update `BuyAlan.WebApi` references for moved Messaging types/usings.
+- [x] Update `BuyAlan.Initializer` references for moved Messaging types/usings.
+- [x] Update `BuyAlan.Tests` references for moved/renamed symbols.
 - [x] Verify DI registration call-sites with new messaging composition extension.
 
 ### Gate E Acceptance Criteria
@@ -146,10 +146,10 @@ Improve code discoverability and maintainability in `HeyAlan` by reorganizing ar
 
 ## Test Plan (Authoritative)
 1. Build validation
-   - [ ] `HeyAlan`
-   - [ ] `HeyAlan.WebApi`
-   - [ ] `HeyAlan.Initializer`
-   - [ ] `HeyAlan.Tests`
+   - [ ] `BuyAlan`
+   - [ ] `BuyAlan.WebApi`
+   - [ ] `BuyAlan.Initializer`
+   - [ ] `BuyAlan.Tests`
 2. Existing tests
    - [ ] Run current test suite and fix namespace/type fallout.
 3. Messaging flow sanity

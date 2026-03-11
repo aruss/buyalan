@@ -143,7 +143,7 @@ This milestone extends M24 and aligns to M23 catalog-cache rules:
 - [ ] 5) Gate E: tests, security checks, and regression verification.
 
 ## Handoff and Operational Notes
-- [ ] If schema changes are required for audit or policy persistence, stop and hand off for migration generation/run from `HeyAlan.Initializer` per repo rule.
+- [ ] If schema changes are required for audit or policy persistence, stop and hand off for migration generation/run from `BuyAlan.Initializer` per repo rule.
 - [ ] If WebAPI interface changes impact generated client contracts, hand off for `yarn openapi-ts`.
 - [ ] UI/chat-flow implementation is intentionally out of scope for this milestone.
 

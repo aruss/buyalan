@@ -1,7 +1,7 @@
 # Milestone M23: Square Catalog Sync Cache + Webhook-Triggered Refresh
 
 ## Summary
-Build a subscription-scoped Square catalog cache so HeyAlan uses local product data instead of calling Square in customer-message processing paths.
+Build a subscription-scoped Square catalog cache so BuyAlan uses local product data instead of calling Square in customer-message processing paths.
 
 This milestone gives the system a local product catalog, sync state, operational sync controls, and agent-level sellability boundaries. The synced subscription catalog is shared across all agents, while each agent can either:
 - sell all products by default, or
@@ -17,9 +17,9 @@ M23 is a prerequisite milestone. It does not own LLM response generation, conver
 
 ## Dependencies and Current Codebase Baseline
 - [ ] Existing Square connection and token lifecycle remain owned by `ISquareService`.
-- [ ] Existing incoming message processing still uses buffered placeholder business logic in `HeyAlan/Messaging/IncomingMessageConsumer.cs`.
+- [ ] Existing incoming message processing still uses buffered placeholder business logic in `BuyAlan/Messaging/IncomingMessageConsumer.cs`.
 - [ ] Existing agent model has no product-assignment or sales-zip fields; M23 introduces those through relation tables.
-- [ ] Existing inventory settings UI is a placeholder in `HeyAlan.WebApp/src/app/admin/settings/inventory/page.tsx`.
+- [ ] Existing inventory settings UI is a placeholder in `BuyAlan.WebApp/src/app/admin/settings/inventory/page.tsx`.
 - [ ] Existing Square OAuth connection already uses the current broader v1 commerce scopes; M23 must not require additional scopes beyond that baseline.
 
 ## User Decisions (Locked)
@@ -146,7 +146,7 @@ M23 is a prerequisite milestone. It does not own LLM response generation, conver
 - [x] Schema supports exact zip allowlist storage per agent.
 
 ## Gate B - Catalog Sync Services (Square Pull + Local Upsert)
-- [x] Introduce `ISubscriptionCatalogSyncService` contract and implementation in `HeyAlan`.
+- [x] Introduce `ISubscriptionCatalogSyncService` contract and implementation in `BuyAlan`.
 - [x] Introduce `ISubscriptionCatalogReadService` for internal read/query use by current message processing paths and later agent runtime flows.
 - [x] Extend `ISubscriptionCatalogReadService` with agent-aware reads:
   - [x] Agent-aware list/search/get operations take `subscriptionId` + `agentId`.
@@ -307,8 +307,8 @@ M23 is a prerequisite milestone. It does not own LLM response generation, conver
 - [ ] Operators can observe sync health and troubleshoot failures without sensitive leakage.
 
 ## Gate K - WebApp Inventory Sync Operations UI
-- [x] Implement inventory settings sync UI in `HeyAlan.WebApp/src/app/admin/settings/inventory/page.tsx`.
-- [x] Align layout and interaction style with existing pages in `HeyAlan.WebApp/src/app/admin/settings`.
+- [x] Implement inventory settings sync UI in `BuyAlan.WebApp/src/app/admin/settings/inventory/page.tsx`.
+- [x] Align layout and interaction style with existing pages in `BuyAlan.WebApp/src/app/admin/settings`.
 - [ ] Limit UI scope to sync operations and catalog diagnostics:
   - [x] manual sync action
   - [x] sync-state panel
@@ -388,13 +388,13 @@ M23 is a prerequisite milestone. It does not own LLM response generation, conver
 - [ ] Runtime zip-based sellability enforcement is explicitly out of scope for M23 and belongs to later runtime/skill milestones.
 - [ ] M23 stores per-location product data but does not select a final checkout location.
 - [x] Handoff note after Gate B:
-  - [x] `SubscriptionCatalogSyncService` and `SubscriptionCatalogReadService` are implemented in `HeyAlan/SquareIntegration`.
-  - [x] Targeted tests for Gate B live in `HeyAlan.Tests/SubscriptionCatalogServicesTests.cs` and pass in isolation.
+  - [x] `SubscriptionCatalogSyncService` and `SubscriptionCatalogReadService` are implemented in `BuyAlan/SquareIntegration`.
+  - [x] Targeted tests for Gate B live in `BuyAlan.Tests/SubscriptionCatalogServicesTests.cs` and pass in isolation.
   - [x] Full solution test run still has unrelated pre-existing failures in `IdentityEndpointsSecurityTests`, `SubscriptionOnboardingServiceTests`, and `TelegramServiceTests`.
   - [x] Next context should continue with Gate C scheduler/trigger orchestration unless priorities change.
 - [x] Handoff note after Gate C:
-  - [x] Trigger orchestration now lives in `HeyAlan/SquareIntegration/SubscriptionCatalogSyncTriggerService.cs`, `SubscriptionCatalogSyncConsumer.cs`, and `SubscriptionCatalogSyncScheduler.cs`.
-  - [x] Manual sync endpoint `POST /subscriptions/{subscriptionId}/square/catalog/sync` is mapped in `HeyAlan.WebApi/SquareIntegration/SquareConnectionEndpoints.cs`.
+  - [x] Trigger orchestration now lives in `BuyAlan/SquareIntegration/SubscriptionCatalogSyncTriggerService.cs`, `SubscriptionCatalogSyncConsumer.cs`, and `SubscriptionCatalogSyncScheduler.cs`.
+  - [x] Manual sync endpoint `POST /subscriptions/{subscriptionId}/square/catalog/sync` is mapped in `BuyAlan.WebApi/SquareIntegration/SquareConnectionEndpoints.cs`.
   - [x] Successful Square connect now enqueues an initial full catalog sync without failing the connect callback if enqueueing itself fails.
   - [x] Webhook timer-reset behavior is implemented in the trigger service, but the actual Square webhook ingest path remains Gate D work.
   - [x] Targeted tests passing in isolation: `SubscriptionCatalogServicesTests`, `SubscriptionCatalogSyncTriggerServiceTests`, and `SubscriptionSquareConnectionServiceTests`.

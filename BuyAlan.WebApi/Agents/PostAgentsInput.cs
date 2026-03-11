@@ -1,0 +1,6 @@
+namespace BuyAlan.WebApi.Agents;
+
+using Microsoft.AspNetCore.Mvc;
+
+public sealed record PostAgentsInput(
+    [FromQuery(Name = "subscription")] Guid Subscription);

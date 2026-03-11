@@ -10,12 +10,12 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - Redeem invitation links into `SubscriptionUser` memberships and switch the accepting user into the invited subscription context.
 
 ## Dependencies and Current Codebase Baseline
-- [x] `SubscriptionUser` and `SubscriptionUserRole` already exist in `HeyAlan/Data/Entities/SubscriptionUser.cs`.
-- [x] Square connection and token handling already exist in `HeyAlan/SquareIntegration/SquareService.cs`.
+- [x] `SubscriptionUser` and `SubscriptionUserRole` already exist in `BuyAlan/Data/Entities/SubscriptionUser.cs`.
+- [x] Square connection and token handling already exist in `BuyAlan/SquareIntegration/SquareService.cs`.
 - [x] Onboarding already has an invitations step and endpoint, but it currently only marks the step complete.
-- [x] The onboarding UI already contains a placeholder invite step in `HeyAlan.WebApp/src/app/onboarding/page.tsx`.
-- [x] The members settings route already exists at `HeyAlan.WebApp/src/app/admin/settings/members/page.tsx` but is still a placeholder.
-- [x] Shared queued transactional email infrastructure already exists from M31 via `HeyAlan.Email.IEmailService`.
+- [x] The onboarding UI already contains a placeholder invite step in `BuyAlan.WebApp/src/app/onboarding/page.tsx`.
+- [x] The members settings route already exists at `BuyAlan.WebApp/src/app/admin/settings/members/page.tsx` but is still a placeholder.
+- [x] Shared queued transactional email infrastructure already exists from M31 via `BuyAlan.Email.IEmailService`.
 - [x] The current session model exposes `activeSubscriptionId`, but the backend currently derives it from membership ordering rather than persisted user preference.
 - [x] There is currently no subscription switcher UI, so invitation acceptance must explicitly land the user in the invited subscription.
 
@@ -71,7 +71,7 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - [ ] Active subscription is explicitly persisted and no longer depends only on membership ordering.
 
 ## Gate B - Invitation Domain Service and Email Enqueue
-- [ ] Add a dedicated invitation service in `HeyAlan` to own invitation creation, resend, revoke, lookup, and acceptance rules.
+- [ ] Add a dedicated invitation service in `BuyAlan` to own invitation creation, resend, revoke, lookup, and acceptance rules.
 - [ ] Enforce invitation validation rules:
   - [ ] email must be non-empty and normalized
   - [ ] role must be supported
@@ -155,7 +155,7 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - [ ] Finalize still works after the invitations step completes.
 
 ## Gate G - Admin Settings Members Page
-- [ ] Build `HeyAlan.WebApp/src/app/admin/settings/members/page.tsx` using existing admin primitives.
+- [ ] Build `BuyAlan.WebApp/src/app/admin/settings/members/page.tsx` using existing admin primitives.
 - [ ] Add "invite team member" button that opens a drawer with:
   - [ ] email input
   - [ ] role dropdown

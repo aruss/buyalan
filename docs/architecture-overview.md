@@ -1,10 +1,10 @@
 # Architecture Overview
 
-This document describes how HeyAlan operates at a high level.
+This document describes how BuyAlan operates at a high level.
 
 ## Operating Model
 
-HeyAlan is a multi-tenant platform. Each subscription acts as a tenant boundary for:
+BuyAlan is a multi-tenant platform. Each subscription acts as a tenant boundary for:
 
 - users and team membership
 - agents

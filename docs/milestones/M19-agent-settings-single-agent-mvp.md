@@ -26,12 +26,12 @@ MVP scope is one agent per subscription in UI flow:
 
 ### Existing state in WebApp
 - [x] Agent settings pages are currently static placeholder forms:
-  - `HeyAlan.WebApp/src/app/admin/settings/agent/page.tsx`
-  - `HeyAlan.WebApp/src/app/admin/settings/agent/channels/page.tsx`
+  - `BuyAlan.WebApp/src/app/admin/settings/agent/page.tsx`
+  - `BuyAlan.WebApp/src/app/admin/settings/agent/channels/page.tsx`
 - [x] Onboarding already defines desired validation behavior and form style using `react-hook-form` + `zodResolver`:
   - Required profile fields: name + personality
   - Channel validation in onboarding includes at-least-one-channel rule (must not be copied to settings)
-  - File: `HeyAlan.WebApp/src/app/onboarding/page.tsx`
+  - File: `BuyAlan.WebApp/src/app/onboarding/page.tsx`
 - [x] Generated API client is already the project convention:
   - SDK exports from `@/lib/api`
   - React Query helpers from `@/lib/api/@tanstack/react-query.gen.ts`
@@ -41,12 +41,12 @@ MVP scope is one agent per subscription in UI flow:
 - [x] Data model already supports multi-agent per subscription and needed fields:
   - `Agent.Name`, `Agent.Personality`, `Agent.PersonalityPromptRaw`, `Agent.PersonalityPromptSanitized`
   - `Agent.TwilioPhoneNumber`, `Agent.TelegramBotToken`, `Agent.WhatsappNumber`
-  - File: `HeyAlan/Data/Entities/Agent.cs`
+  - File: `BuyAlan/Data/Entities/Agent.cs`
 - [x] Onboarding service already contains channel/domain rules; only selected parts should be reused for settings:
   - Telegram token uniqueness checks
   - Webhook registration on token change with rollback on failure
   - At-least-one-channel enforcement exists for onboarding and should remain onboarding-specific
-  - File: `HeyAlan/Onboarding/SubscriptionOnboardingService.cs`
+  - File: `BuyAlan/Onboarding/SubscriptionOnboardingService.cs`
 - [x] Current WebAPI does not expose `/agents` CRUD endpoints yet.
 
 ## API and Interface Changes
@@ -88,7 +88,7 @@ MVP scope is one agent per subscription in UI flow:
 - [x] WebApp implementation uses generated client methods only; no direct `fetch`.
 
 ### Gate B Acceptance Criteria
-- [x] `HeyAlan.WebApp/src/lib/api/*.gen.ts` contains `/agents` operations.
+- [x] `BuyAlan.WebApp/src/lib/api/*.gen.ts` contains `/agents` operations.
 - [x] Agent settings provider and tabs call generated methods only.
 
 ## Gate C - WebApp Agent Settings Provider
@@ -162,11 +162,11 @@ MVP scope is one agent per subscription in UI flow:
 ## Handoff Notes for Next Context Window
 - [x] Gate A and Gate B backend/OpenAPI baseline is complete, including regenerated WebApp client with `/agents` operations.
 - [x] Gate C is complete with shared provider and tab consumption.
-- [x] Provider file added: `HeyAlan.WebApp/src/app/admin/settings/agent/agent-settings-context.tsx`
-- [x] Provider is mounted in: `HeyAlan.WebApp/src/app/admin/settings/agent/layout.tsx`
+- [x] Provider file added: `BuyAlan.WebApp/src/app/admin/settings/agent/agent-settings-context.tsx`
+- [x] Provider is mounted in: `BuyAlan.WebApp/src/app/admin/settings/agent/layout.tsx`
 - [x] Tabs now consume provider read state:
-  - [x] `HeyAlan.WebApp/src/app/admin/settings/agent/page.tsx`
-  - [x] `HeyAlan.WebApp/src/app/admin/settings/agent/channels/page.tsx`
+  - [x] `BuyAlan.WebApp/src/app/admin/settings/agent/page.tsx`
+  - [x] `BuyAlan.WebApp/src/app/admin/settings/agent/channels/page.tsx`
 - [x] Channels tab already shows non-ready warning when `isOperationalReady = false`.
 - [x] Gate E completed in channels tab (shared form model, per-card saves, validation, merged updates, save feedback).
 - [x] Gate D completed in settings personality tab (react-hook-form + zod validation + provider update/save feedback).
@@ -175,7 +175,7 @@ MVP scope is one agent per subscription in UI flow:
   - [x] Implement Gate D form/save flow using `updateProfile(...)` from provider.
   - [ ] Run Gate F verification for C/D/E paths.
 - [ ] Known repo-wide TypeScript issue exists outside M19 scope:
-  - [ ] `HeyAlan.WebApp/src/app/onboarding/page.tsx` imports `postOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorize` which is not exported by current generated API index.
+  - [ ] `BuyAlan.WebApp/src/app/onboarding/page.tsx` imports `postOnboardingSubscriptionsBySubscriptionIdSquareConnectAuthorize` which is not exported by current generated API index.
 - [ ] Do not edit `.gen.ts` files manually.
 - [ ] Keep `Skills`/`Inventory` untouched aside from navigation continuity.
 - [ ] Keep manual `fetch` out of agent settings work; use generated SDK/react-query helpers exclusively.

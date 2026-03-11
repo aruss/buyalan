@@ -1,7 +1,7 @@
 # Milestone M16: OAuth Provider Callback URL Canonicalization
 
 ## Goal
-Ensure Google and Square external auth in `HeyAlan/Identity/IdentityBuilderExtensions.cs` always send the correct externally reachable callback URL to providers when WebApi is proxied by WebApp and when deployed behind ingress.
+Ensure Google and Square external auth in `BuyAlan/Identity/IdentityBuilderExtensions.cs` always send the correct externally reachable callback URL to providers when WebApi is proxied by WebApp and when deployed behind ingress.
 
 Provider-facing callback URL MUST be built from:
 
@@ -24,7 +24,7 @@ So provider redirect URI is:
 ## Tests
 - [x] Add unit tests for callback URL builder with trailing slash and base-path variants.
 - [x] Add unit test verifying query parameter replacement rewrites `redirect_uri` without losing other parameters.
-- [ ] Run `HeyAlan.Tests` and confirm no regressions.
+- [ ] Run `BuyAlan.Tests` and confirm no regressions.
 
 ## Docs
 - [x] Update setup docs so provider console callback config uses `/api/auth/providers/.../callback`.

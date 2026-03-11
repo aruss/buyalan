@@ -17,30 +17,30 @@ Deliver a production-usable agent settings flow in admin for MVP using one effec
 
 ### Frontend
 - Agent settings pages are static placeholders:
-  - `HeyAlan.WebApp/src/app/admin/settings/agent/page.tsx`
-  - `HeyAlan.WebApp/src/app/admin/settings/agent/channels/page.tsx`
+  - `BuyAlan.WebApp/src/app/admin/settings/agent/page.tsx`
+  - `BuyAlan.WebApp/src/app/admin/settings/agent/channels/page.tsx`
 - Onboarding page contains target validation and form architecture:
   - `react-hook-form` + `zodResolver`
   - profile required fields + channels cross-field rule
-  - `HeyAlan.WebApp/src/app/onboarding/page.tsx`
+  - `BuyAlan.WebApp/src/app/onboarding/page.tsx`
 - Session context exists and exposes `currentUser.activeSubscriptionId`:
-  - `HeyAlan.WebApp/src/lib/session-context.tsx`
+  - `BuyAlan.WebApp/src/lib/session-context.tsx`
 - Generated API usage pattern already established:
-  - `HeyAlan.WebApp/src/lib/api/index.ts`
-  - `HeyAlan.WebApp/src/lib/api/@tanstack/react-query.gen.ts`
+  - `BuyAlan.WebApp/src/lib/api/index.ts`
+  - `BuyAlan.WebApp/src/lib/api/@tanstack/react-query.gen.ts`
 
 ### Backend
 - WebAPI currently has onboarding + conversation endpoints, but no general `/agents` CRUD endpoints.
 - Agent entity already contains all needed fields:
   - `Name`, `Personality`, `PersonalityPromptRaw`, `PersonalityPromptSanitized`
   - `TwilioPhoneNumber`, `WhatsappNumber`, `TelegramBotToken`
-  - `HeyAlan/Data/Entities/Agent.cs`
+  - `BuyAlan/Data/Entities/Agent.cs`
 - Onboarding domain service already encodes important channel behavior:
   - trim/normalize optional channels
   - at least one channel required
   - telegram token uniqueness checks
   - telegram webhook registration on token change with rollback on error
-  - `HeyAlan/Onboarding/SubscriptionOnboardingService.cs`
+  - `BuyAlan/Onboarding/SubscriptionOnboardingService.cs`
 
 ## Contract/Integration Notes
 - Adding `/agents` endpoints changes WebAPI interface and OpenAPI output.

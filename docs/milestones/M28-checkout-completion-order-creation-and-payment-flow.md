@@ -64,7 +64,7 @@ This milestone owns order completion behavior. It does not own long-lived order 
   - [ ] summary values needed for read models.
 - [ ] Add indexes and uniqueness rules so one active checkout projection exists per conversation unless future versioning is explicitly introduced.
 - [ ] Register EF mappings in `MainDataContext`.
-- [ ] Stop and hand off for migration generation/run from `HeyAlan.Initializer` per repo rule.
+- [ ] Stop and hand off for migration generation/run from `BuyAlan.Initializer` per repo rule.
 
 ### Gate A Acceptance Criteria
 - [ ] Order and payment results can be persisted and queried per conversation.
@@ -143,7 +143,7 @@ This milestone owns order completion behavior. It does not own long-lived order 
 - [ ] 5) Gate E: tests and regression verification.
 
 ## Handoff and Operational Notes
-- [ ] This milestone requires schema changes; stop after schema edits for migration generation/run from `HeyAlan.Initializer`.
+- [ ] This milestone requires schema changes; stop after schema edits for migration generation/run from `BuyAlan.Initializer`.
 - [ ] If WebAPI contract changes affect generated clients, hand off for `yarn openapi-ts`.
 - [ ] This milestone intentionally does not implement proactive order-status notifications.
 

@@ -1,16 +1,16 @@
 # Milestone M21: Square Service Consolidation
 
 ## Summary
-Consolidate Square integration logic in `HeyAlan` and `HeyAlan.WebApi` into one domain service (`ISquareService` / `SquareService`) so outbound Square communication, token lifecycle, and connect/disconnect orchestration are owned by a single implementation.
+Consolidate Square integration logic in `BuyAlan` and `BuyAlan.WebApi` into one domain service (`ISquareService` / `SquareService`) so outbound Square communication, token lifecycle, and connect/disconnect orchestration are owned by a single implementation.
 
 This milestone explicitly excludes Microsoft Identity Square authorization provider behavior.
 
 ## Findings Baseline (Current State Inventory)
-- [x] `HeyAlan.WebApi/SquareIntegration/SquareConnectionEndpoints.cs` does not call Square directly; it delegates to `ISubscriptionSquareConnectionService`.
+- [x] `BuyAlan.WebApi/SquareIntegration/SquareConnectionEndpoints.cs` does not call Square directly; it delegates to `ISubscriptionSquareConnectionService`.
 - [x] Outbound Square communication for subscription connection flow currently happens only in:
-  - [x] `HeyAlan/SquareIntegration/SquareOAuthClient.cs`
-  - [x] `HeyAlan/SquareIntegration/SquareTokenService.cs`
-  - [x] `HeyAlan/SquareIntegration/SubscriptionSquareConnectionService.cs` (authorize URL construction)
+  - [x] `BuyAlan/SquareIntegration/SquareOAuthClient.cs`
+  - [x] `BuyAlan/SquareIntegration/SquareTokenService.cs`
+  - [x] `BuyAlan/SquareIntegration/SubscriptionSquareConnectionService.cs` (authorize URL construction)
 - [x] Current Square operations observed:
   - [x] OAuth authorize URL construction
   - [x] OAuth code exchange
@@ -19,8 +19,8 @@ This milestone explicitly excludes Microsoft Identity Square authorization provi
   - [x] Token revoke
   - [x] Token persistence/encryption/decryption
 - [x] Shared scope/base-url logic is duplicated today across Square services and onboarding checks.
-- [x] `HeyAlan/Identity/IdentityBuilderExtensions.cs` contains Square OAuth provider code for Microsoft Identity login and is out of scope for this milestone.
-- [x] No additional direct Square SDK/API usage found in `./HeyAlan` and `./HeyAlan.WebApi` outside the files above.
+- [x] `BuyAlan/Identity/IdentityBuilderExtensions.cs` contains Square OAuth provider code for Microsoft Identity login and is out of scope for this milestone.
+- [x] No additional direct Square SDK/API usage found in `./BuyAlan` and `./BuyAlan.WebApi` outside the files above.
 
 ## Findings (Post-Refactor)
 - [x] Subscription Square integration is now consolidated behind `ISquareService` / `SquareService`.

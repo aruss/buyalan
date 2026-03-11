@@ -6,7 +6,7 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:5010", // MUST match the port Aspire assigns to the WebApp
-      "webRoot": "${workspaceFolder}/HeyAlan.WebApp",
+      "webRoot": "${workspaceFolder}/BuyAlan.WebApp",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack://_N_E/*": "${webRoot}/*",
@@ -22,8 +22,8 @@
       "request": "attach",
       "port": 9229,
       "restart": true,
-      "localRoot": "${workspaceFolder}/HeyAlan.WebApp",
-      "remoteRoot": "${workspaceFolder}/HeyAlan.WebApp",
+      "localRoot": "${workspaceFolder}/BuyAlan.WebApp",
+      "remoteRoot": "${workspaceFolder}/BuyAlan.WebApp",
       "skipFiles": ["<node_internals>/**"]
     },   
   ],

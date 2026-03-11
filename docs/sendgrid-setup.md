@@ -16,7 +16,7 @@ Set:
 ## Create a List in the UI
 1. Open SendGrid.
 2. Go to `Marketing` -> `Contacts`.
-3. Create a new list (example: `HeyAlan Newsletter`).
+3. Create a new list (example: `BuyAlan Newsletter`).
 4. Save.
 
 ## Create a List via API
@@ -24,7 +24,7 @@ Set:
 curl -X POST "https://api.sendgrid.com/v3/marketing/lists" \
   -H "Authorization: Bearer $SENDGRID_API_KEY" \
   -H "Content-Type: application/json" \
-  -d "{\"name\":\"HeyAlan Newsletter\"}"
+  -d "{\"name\":\"BuyAlan Newsletter\"}"
 ```
 
 The response contains the new list `id`.
@@ -56,4 +56,4 @@ Example template body link:
 ```
 
 ## Multi-App Setup
-If one SendGrid account is shared by multiple apps, create one list per app (for example `HeyAlan Newsletter`, `Foo Newsletter`) and set each app to its own list ID.
+If one SendGrid account is shared by multiple apps, create one list per app (for example `BuyAlan Newsletter`, `Foo Newsletter`) and set each app to its own list ID.

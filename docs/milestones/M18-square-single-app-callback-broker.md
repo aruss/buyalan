@@ -65,7 +65,7 @@ Design:
 - [ ] Add tests verifying forwarded callback preserves full query payload.
 - [ ] Add tests verifying Square auth provider uses canonical broker `redirect_uri`.
 - [ ] Keep/update existing connect flow tests for required internal return URL behavior.
-- [ ] Run `HeyAlan.Tests` and verify no regressions.
+- [ ] Run `BuyAlan.Tests` and verify no regressions.
 
 ### Gate D Acceptance Criteria
 - [ ] Broker callback tests pass for both branches.
@@ -80,7 +80,7 @@ Design:
 
 ### Gate E Acceptance Criteria
 - [ ] Docs match actual runtime configuration and callback behavior.
-- [ ] Developer setup requires only one Square app for HeyAlan.
+- [ ] Developer setup requires only one Square app for BuyAlan.
 
 ## Risks and Notes
 - ASP.NET OAuth correlation/state checks are bound to Identity callback handling; broker MUST forward raw query unmodified.

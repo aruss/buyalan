@@ -12,7 +12,7 @@ Goal: keep domain services focused on business flow while centralizing Telegram 
 
 ## Gate A - Shared Telegram Orchestration API
 - [x] Add `RegisterWebhookIfTokenChangedAsync(previousBotToken, nextBotToken, ct)` to `ITelegramService`.
-- [x] Add a small typed result (`WasAttempted`, `ErrorCode`) under `HeyAlan.TelegramIntegration`.
+- [x] Add a small typed result (`WasAttempted`, `ErrorCode`) under `BuyAlan.TelegramIntegration`.
 - [x] Implement the method in `TelegramService` with centralized token comparison and exception mapping.
 
 ### Gate A Acceptance Criteria
@@ -46,5 +46,5 @@ Goal: keep domain services focused on business flow while centralizing Telegram 
 - [x] New orchestration method behavior is covered by unit tests.
 
 ## Notes
-- Inbound webhook endpoint handling in `HeyAlan.WebApi` stays unchanged for this milestone.
+- Inbound webhook endpoint handling in `BuyAlan.WebApi` stays unchanged for this milestone.
 - Outgoing message consumer behavior stays unchanged for this milestone.

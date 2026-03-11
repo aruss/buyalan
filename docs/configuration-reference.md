@@ -1,10 +1,10 @@
 # Configuration Reference
 
-HeyAlan uses explicit configuration access and validation to keep runtime behavior predictable.
+BuyAlan uses explicit configuration access and validation to keep runtime behavior predictable.
 
 ## Configuration Approach
 
-HeyAlan favors explicit `IConfiguration` extension methods over implicit options binding for infrastructure-critical settings.
+BuyAlan favors explicit `IConfiguration` extension methods over implicit options binding for infrastructure-critical settings.
 
 This model provides:
 

@@ -1,12 +1,12 @@
 # M15 - MassTransit to WolverineFx Migration
 
 ## Summary
-Migrate HeyAlan messaging from MassTransit to WolverineFx on .NET 10 with RabbitMQ, using a single cutover and preserving current behavior.
+Migrate BuyAlan messaging from MassTransit to WolverineFx on .NET 10 with RabbitMQ, using a single cutover and preserving current behavior.
 
-The migration enables durable inbox/outbox reliability with PostgreSQL-backed Wolverine storage in a dedicated `wolverine` schema, and keeps topology/resource provisioning owned by `HeyAlan.Initializer`.
+The migration enables durable inbox/outbox reliability with PostgreSQL-backed Wolverine storage in a dedicated `wolverine` schema, and keeps topology/resource provisioning owned by `BuyAlan.Initializer`.
 
 ## Scope
-- Replace MassTransit runtime wiring in `HeyAlan.WebApi` and `HeyAlan.Initializer`.
+- Replace MassTransit runtime wiring in `BuyAlan.WebApi` and `BuyAlan.Initializer`.
 - Refactor current MassTransit consumers to Wolverine handlers with equivalent behavior.
 - Replace ingress publish calls in webhook endpoints from MassTransit interfaces to Wolverine bus.
 - Configure Wolverine RabbitMQ routing and durability policies.
@@ -33,8 +33,8 @@ The migration enables durable inbox/outbox reliability with PostgreSQL-backed Wo
 - Outgoing Telegram queue: `telegram-outgoing-messages`
 
 ## Gate A - WebApi Transport Migration
-- [x] Replace `AddMassTransitServices()` usage in `HeyAlan.WebApi/Program.cs` with Wolverine bootstrap.
-- [x] Replace `HeyAlan.WebApi/Infrastructure/MassTransitBuilderExtensions.cs` with Wolverine equivalent.
+- [x] Replace `AddMassTransitServices()` usage in `BuyAlan.WebApi/Program.cs` with Wolverine bootstrap.
+- [x] Replace `BuyAlan.WebApi/Infrastructure/MassTransitBuilderExtensions.cs` with Wolverine equivalent.
 - [x] Configure `UseRabbitMq(...)` for WebApi.
 - [x] Configure explicit routing for:
   - [x] `IncomingMessage` publish route.
@@ -47,7 +47,7 @@ The migration enables durable inbox/outbox reliability with PostgreSQL-backed Wo
 - [x] No MassTransit service registrations remain in WebApi runtime composition.
 
 ## Gate B - Initializer Provisioning Migration
-- [x] Remove MassTransit topology deployment path (`DeployTopologyOnly` and `IBusControl.DeployAsync`) from `HeyAlan.Initializer/Program.cs`.
+- [x] Remove MassTransit topology deployment path (`DeployTopologyOnly` and `IBusControl.DeployAsync`) from `BuyAlan.Initializer/Program.cs`.
 - [x] Configure Wolverine in Initializer with RabbitMQ and `.AutoProvision()`.
 - [x] Keep current vhost provisioning via RabbitMQ Management API.
 - [x] Keep retry lanes and startup lane orchestration.
@@ -59,8 +59,8 @@ The migration enables durable inbox/outbox reliability with PostgreSQL-backed Wo
 
 ## Gate C - Ingress Publish Interface Migration
 - [x] Replace `IPublishEndpoint` with Wolverine `IMessageBus` in:
-  - [x] `HeyAlan.WebApi/TelegramIntegration/TelegramWebhookEndpoints.cs`
-  - [x] `HeyAlan.WebApi/TwilioIntegration/TwilioWebhookEndpoints.cs`
+  - [x] `BuyAlan.WebApi/TelegramIntegration/TelegramWebhookEndpoints.cs`
+  - [x] `BuyAlan.WebApi/TwilioIntegration/TwilioWebhookEndpoints.cs`
 - [x] Replace publish calls with Wolverine publish API.
 - [x] Preserve current status-code and logging behavior.
 
@@ -86,7 +86,7 @@ The migration enables durable inbox/outbox reliability with PostgreSQL-backed Wo
 ## Gate E - Durability + EF Core Integration
 - [x] Enable Wolverine durable inbox/outbox with PostgreSQL.
 - [x] Configure Wolverine storage schema as `wolverine`.
-- [x] Add Wolverine envelope mapping to `HeyAlan/Data/MainDataContext.cs`.
+- [x] Add Wolverine envelope mapping to `BuyAlan/Data/MainDataContext.cs`.
 - [x] Ensure existing naming convention logic does not break Wolverine envelope mapping/storage names.
 
 ### Gate E Acceptance Criteria
@@ -95,9 +95,9 @@ The migration enables durable inbox/outbox reliability with PostgreSQL-backed Wo
 
 ## Gate F - Dependency Cleanup
 - [x] Remove `MassTransit.RabbitMQ` package references from:
-  - [x] `HeyAlan/HeyAlan.csproj`
-  - [x] `HeyAlan.WebApi/HeyAlan.WebApi.csproj`
-  - [x] `HeyAlan.Initializer/HeyAlan.Initializer.csproj`
+  - [x] `BuyAlan/BuyAlan.csproj`
+  - [x] `BuyAlan.WebApi/BuyAlan.WebApi.csproj`
+  - [x] `BuyAlan.Initializer/BuyAlan.Initializer.csproj`
 - [x] Ensure required Wolverine packages are present in projects that compile messaging runtime.
 
 ### Gate F Acceptance Criteria
@@ -134,7 +134,7 @@ dotnet ef migrations add Init --context MainDataContext -o .\Migrations
 - Post-implementation finding: Wolverine did not execute `IncomingMessageConsumer` until explicit handler discovery registration was added in WebApi:
   - `options.Discovery.IncludeType<IncomingMessageConsumer>()`
   - `options.Discovery.IncludeType<OutgoingTelegramMessageConsumer>()`
-- Root cause: handlers live in the shared `HeyAlan` assembly, and were not discovered by default from the WebApi host assembly.
+- Root cause: handlers live in the shared `BuyAlan` assembly, and were not discovered by default from the WebApi host assembly.
 - Operational note: WebApi restart is required after discovery wiring changes.
 
 ## Assumptions and Defaults

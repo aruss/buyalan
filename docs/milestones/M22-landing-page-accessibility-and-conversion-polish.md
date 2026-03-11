@@ -4,7 +4,7 @@
 - [ ] Remove broken/dead-end landing interactions and improve mobile discoverability while resolving all currently failing Lighthouse accessibility audits.
 
 ## Scope
-- [ ] Landing page only (`HeyAlan.WebApp` landing route and landing components).
+- [ ] Landing page only (`BuyAlan.WebApp` landing route and landing components).
 - [ ] CTA routing normalization to `/admin` for this milestone.
 - [ ] Mobile navigation enhancement (hamburger dropdown).
 - [ ] Accessibility fixes for current known failures:
@@ -121,7 +121,7 @@
   - [ ] Mitigation: preserve classes and validate rendered spacing after tag updates.
 
 ## Handoff Notes for New Context Window (Implementation-Ready)
-- [ ] Start in `HeyAlan.WebApp` landing components; this milestone is frontend-only.
+- [ ] Start in `BuyAlan.WebApp` landing components; this milestone is frontend-only.
 - [ ] Implement in gate order `A -> B -> C -> D`; each gate is independently verifiable and reduces rework risk.
 - [ ] Reuse existing landing dropdown primitive in `src/components/landing/ui/dropdown-menu.tsx`; do not introduce new nav dependencies.
 - [ ] Keep routing rule deterministic for this milestone: affected landing CTAs resolve to `/admin`.

@@ -4,13 +4,13 @@
 Ensure every newly created external-auth user has a subscription membership so onboarding can always resolve an active subscription and proceed.
 
 ## Scope
-- **Backend (`HeyAlan.WebApi`)**
+- **Backend (`BuyAlan.WebApi`)**
   - Update external login completion flow to provision subscription membership for first-time users.
   - Keep existing auth endpoint surface (`/auth/*`) and response contracts unchanged.
-- **Data (`HeyAlan.Data`)**
+- **Data (`BuyAlan.Data`)**
   - Reuse existing `Subscription` + `SubscriptionUser` entities and mappings.
   - No schema changes for this milestone.
-- **Tests (`HeyAlan.Tests`)**
+- **Tests (`BuyAlan.Tests`)**
   - Add/extend tests for new-user provisioning behavior and failure handling.
 
 ## Non-Goals (Out of Scope)
@@ -30,11 +30,11 @@ Ensure every newly created external-auth user has a subscription membership so o
 
 ### Confirmed gap in current flow
 - [x] External callback creates `ApplicationUser` but does not create `Subscription` or `SubscriptionUser`.
-  - `HeyAlan.WebApi/Identity/IdentityEndpoints.cs`
+  - `BuyAlan.WebApi/Identity/IdentityEndpoints.cs`
   - Relevant sections: user creation branch + `AddLoginAsync` path.
 - [x] Onboarding relies on `SubscriptionUsers` membership and returns not-found/forbidden when missing.
-  - `HeyAlan.WebApi/Onboarding/OnboardingEndpoints.cs`
-  - `HeyAlan/Onboarding/SubscriptionOnboardingService.cs`
+  - `BuyAlan.WebApi/Onboarding/OnboardingEndpoints.cs`
+  - `BuyAlan/Onboarding/SubscriptionOnboardingService.cs`
 
 ### Current failure manifestations
 - [x] `GET /onboarding/subscriptions/active` returns `subscription_membership_not_found` when user has no membership.
@@ -42,17 +42,17 @@ Ensure every newly created external-auth user has a subscription membership so o
 
 ### Existing seed behavior does not cover normal runtime signups
 - [x] Initializer seeds one admin subscription membership only for seeded admin data.
-  - `HeyAlan.Initializer/Program.cs`
+  - `BuyAlan.Initializer/Program.cs`
 - [x] There is no runtime provisioning path for brand-new external users.
 
 ### Nuances to preserve during implementation
 - [x] `CompleteExternalLoginAsync` currently short-circuits for users found via `FindByLoginAsync`; if a login is linked but membership creation fails, later logins bypass new-user logic and can remain broken.
-  - `HeyAlan.WebApi/Identity/IdentityEndpoints.cs`
+  - `BuyAlan.WebApi/Identity/IdentityEndpoints.cs`
 - [x] Login page currently has explicit mappings for known auth error codes; unknown codes fall back to a generic message.
-  - `HeyAlan.WebApp/src/app/login/auth-error.ts`
+  - `BuyAlan.WebApp/src/app/login/auth-error.ts`
 - [x] Existing test suite is mostly unit/service focused; direct callback flow tests require either helper extraction or endpoint integration tests.
-  - `HeyAlan.Tests/IdentityEndpointsSecurityTests.cs`
-  - `HeyAlan.Tests/SubscriptionSquareConnectionServiceTests.cs`
+  - `BuyAlan.Tests/IdentityEndpointsSecurityTests.cs`
+  - `BuyAlan.Tests/SubscriptionSquareConnectionServiceTests.cs`
 
 ## Architecture Decisions (Locked)
 - [x] Provision subscription and owner membership during first successful external signup.
@@ -85,7 +85,7 @@ Ensure every newly created external-auth user has a subscription membership so o
 - [x] Add deterministic auth error handling for provisioning failures (for example `subscription_provision_failed`).
 - [x] Keep external cookie cleanup and current redirect/error patterns intact.
 - [x] Ensure partial-failure behavior is explicit and safe (no silent success when provisioning fails).
-- [x] Add a dedicated login UI message mapping for `subscription_provision_failed` in `HeyAlan.WebApp/src/app/login/auth-error.ts`.
+- [x] Add a dedicated login UI message mapping for `subscription_provision_failed` in `BuyAlan.WebApp/src/app/login/auth-error.ts`.
 
 ### Gate B Acceptance Criteria
 - [ ] Provisioning exceptions are surfaced via deterministic login redirect auth error.
@@ -135,9 +135,9 @@ Ensure every newly created external-auth user has a subscription membership so o
 - [ ] Preserve least-privilege and avoid additional claims/permissions in this milestone.
 
 ## Handoff Notes for New Context Window
-- [ ] Start at `HeyAlan.WebApi/Identity/IdentityEndpoints.cs` (`CompleteExternalLoginAsync`).
+- [ ] Start at `BuyAlan.WebApi/Identity/IdentityEndpoints.cs` (`CompleteExternalLoginAsync`).
 - [ ] Implement Gate A before Gate B/C; Gate A unblocks everything else.
 - [ ] Validate against onboarding membership checks in:
-  - [ ] `HeyAlan.WebApi/Onboarding/OnboardingEndpoints.cs`
-  - [ ] `HeyAlan/Onboarding/SubscriptionOnboardingService.cs`
+  - [ ] `BuyAlan.WebApi/Onboarding/OnboardingEndpoints.cs`
+  - [ ] `BuyAlan/Onboarding/SubscriptionOnboardingService.cs`
 - [ ] Keep schema untouched; no migration work required for this milestone.

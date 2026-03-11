@@ -16,7 +16,7 @@ if (Test-Path .env) {
     }
 }
 # Context Staging
-$TempDir = Join-Path $env:TEMP "HeyAlan_WebBuild_$(Get-Random)"
+$TempDir = Join-Path $env:TEMP "BuyAlan_WebBuild_$(Get-Random)"
 New-Item -ItemType Directory -Path $TempDir -Force
 
 try {
@@ -52,7 +52,7 @@ try {
         }
     }
 
-    Copy-Clean "./HeyAlan.WebApp" (Join-Path $TempDir "HeyAlan.WebApp") $IgnorePathes
+    Copy-Clean "./BuyAlan.WebApp" (Join-Path $TempDir "BuyAlan.WebApp") $IgnorePathes
 
     # Diagnostic: Print the actual size of the context before building
     $SizeMB = [Math]::Round(((Get-ChildItem $TempDir -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB), 2)
@@ -65,14 +65,14 @@ try {
         $env:DOCKER_REGISTRY = ""
     }
 
-    $ImageName = "heyalan-webapp"
+    $ImageName = "buyalan-webapp"
     Write-Host "Building ${ImageName}:$AppVersion (Registry: '$env:DOCKER_REGISTRY')" -ForegroundColor Cyan
 
     docker build --no-cache `
         --build-arg "APP_VERSION=$AppVersion" `
         -t "$($env:DOCKER_REGISTRY)${ImageName}:$AppVersion" `
         -t "$($env:DOCKER_REGISTRY)${ImageName}:latest" `
-        -f "HeyAlan.WebApp/Dockerfile" `
+        -f "BuyAlan.WebApp/Dockerfile" `
         $TempDir
 }
 finally {

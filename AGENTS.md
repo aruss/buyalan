@@ -1,14 +1,14 @@
 # Repository Guidelines
 
-## HeyAlan Overview
+## BuyAlan Overview
 An autonomous AI agent that knows your inventory. Engage customers via Text, WhatsApp, and Telegram. Drive upsells, process payments, and schedule shipping - all through natural language.
 
 ## RFC 2119 Language
 All instructions in this document use RFC-style terms (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) and must be interpreted accordingly.
 
 ## Terms 
-- Solution: the Visual Studio Solution containing all HeyAlan projects, ./HeyAlan.slnx 
-- Project: a .NET project within the HeyAlan solution, e.g. HeyAlan.WebApp, HeyAlan.WebApi, HeyAlan.Initializer, HeyAlan.Data, HeyAlan
+- Solution: the Visual Studio Solution containing all BuyAlan projects, ./BuyAlan.slnx 
+- Project: a .NET project within the BuyAlan solution, e.g. BuyAlan.WebApp, BuyAlan.WebApi, BuyAlan.Initializer, BuyAlan.Data, BuyAlan
 
 ## Package Documentation & External References
 - You MUST use the context7 MCP server to search documentation of external packages and libraries before making assumptions.
@@ -17,7 +17,7 @@ All instructions in this document use RFC-style terms (MUST, MUST NOT, SHOULD, S
 - You MAY use the helm CLI to inspect chart values and documentation when needed.
 
 ## Project Structure & Module Organization
-- HeyAlan uses the Aspire host to run in development mode.
+- BuyAlan uses the Aspire host to run in development mode.
 
 ## Security & Foresight
 - You MUST prioritize security, privacy, and least-privilege access.
@@ -27,7 +27,7 @@ All instructions in this document use RFC-style terms (MUST, MUST NOT, SHOULD, S
 ## Coding Style & Naming Conventions
 - You MUST first read the ./docs/CODE_GUIDELINE_DOTNET.md when writing .net C# code
 - You MUST first read the ./docs/CODE_GUIDELINE_NODE.md when writing node/typescript code
-- You MUST first read the project README before working in that project (e.g., `HeyAlan.WebApp/README.md`, `HeyAlan.WebApi/README.md`, `HeyAlan.Initializer/README.md`, `HeyAlan/README.md`)
+- You MUST first read the project README before working in that project (e.g., `BuyAlan.WebApp/README.md`, `BuyAlan.WebApi/README.md`, `BuyAlan.Initializer/README.md`, `BuyAlan/README.md`)
 
 ## Dependencies & Package Management
 - When working with `package.json` dependencies or making upgrades, you MUST use `npm view` to check the latest package version.
@@ -49,7 +49,7 @@ All instructions in this document use RFC-style terms (MUST, MUST NOT, SHOULD, S
 ## Out of Scope for Agents
 - You MUST NOT use `package.json` scripts such as `build`, `dev`, etc.
 - You MUST NOT start `docker-compose` files.
-- After changing the database schema, you MUST stop and hand off so the developer can create migrations and run `dotnet ef migrations add Init --context MainDataContext -o .\Migrations` from `HeyAlan.Initializer`. Resume only after explicit confirmation.
+- After changing the database schema, you MUST stop and hand off so the developer can create migrations and run `dotnet ef migrations add Init --context MainDataContext -o .\Migrations` from `BuyAlan.Initializer`. Resume only after explicit confirmation.
 - After chaning the WebAPI interface, which results in updated openapi spec, hand of to the developer so he can auto generate the webapp client `yarn openapi-ts`
 - You MUST NOT create git commits. You MAY use git to review history.
 - `swagger.json` files are auto-generated and derived from API annotations in the NestJS backend. You MUST NOT edit them manually.

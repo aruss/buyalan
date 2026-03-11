@@ -1,9 +1,9 @@
 # Milestone M31: Unified Queued Email Sender via SendGrid
 
 ## Summary
-Build one transactional email pipeline for HeyAlan that all current email-sending code uses.
+Build one transactional email pipeline for BuyAlan that all current email-sending code uses.
 
-- Add a new `EmailService` abstraction in `HeyAlan` that enqueues email-send requests through Wolverine.
+- Add a new `EmailService` abstraction in `BuyAlan` that enqueues email-send requests through Wolverine.
 - Add a dedicated email subscriber/consumer that reads queued messages and sends them through SendGrid `POST /v3/mail/send` using dynamic templates and a single global `from` address.
 - Refactor both current send paths to use it:
   - `LoggingEmailSender` becomes an adapter from ASP.NET Core Identity email events to `EmailService`.
@@ -12,12 +12,12 @@ Build one transactional email pipeline for HeyAlan that all current email-sendin
 
 ## Dependencies and Current Codebase Baseline
 - [x] Wolverine is the active internal messaging runtime; the repo no longer uses MassTransit for these flows.
-- [x] `HeyAlan/Identity/LoggingEmailSender.cs` currently implements `IEmailSender<ApplicationUser>` and only logs masked metadata instead of sending mail.
-- [x] Newsletter confirmation emails are currently sent directly from `HeyAlan/Newsletter/NewsletterSubscriptionConsumer.cs` through `HeyAlan/Newsletter/SendGridClient.cs`.
+- [x] `BuyAlan/Identity/LoggingEmailSender.cs` currently implements `IEmailSender<ApplicationUser>` and only logs masked metadata instead of sending mail.
+- [x] Newsletter confirmation emails are currently sent directly from `BuyAlan/Newsletter/NewsletterSubscriptionConsumer.cs` through `BuyAlan/Newsletter/SendGridClient.cs`.
 - [x] Newsletter contact confirmation/upsert is a separate SendGrid marketing concern and already uses `PUT /v3/marketing/contacts`.
-- [x] `HeyAlan.WebApi/Infrastructure/WolverineBuilderExtensions.cs` is the authoritative queue/listener registration point for WebApi runtime message handling.
-- [x] `HeyAlan.Initializer/Program.cs` mirrors Wolverine queue topology setup for startup provisioning.
-- [x] `HeyAlan.AppHost/Program.cs` currently forwards newsletter-specific SendGrid configuration into the WebApi process.
+- [x] `BuyAlan.WebApi/Infrastructure/WolverineBuilderExtensions.cs` is the authoritative queue/listener registration point for WebApi runtime message handling.
+- [x] `BuyAlan.Initializer/Program.cs` mirrors Wolverine queue topology setup for startup provisioning.
+- [x] `BuyAlan.AppHost/Program.cs` currently forwards newsletter-specific SendGrid configuration into the WebApi process.
 
 ## External Findings (SendGrid)
 - [x] Transactional email send should use `POST /v3/mail/send`.
@@ -48,7 +48,7 @@ Build one transactional email pipeline for HeyAlan that all current email-sendin
 - [x] Do not queue raw SendGrid template ids or provider-specific request envelopes.
 
 ## Gate A - Core Email Abstractions and Queue Contract
-- [x] Add a new `HeyAlan.Email` area for shared transactional email concerns.
+- [x] Add a new `BuyAlan.Email` area for shared transactional email concerns.
 - [x] Introduce `IEmailService` and `EmailService`.
 - [x] Implement `EmailService` over Wolverine `IMessageBus`.
 - [x] Add `EmailSendRequested` durable message contract.
@@ -92,10 +92,10 @@ Build one transactional email pipeline for HeyAlan that all current email-sendin
   - [x] resolve the internal template key to SendGrid template id
   - [x] map template data into `dynamic_template_data`
   - [x] call the transactional SendGrid client
-- [x] Register consumer discovery in `HeyAlan.WebApi/Infrastructure/WolverineBuilderExtensions.cs`.
+- [x] Register consumer discovery in `BuyAlan.WebApi/Infrastructure/WolverineBuilderExtensions.cs`.
 - [x] Add a dedicated Rabbit queue for outbound email requests.
 - [x] Add publish routing for `EmailSendRequested`.
-- [x] Mirror the same queue/listener topology in `HeyAlan.Initializer/Program.cs`.
+- [x] Mirror the same queue/listener topology in `BuyAlan.Initializer/Program.cs`.
 - [x] Keep durable inbox/outbox behavior aligned with the existing Wolverine setup.
 
 ### Gate C Acceptance Criteria
@@ -104,7 +104,7 @@ Build one transactional email pipeline for HeyAlan that all current email-sendin
 - [x] Existing Wolverine durability policies continue to apply to the new email flow.
 
 ## Gate D - Identity Integration
-- [x] Refactor `HeyAlan/Identity/LoggingEmailSender.cs` to depend on `IEmailService` instead of only `ILogger`.
+- [x] Refactor `BuyAlan/Identity/LoggingEmailSender.cs` to depend on `IEmailService` instead of only `ILogger`.
 - [x] Keep it implementing `IEmailSender<ApplicationUser>`.
 - [x] Map Identity events to internal template keys:
   - [x] `SendConfirmationLinkAsync` -> `identity_confirmation_link`
@@ -148,7 +148,7 @@ Build one transactional email pipeline for HeyAlan that all current email-sendin
   - [x] `SENDGRID_TEMPLATE_NEWSLETTER_CONFIRMATION`
 - [x] Keep `SENDGRID_NEWSLETTER_LIST_ID` for marketing contact upsert.
 - [x] Fail fast on missing or blank required email sender settings.
-- [x] Update `HeyAlan.AppHost/Program.cs` to forward the new shared email settings.
+- [x] Update `BuyAlan.AppHost/Program.cs` to forward the new shared email settings.
 - [x] Update any relevant setup docs to reflect the new configuration contract.
 
 ### Gate F Acceptance Criteria
@@ -186,5 +186,5 @@ Build one transactional email pipeline for HeyAlan that all current email-sendin
 - [ ] Newsletter contact list upsert remains a separate marketing API concern and is not merged into the queued transactional send path.
 - [ ] Logging must continue to avoid raw tokens, reset codes, confirmation links, and unnecessary email-address exposure.
 - [x] Verification note:
-  - [x] `HeyAlan`, `HeyAlan.WebApi`, and `HeyAlan.Initializer` build successfully after the refactor.
-  - [x] `HeyAlan.Tests` test-project verification is still environment-sensitive because restore/build is blocked intermittently by `NU1900` vulnerability metadata lookup failures against `nuget.org`.
+  - [x] `BuyAlan`, `BuyAlan.WebApi`, and `BuyAlan.Initializer` build successfully after the refactor.
+  - [x] `BuyAlan.Tests` test-project verification is still environment-sensitive because restore/build is blocked intermittently by `NU1900` vulnerability metadata lookup failures against `nuget.org`.
