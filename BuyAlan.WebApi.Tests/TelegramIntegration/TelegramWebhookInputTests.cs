@@ -1,4 +1,4 @@
-namespace BuyAlan.Tests;
+namespace BuyAlan.WebApi.Tests;
 
 using BuyAlan.TelegramIntegration;
 using System.Text.Json;

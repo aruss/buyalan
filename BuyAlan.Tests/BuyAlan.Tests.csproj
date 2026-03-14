@@ -8,9 +8,11 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
-
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Testing" Version="13.1.2" />
+    <ProjectReference Include="..\BuyAlan\BuyAlan.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -25,15 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BuyAlan.WebApi\BuyAlan.WebApi.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Using Include="System.Net" />
     <Using Include="Microsoft.Extensions.DependencyInjection" />
-    <Using Include="Aspire.Hosting.ApplicationModel" />
-    <Using Include="Aspire.Hosting.Testing" />
     <Using Include="Xunit" />
   </ItemGroup>
-
 </Project>

@@ -367,6 +367,12 @@ public class SubscriptionCatalogServicesTests
                 new SquareTokenResolution.Success("access-token", DateTime.UtcNow.AddMinutes(30)));
         }
 
+        public Task<IReadOnlyCollection<SquareTeamMemberResult>> GetTeamMembersAsync(
+            Guid subscriptionId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
         public Task<SquareTokenExchangeResult> ExchangeAuthorizationCodeAsync(
             string authorizationCode,
             string redirectUri,

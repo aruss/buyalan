@@ -1,4 +1,4 @@
-namespace BuyAlan.Tests;
+namespace BuyAlan.WebApi.Tests;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -229,3 +229,5 @@ public class IdentityEndpointsSecurityTests
         });
     }
 }
+
+

@@ -6,6 +6,7 @@ public static class EmailTemplateKey
     public const string IdentityPasswordResetLink = "identity_password_reset_link";
     public const string IdentityPasswordResetCode = "identity_password_reset_code";
     public const string NewsletterConfirmation = "newsletter_confirmation";
+    public const string SubscriptionInvitation = "subscription_invitation";
     public const string Generic = "generic";
 
     private static readonly HashSet<string> AllKeys =
@@ -14,6 +15,7 @@ public static class EmailTemplateKey
         IdentityPasswordResetLink,
         IdentityPasswordResetCode,
         NewsletterConfirmation,
+        SubscriptionInvitation,
         Generic
     ];
 

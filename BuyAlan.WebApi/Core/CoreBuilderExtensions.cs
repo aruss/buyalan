@@ -7,6 +7,7 @@ using BuyAlan.Messaging;
 using BuyAlan.Newsletter;
 using BuyAlan.Onboarding;
 using BuyAlan.SendGridIntegration;
+using BuyAlan.Subscriptions;
 using BuyAlan.SquareIntegration;
 using BuyAlan.TelegramIntegration;
 
@@ -24,6 +25,7 @@ public static class CoreBuilderExtensions
         builder.AddEmailServices();
         builder.AddNewsletterServices();
         builder.AddMessagingServices();
+        builder.AddSubscriptionInvitationServices();
 
         // TODO: move to agents module
         builder.Services.AddScoped<ISubscriptionAgentService, SubscriptionAgentService>();

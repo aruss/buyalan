@@ -527,6 +527,26 @@ public static class IdentityEndpoints
         MainDataContext dbContext,
         CancellationToken cancellationToken = default)
     {
+        Guid? persistedActiveSubscriptionId = await dbContext.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.ActiveSubscriptionId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (persistedActiveSubscriptionId.HasValue)
+        {
+            bool persistedMembershipExists = await dbContext.SubscriptionUsers
+                .AnyAsync(
+                    membership =>
+                        membership.UserId == userId &&
+                        membership.SubscriptionId == persistedActiveSubscriptionId.Value,
+                    cancellationToken);
+
+            if (persistedMembershipExists)
+            {
+                return persistedActiveSubscriptionId.Value;
+            }
+        }
+
         Guid? activeSubscriptionId = await dbContext.SubscriptionUsers
             .Where(membership => membership.UserId == userId)
             .OrderBy(membership => membership.Role)
@@ -574,9 +594,14 @@ public static class IdentityEndpoints
 
         Subscription subscription = new()
         {
+            Id = Guid.NewGuid(),
             SubscriptionCreditBalance = 0,
             TopUpCreditBalance = 0
         };
+
+        ApplicationUser applicationUser = await dbContext.Users
+            .SingleAsync(user => user.Id == userId, cancellationToken);
+        applicationUser.ActiveSubscriptionId = subscription.Id;
 
         SubscriptionUser ownerMembership = new()
         {

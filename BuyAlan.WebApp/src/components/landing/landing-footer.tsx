@@ -15,15 +15,15 @@ export const LandingFooter = async (): Promise<ReactElement> => {
                     <Link href="/" className="mb-4 text-xl font-bold tracking-tight">
                         <span className="text-zinc-500">Buy</span>Alan
                     </Link>
-                    <p className="mb-6 max-w-sm text-sm text-zinc-500">
+                    <p className="mb-6 max-w-sm text-sm text-zinc-300">
                         Empowering Square merchants with autonomous conversational sales.
                     </p>
                     <NewsletterSubscriptionForm isInitiallySubmitted={isSubscribedForSession} />
                 </div>
 
                 <div>
-                    <h4 className="mb-4 text-sm font-semibold tracking-wider text-zinc-400 uppercase">Platform</h4>
-                    <ul className="space-y-3 text-sm text-zinc-500">
+                    <p className="mb-4 text-sm font-semibold tracking-wider text-zinc-300 uppercase">Platform</p>
+                    <ul className="space-y-3 text-sm text-zinc-300">
                         <li>
                             <Link href="#features" className="transition-colors hover:text-white">
                                 Features
@@ -43,8 +43,8 @@ export const LandingFooter = async (): Promise<ReactElement> => {
                 </div>
 
                 <div>
-                    <h4 className="mb-4 text-sm font-semibold tracking-wider text-zinc-400 uppercase">Legal</h4>
-                    <ul className="space-y-3 text-sm text-zinc-500">
+                    <p className="mb-4 text-sm font-semibold tracking-wider text-zinc-300 uppercase">Legal</p>
+                    <ul className="space-y-3 text-sm text-zinc-300">
                         <li>
                             <Link href="/terms" className="transition-colors hover:text-white">
                                 Terms of Service
@@ -69,8 +69,8 @@ export const LandingFooter = async (): Promise<ReactElement> => {
                 </div>
             </div>
             <div className="mx-auto mt-16 flex max-w-7xl flex-col items-center justify-between border-t border-zinc-900 px-6 pt-8 md:flex-row">
-                <p className="text-xs text-zinc-600">(c) 2026 BuyAlan. All rights reserved.</p>
-                <p className="mt-2 text-xs text-zinc-600 md:mt-0">Not affiliated with Block, Inc.</p>
+                <p className="text-xs text-zinc-400">(c) 2026 BuyAlan. All rights reserved.</p>
+                <p className="mt-2 text-xs text-zinc-400 md:mt-0">Not affiliated with Block, Inc.</p>
             </div>
         </footer>
     );

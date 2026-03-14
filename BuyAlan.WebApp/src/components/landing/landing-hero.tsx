@@ -23,7 +23,7 @@ export const LandingHero = (): ReactElement => {
                         Connect Square
                     </PrimaryActionButton>
                     <SecondaryActionButton
-                        href="#demo"
+                        href="/admin"
                         className="w-full sm:w-auto"
                     >
                         View Live Demo
@@ -31,7 +31,7 @@ export const LandingHero = (): ReactElement => {
                 </div>
 
                 <div className="mt-24 flex flex-col items-center border-t border-zinc-100 pt-10">
-                    <p className="mb-6 text-sm font-medium tracking-widest text-zinc-400 uppercase">Supported Channels</p>
+                    <p className="mb-6 text-sm font-medium tracking-widest text-zinc-600 uppercase">Supported Channels</p>
                     <div className="flex space-x-8 grayscale opacity-70">
                         <SiWhatsapp className="h-8 w-8" aria-hidden="true" />
                         <SiTelegram className="h-8 w-8" aria-hidden="true" />

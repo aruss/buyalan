@@ -49,7 +49,7 @@ export const LandingPricing = (): ReactElement => {
                             </li>
                         </ul>
                         <Link
-                            href="#"
+                            href="/admin"
                             className="mt-auto block w-full rounded-xl bg-zinc-100 px-4 py-3 text-center font-semibold text-zinc-900 transition-colors hover:bg-zinc-200"
                         >
                             Deploy Free
@@ -95,7 +95,7 @@ export const LandingPricing = (): ReactElement => {
                             </li>
                         </ul>
                         <Link
-                            href="#"
+                            href="/admin"
                             className="mt-auto block w-full rounded-xl bg-white px-4 py-3 text-center font-semibold text-zinc-900 transition-colors hover:bg-zinc-100"
                         >
                             Initialize Trial
@@ -138,7 +138,7 @@ export const LandingPricing = (): ReactElement => {
                             </li>
                         </ul>
                         <Link
-                            href="#"
+                            href="/admin"
                             className="mt-auto block w-full rounded-xl bg-zinc-100 px-4 py-3 text-center font-semibold text-zinc-900 transition-colors hover:bg-zinc-200"
                         >
                             Contact Integrations

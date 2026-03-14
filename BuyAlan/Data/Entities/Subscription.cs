@@ -11,6 +11,8 @@ public class Subscription : IEntityWithId, IEntityWithAudit
 
     public ICollection<SubscriptionUser> SubscriptionUsers { get; set; } = new List<SubscriptionUser>();
 
+    public ICollection<SubscriptionInvitation> Invitations { get; set; } = new List<SubscriptionInvitation>();
+
     public SubscriptionSquareConnection? SquareConnection { get; set; }
 
     public SubscriptionOnboardingState? OnboardingState { get; set; }

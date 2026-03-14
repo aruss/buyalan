@@ -12,10 +12,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Square;
 using Square.OAuth;
+using Square.TeamMembers;
 
 public sealed class SquareService : ISquareService
 {
     private const string DataProtectionPurpose = "SquareIntegration.TokenStore.v1";
+    private const int TeamMembersPageLimit = 100;
     private static readonly TimeSpan RefreshSkew = TimeSpan.FromMinutes(5);
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> RefreshLocks = new();
 
@@ -436,6 +438,77 @@ public sealed class SquareService : ISquareService
         }
     }
 
+    public async Task<IReadOnlyCollection<SquareTeamMemberResult>> GetTeamMembersAsync(
+        Guid subscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        SquareTokenResolution tokenResolution = await this.GetValidAccessTokenAsync(subscriptionId, cancellationToken);
+        if (tokenResolution is not SquareTokenResolution.Success tokenSuccess)
+        {
+            return [];
+        }
+
+        try
+        {
+            HttpClient httpClient = this.httpClientFactory.CreateClient("SquareOAuthClient");
+            string baseUrl = SquareIntegrationRules.ResolveOAuthBaseUrl(this.appOptions.SquareClientId!);
+            Dictionary<string, SquareTeamMemberResult> teamMembersByEmail = new(StringComparer.OrdinalIgnoreCase);
+            string? cursor = null;
+
+            do
+            {
+                HttpRequestMessage request = new(HttpMethod.Post, new Uri(new Uri(baseUrl), "/v2/team-members/search"));
+                request.Headers.Authorization = new global::System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenSuccess.AccessToken);
+                request.Content = new StringContent(
+                    JsonSerializer.Serialize(new
+                    {
+                        cursor,
+                        limit = TeamMembersPageLimit,
+                        query = new
+                        {
+                            filter = new
+                            {
+                                status = "ACTIVE"
+                            }
+                        }
+                    }),
+                    global::System.Text.Encoding.UTF8,
+                    "application/json");
+
+                using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    this.logger.LogInformation(
+                        "Square team member suggestions unavailable for subscription {SubscriptionId}. Response status: {StatusCode}.",
+                        subscriptionId,
+                        (int)response.StatusCode);
+                    return [];
+                }
+
+                string payload = await response.Content.ReadAsStringAsync(cancellationToken);
+                using JsonDocument document = JsonDocument.Parse(payload);
+                JsonElement root = document.RootElement;
+                this.UpsertTeamMembers(teamMembersByEmail, root);
+                cursor = TryGetString(root, "cursor");
+            }
+            while (!String.IsNullOrWhiteSpace(cursor));
+
+            List<SquareTeamMemberResult> results = teamMembersByEmail.Values
+                .OrderBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(item => item.Email, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return results;
+        }
+        catch (Exception exception)
+        {
+            this.logger.LogWarning(
+                exception,
+                "Failed loading Square team member suggestions for subscription {SubscriptionId}.",
+                subscriptionId);
+            return [];
+        }
+    }
     public async Task<SquareRevokeResult> RevokeAccessTokenAsync(
         string accessToken,
         CancellationToken cancellationToken = default)
@@ -721,6 +794,31 @@ public sealed class SquareService : ISquareService
         return false;
     }
 
+    private void UpsertTeamMembers(
+        Dictionary<string, SquareTeamMemberResult> teamMembersByEmail,
+        JsonElement root)
+    {
+        if (!root.TryGetProperty("team_members", out JsonElement teamMembersElement) ||
+            teamMembersElement.ValueKind != JsonValueKind.Array)
+        {
+            return;
+        }
+
+        foreach (JsonElement teamMemberElement in teamMembersElement.EnumerateArray())
+        {
+            string? email = NormalizeOptional(TryGetString(teamMemberElement, "email_address"));
+            if (String.IsNullOrWhiteSpace(email))
+            {
+                continue;
+            }
+
+            string displayName = ResolveTeamMemberDisplayName(
+                TryGetString(teamMemberElement, "given_name"),
+                TryGetString(teamMemberElement, "family_name"),
+                email);
+            teamMembersByEmail[email] = new SquareTeamMemberResult(displayName, email);
+        }
+    }
     private async Task<bool> IsSubscriptionOwnerAsync(
         Guid subscriptionId,
         Guid userId,
@@ -789,6 +887,42 @@ public sealed class SquareService : ISquareService
         }
 
         return rawOAuthError.Trim();
+    }
+
+    private static string? NormalizeOptional(string? value)
+    {
+        if (String.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return value.Trim();
+    }
+    private static string ResolveTeamMemberDisplayName(string? givenName, string? familyName, string email)
+    {
+        string? normalizedGivenName = NormalizeOptional(givenName);
+        string? normalizedFamilyName = NormalizeOptional(familyName);
+        string displayName = String.Join(
+            ' ',
+            new[] { normalizedGivenName, normalizedFamilyName }.Where(item => !String.IsNullOrWhiteSpace(item)));
+
+        if (!String.IsNullOrWhiteSpace(displayName))
+        {
+            return displayName;
+        }
+
+        return email;
+    }
+
+    private static string? TryGetString(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out JsonElement propertyValue) ||
+            propertyValue.ValueKind != JsonValueKind.String)
+        {
+            return null;
+        }
+
+        return propertyValue.GetString();
     }
 
     private static string ResolveOAuthErrorCode(string oauthError)

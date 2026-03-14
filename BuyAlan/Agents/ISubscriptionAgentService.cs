@@ -2,6 +2,29 @@ namespace BuyAlan.Agents;
 
 using BuyAlan.Data.Entities;
 
+public interface ISubscriptionAgentService
+{
+    Task<GetSubscriptionAgentsResult> GetAgentsAsync(
+        GetSubscriptionAgentsInput input,
+        CancellationToken cancellationToken = default);
+
+    Task<CreateSubscriptionAgentResult> CreateAgentAsync(
+        CreateSubscriptionAgentInput input,
+        CancellationToken cancellationToken = default);
+
+    Task<GetAgentResult> GetAgentAsync(
+        GetAgentInput input,
+        CancellationToken cancellationToken = default);
+
+    Task<UpdateAgentResult> UpdateAgentAsync(
+        UpdateAgentInput input,
+        CancellationToken cancellationToken = default);
+
+    Task<DeleteAgentResult> DeleteAgentAsync(
+        DeleteAgentInput input,
+        CancellationToken cancellationToken = default);
+}
+
 public sealed record GetSubscriptionAgentsInput(
     Guid SubscriptionId,
     Guid UserId);
@@ -84,26 +107,3 @@ public sealed record AgentDetailsResult(
     bool IsOperationalReady,
     DateTime CreatedAt,
     DateTime UpdatedAt);
-
-public interface ISubscriptionAgentService
-{
-    Task<GetSubscriptionAgentsResult> GetAgentsAsync(
-        GetSubscriptionAgentsInput input,
-        CancellationToken cancellationToken = default);
-
-    Task<CreateSubscriptionAgentResult> CreateAgentAsync(
-        CreateSubscriptionAgentInput input,
-        CancellationToken cancellationToken = default);
-
-    Task<GetAgentResult> GetAgentAsync(
-        GetAgentInput input,
-        CancellationToken cancellationToken = default);
-
-    Task<UpdateAgentResult> UpdateAgentAsync(
-        UpdateAgentInput input,
-        CancellationToken cancellationToken = default);
-
-    Task<DeleteAgentResult> DeleteAgentAsync(
-        DeleteAgentInput input,
-        CancellationToken cancellationToken = default);
-}

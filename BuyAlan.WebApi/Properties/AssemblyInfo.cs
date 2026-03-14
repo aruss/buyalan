@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("BuyAlan.Tests")]
+[assembly: InternalsVisibleTo("BuyAlan.WebApi.Tests")]

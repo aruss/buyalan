@@ -1,4 +1,4 @@
-namespace BuyAlan.Tests;
+namespace BuyAlan.WebApi.Tests;
 
 using Microsoft.EntityFrameworkCore;
 using BuyAlan.Data;
@@ -30,10 +30,13 @@ public class IdentityProvisioningTests
 
         Subscription subscription = await dbContext.Subscriptions
             .SingleAsync(item => item.Id == membership.SubscriptionId);
+        ApplicationUser persistedUser = await dbContext.Users
+            .SingleAsync(item => item.Id == userId);
 
         Assert.Equal(SubscriptionUserRole.Owner, membership.Role);
         Assert.Equal(0, subscription.SubscriptionCreditBalance);
         Assert.Equal(0, subscription.TopUpCreditBalance);
+        Assert.Equal(subscription.Id, persistedUser.ActiveSubscriptionId);
     }
 
     [Fact]

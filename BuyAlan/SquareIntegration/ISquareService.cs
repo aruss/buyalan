@@ -1,5 +1,43 @@
 namespace BuyAlan.SquareIntegration;
 
+
+
+public interface ISquareService
+{
+    Task<StartSquareConnectResult> StartConnectAsync(
+        StartSquareConnectInput input,
+        CancellationToken cancellationToken = default);
+
+    Task<CompleteSquareConnectResult> CompleteConnectAsync(
+        CompleteSquareConnectInput input,
+        CancellationToken cancellationToken = default);
+
+    Task<DisconnectSquareConnectionResult> DisconnectAsync(
+        DisconnectSquareConnectionInput input,
+        CancellationToken cancellationToken = default);
+
+    Task StoreConnectionAsync(
+        SquareTokenStoreInput input,
+        CancellationToken cancellationToken = default);
+
+    Task<SquareTokenResolution> GetValidAccessTokenAsync(
+        Guid subscriptionId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<SquareTeamMemberResult>> GetTeamMembersAsync(
+        Guid subscriptionId,
+        CancellationToken cancellationToken = default);
+
+    Task<SquareTokenExchangeResult> ExchangeAuthorizationCodeAsync(
+        string authorizationCode,
+        string redirectUri,
+        CancellationToken cancellationToken = default);
+
+    Task<SquareRevokeResult> RevokeAccessTokenAsync(
+        string accessToken,
+        CancellationToken cancellationToken = default);
+}
+
 public sealed record StartSquareConnectInput(
     Guid SubscriptionId,
     Guid UserId,
@@ -62,6 +100,10 @@ public sealed record SquareTokenExchangePayload(
     DateTime AccessTokenExpiresAtUtc,
     string[] Scopes);
 
+public sealed record SquareTeamMemberResult(
+    string DisplayName,
+    string Email);
+
 public abstract record SquareTokenExchangeResult
 {
     public sealed record Success(SquareTokenExchangePayload Payload) : SquareTokenExchangeResult;
@@ -76,36 +118,4 @@ public abstract record SquareRevokeResult
     public sealed record InvalidOrRevoked : SquareRevokeResult;
 
     public sealed record Failure(string ErrorCode) : SquareRevokeResult;
-}
-
-public interface ISquareService
-{
-    Task<StartSquareConnectResult> StartConnectAsync(
-        StartSquareConnectInput input,
-        CancellationToken cancellationToken = default);
-
-    Task<CompleteSquareConnectResult> CompleteConnectAsync(
-        CompleteSquareConnectInput input,
-        CancellationToken cancellationToken = default);
-
-    Task<DisconnectSquareConnectionResult> DisconnectAsync(
-        DisconnectSquareConnectionInput input,
-        CancellationToken cancellationToken = default);
-
-    Task StoreConnectionAsync(
-        SquareTokenStoreInput input,
-        CancellationToken cancellationToken = default);
-
-    Task<SquareTokenResolution> GetValidAccessTokenAsync(
-        Guid subscriptionId,
-        CancellationToken cancellationToken = default);
-
-    Task<SquareTokenExchangeResult> ExchangeAuthorizationCodeAsync(
-        string authorizationCode,
-        string redirectUri,
-        CancellationToken cancellationToken = default);
-
-    Task<SquareRevokeResult> RevokeAccessTokenAsync(
-        string accessToken,
-        CancellationToken cancellationToken = default);
 }

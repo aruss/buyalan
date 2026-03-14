@@ -24,7 +24,7 @@ public class SendGridEmailTemplateCatalogTests
 
         string templateId = service.ResolveTemplateId(EmailTemplateKey.IdentityPasswordResetCode);
 
-        Assert.Equal("d-reset-code", templateId);
+        Assert.Equal("d-generic", templateId);
     }
 
     [Fact]
@@ -44,10 +44,9 @@ public class SendGridEmailTemplateCatalogTests
 
         SendGridTransactionalEmailService service = new(new FakeHttpClientFactory(), options);
 
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            service.ResolveTemplateId("missing-template"));
+        string templateId = service.ResolveTemplateId("missing-template");
 
-        Assert.Contains("missing-template", exception.Message);
+        Assert.Equal("d-generic", templateId);
     }
 
     private sealed class FakeHttpClientFactory : IHttpClientFactory

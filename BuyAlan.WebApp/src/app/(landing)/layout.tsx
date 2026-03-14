@@ -19,7 +19,7 @@ export default function RootLayout({
             <body>
                 <div className="bg-white text-zinc-900 antialiased smooth-scroll selection:bg-zinc-900 selection:text-white">
                     <LandingNavigation />
-                    {children}
+                    <main>{children}</main>
                     <LandingFooter />
                 </div>
             </body>

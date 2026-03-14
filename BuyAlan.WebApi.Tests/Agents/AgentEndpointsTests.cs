@@ -1,4 +1,4 @@
-namespace BuyAlan.Tests;
+namespace BuyAlan.WebApi.Tests;
 
 using System.Reflection;
 using BuyAlan.WebApi.Agents;
@@ -44,3 +44,5 @@ public class AgentEndpointsTests
         return context;
     }
 }
+
+

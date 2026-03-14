@@ -37,9 +37,9 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - [x] Copy invitation link returns the currently stored invitation URL for the active invitation.
 
 ## Public Contracts and Internal Interfaces
-- [ ] Add `SubscriptionInvitation` entity to the core data model.
-- [ ] Add a persisted active subscription selector to `ApplicationUser`, e.g. `ActiveSubscriptionId`.
-- [ ] Extend `Subscription` with invitation navigation.
+- [x] Add `SubscriptionInvitation` entity to the core data model.
+- [x] Add a persisted active subscription selector to `ApplicationUser`, e.g. `ActiveSubscriptionId`.
+- [x] Extend `Subscription` with invitation navigation.
 - [ ] Add reusable `ITokenService` to generate high-entropy URL-safe opaque tokens for invitation links and future link-based flows.
 - [ ] Extend `ISquareService` with a `GetTeamMembersAsync` read operation returning minimal team-member data.
 - [ ] Add invitation-oriented DTOs following the existing `Input` / `Result` naming pattern:
@@ -57,26 +57,27 @@ Implement subscription-scoped team invitations across onboarding, member setting
   - [ ] Square team-member suggestions
   - [ ] available roles
 - [ ] Extend `EmailTemplateKey` and SendGrid template resolution with a new invitation template key.
+  - [ ] Keep SendGrid mapping optional; supported invitation keys may fall back to the generic template id when no dedicated config is present.
 
 ## Gate A - Data Model and Membership Context
-- [ ] Add `SubscriptionInvitation` entity with at least:
-  - [ ] `Id`
-  - [ ] `SubscriptionId`
-  - [ ] `Email`
-  - [ ] `Role`
-  - [ ] `Token`
-  - [ ] unique index on `Token`
-  - [ ] `InvitedByUserId`
-  - [ ] `SentAtUtc`
-  - [ ] `AcceptedAtUtc`
-  - [ ] `RevokedAtUtc`
-  - [ ] `ExpiresAtUtc`
-  - [ ] audit fields
-- [ ] Add `DbSet<SubscriptionInvitation>` and EF mapping in `MainDataContext`.
-- [ ] Add invitation navigation to `Subscription`.
-- [ ] Add persisted `ActiveSubscriptionId` to `ApplicationUser`.
-- [ ] Update current-user active-subscription resolution to prefer `ApplicationUser.ActiveSubscriptionId` when valid.
-- [ ] Fall back to current membership-order behavior when the persisted active subscription is null or no longer valid.
+- [x] Add `SubscriptionInvitation` entity with at least:
+  - [x] `Id`
+  - [x] `SubscriptionId`
+  - [x] `Email`
+  - [x] `Role`
+  - [x] `Token`
+  - [x] unique index on `Token`
+  - [x] `InvitedByUserId`
+  - [x] `SentAtUtc`
+  - [x] `AcceptedAtUtc`
+  - [x] `RevokedAtUtc`
+  - [x] `ExpiresAtUtc`
+  - [x] audit fields
+- [x] Add `DbSet<SubscriptionInvitation>` and EF mapping in `MainDataContext`.
+- [x] Add invitation navigation to `Subscription`.
+- [x] Add persisted `ActiveSubscriptionId` to `ApplicationUser`.
+- [x] Update current-user active-subscription resolution to prefer `ApplicationUser.ActiveSubscriptionId` when valid.
+- [x] Fall back to current membership-order behavior when the persisted active subscription is null or no longer valid.
 - [ ] Keep authorization and multi-tenant boundaries subscription-scoped.
 
 ### Gate A Acceptance Criteria
@@ -85,43 +86,50 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - [ ] Active subscription is explicitly persisted and no longer depends only on membership ordering.
 
 ## Gate B - Token Service, Invitation Domain Service, and Email Enqueue
-- [ ] Add a reusable `ITokenService` in `BuyAlan` to own opaque token generation.
-- [ ] Add a dedicated invitation service in `BuyAlan` to own invitation creation, resend, copy-link lookup, revoke, lookup, and acceptance rules.
-- [ ] Ensure invitation creation and any future invitation token rotation go through `ITokenService`, not ad hoc random generation.
-- [ ] Enforce invitation validation rules:
-  - [ ] email must be non-empty and normalized
-  - [ ] role must be supported
-  - [ ] duplicate active invite behavior is deterministic
-  - [ ] a subscription member cannot be re-invited
-  - [ ] accepting revoked, expired, invalid, or already-accepted invites is handled deterministically
-  - [ ] accepting user email must match invitation email
-- [ ] Generate invite links against the public WebApp base URL.
-- [ ] Enqueue invitation emails through `IEmailQueuingService` using `EmailSendRequested`.
-- [ ] Add a new email template key such as `subscription_invitation`.
-- [ ] Add SendGrid template configuration for the invitation template in the same shared config area used by M31.
-- [ ] Keep logging sanitized:
-  - [ ] no raw invite tokens in logs
-  - [ ] no full invite links in logs
-  - [ ] no unnecessary PII beyond masked email metadata
+- [x] Add a reusable `ITokenService` in `BuyAlan` to own opaque token generation.
+- [x] Add a dedicated invitation service in `BuyAlan` to own invitation creation, resend, copy-link lookup, revoke, lookup, and acceptance rules.
+- [x] Ensure invitation creation and any future invitation token rotation go through `ITokenService`, not ad hoc random generation.
+- [x] Enforce invitation validation rules:
+  - [x] email must be non-empty and normalized
+  - [x] role must be supported
+  - [x] duplicate active invites must reuse the existing active invitation row for the same subscription and normalized email
+  - [x] a subscription member cannot be re-invited
+  - [x] accepting revoked, expired, invalid, or already-accepted invites is handled deterministically
+  - [x] accepting user email must match invitation email
+- [x] Generate invite links against the public WebApp base URL.
+- [x] Enqueue invitation emails through `IEmailQueuingService` using `EmailSendRequested`.
+- [x] Add a new email template key such as `subscription_invitation`.
+- [x] Keep dedicated SendGrid template configuration optional; if no invitation template id is configured, the existing generic template fallback is acceptable for this milestone.
+- [x] Keep invitation template payload minimal for this milestone:
+  - [x] `invitation_url`
+  - [x] subscription display text
+- [x] Keep logging sanitized:
+  - [x] no raw invite tokens in logs
+  - [x] no full invite links in logs
+  - [x] no unnecessary PII beyond masked email metadata
+- [x] Treat invitation expiry as effectively indefinite for this milestone:
+  - [x] do not expire invitations by age in domain logic
+  - [x] persist a far-future `ExpiresAtUtc` sentinel because the column is required
 
 ### Gate B Acceptance Criteria
-- [ ] Creating or resending an invitation enqueues a transactional email through the shared mail service.
-- [ ] Invitation business rules live in one domain service rather than controllers.
-- [ ] Token generation is reusable through `ITokenService`.
-- [ ] Sensitive invitation data is not logged.
+- [x] Creating or resending an invitation enqueues a transactional email through the shared mail service.
+- [x] Invitation business rules live in one domain service rather than controllers.
+- [x] Token generation is reusable through `ITokenService`.
+- [x] Sensitive invitation data is not logged.
+- [x] Invitation emails work without requiring a dedicated SendGrid template mapping.
 
 ## Gate C - Square Team Member Read Model
-- [ ] Extend `ISquareService` and `SquareService` with `GetTeamMembersAsync`.
-- [ ] Use the existing Square connection/token resolution path for authenticated reads.
-- [ ] Return only minimal onboarding-safe fields:
-  - [ ] display name
-  - [ ] email
-- [ ] Filter out unusable suggestion rows that do not have an email address.
-- [ ] Treat missing Square connection, unsupported Team API states, and empty team lists as safe non-fatal states for onboarding UI.
+- [x] Extend `ISquareService` and `SquareService` with `GetTeamMembersAsync`.
+- [x] Use the existing Square connection/token resolution path for authenticated reads.
+- [x] Return only minimal onboarding-safe fields:
+  - [x] display name
+  - [x] email
+- [x] Filter out unusable suggestion rows that do not have an email address.
+- [x] Treat missing Square connection, unsupported Team API states, and empty team lists as safe non-fatal states for onboarding UI.
 
 ### Gate C Acceptance Criteria
-- [ ] Onboarding can load Square team-member suggestions from the connected merchant account.
-- [ ] Team-member reads reuse the consolidated Square service instead of duplicating client logic.
+- [x] Onboarding can load Square team-member suggestions from the connected merchant account.
+- [x] Team-member reads reuse the consolidated Square service instead of duplicating client logic.
 
 ## Gate D - WebApi Invitation and Member Management
 - [ ] Add owner-authorized subscription member-management endpoints for:
@@ -185,7 +193,7 @@ Implement subscription-scoped team invitations across onboarding, member setting
 ## Gate G - Admin Settings Members Page
 - [ ] Build `BuyAlan.WebApp/src/app/admin/settings/members/page.tsx` using existing admin primitives.
 - [ ] Add "invite team member" button that opens a drawer with:
-  - [ ] email input
+  - [x] email input
   - [ ] role dropdown
 - [ ] Add invitations table with actions:
   - [ ] delete
@@ -223,7 +231,7 @@ Implement subscription-scoped team invitations across onboarding, member setting
 ## Implementation Sequence
 - [ ] 1) Gate A: data model and persisted active subscription.
 - [ ] 2) Gate B: reusable token service, invitation domain service, and email enqueue integration.
-- [ ] 3) Gate C: Square team-member read support.
+- [x] 3) Gate C: Square team-member read support.
 - [ ] 4) Gate D: WebApi invitation and member-management endpoints.
 - [ ] 5) Gate E: auth and invite redemption flow.
 - [ ] 6) Gate F: onboarding invitations step.

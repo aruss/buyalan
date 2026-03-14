@@ -22,6 +22,8 @@ public class MainDataContext :
 
     public DbSet<SubscriptionUser> SubscriptionUsers { get; set; } = null!;
 
+    public DbSet<SubscriptionInvitation> SubscriptionInvitations { get; set; } = null!;
+
     public DbSet<CreditTransaction> CreditTransactions { get; set; } = null!;
 
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
@@ -71,8 +73,18 @@ public class MainDataContext :
         builder.Entity<ApplicationUser>(entity =>
         {
             entity.Property(e => e.DisplayName).IsRequired();
+            entity.Property(e => e.ActiveSubscriptionId).IsRequired(false);
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
+
+            entity.HasIndex(e => e.ActiveSubscriptionId);
+
+            entity
+                .HasOne(e => e.ActiveSubscription)
+                .WithMany()
+                .HasForeignKey(e => e.ActiveSubscriptionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         #endregion
@@ -98,6 +110,38 @@ public class MainDataContext :
                 .HasForeignKey(e => e.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SubscriptionInvitation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).IsRequired();
+            entity.Property(e => e.Role).IsRequired();
+            entity.Property(e => e.Token).IsRequired();
+            entity.Property(e => e.SentAtUtc).IsRequired();
+            entity.Property(e => e.AcceptedAtUtc).IsRequired(false);
+            entity.Property(e => e.RevokedAtUtc).IsRequired(false);
+            entity.Property(e => e.ExpiresAtUtc).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.HasIndex(e => new { e.SubscriptionId, e.Email });
+            entity.HasIndex(e => e.InvitedByUserId);
+
+            entity
+                .HasOne(e => e.Subscription)
+                .WithMany(e => e.Invitations)
+                .HasForeignKey(e => e.SubscriptionId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(e => e.InvitedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.InvitedByUserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Application entities 

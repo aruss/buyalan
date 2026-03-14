@@ -1,4 +1,4 @@
-namespace BuyAlan.Tests;
+namespace BuyAlan.WebApi.Tests;
 
 using System.Reflection;
 using System.Text.Json;

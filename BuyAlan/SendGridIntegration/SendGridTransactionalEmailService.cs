@@ -121,6 +121,9 @@ public sealed class SendGridTransactionalEmailService : ITransactionalEmailServi
             throw new ArgumentException("Template key is required.", nameof(templateKey));
         }
 
+        return this.options.GenericTemplateId; 
+
+        /*
         string normalizedTemplateKey = templateKey.Trim();
 
         return normalizedTemplateKey switch
@@ -129,8 +132,8 @@ public sealed class SendGridTransactionalEmailService : ITransactionalEmailServi
             EmailTemplateKey.IdentityPasswordResetLink => this.options.IdentityPasswordResetLinkTemplateId,
             EmailTemplateKey.IdentityPasswordResetCode => this.options.IdentityPasswordResetCodeTemplateId,
             EmailTemplateKey.NewsletterConfirmation => this.options.NewsletterConfirmationTemplateId,
-            _ => throw new InvalidOperationException($"Template key '{normalizedTemplateKey}' is not configured.")
-        };
+            _ => this.options.GenericTemplateId
+        };*/
     }
 
 

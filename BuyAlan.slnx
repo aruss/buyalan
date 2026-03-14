@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Tests/">
     <Project Path="BuyAlan.Tests/BuyAlan.Tests.csproj" />
+    <Project Path="BuyAlan.WebApi.Tests/BuyAlan.WebApi.Tests.csproj" />
   </Folder>
   <Project Path="BuyAlan.AppHost/BuyAlan.AppHost.csproj" />
   <Project Path="BuyAlan.Initializer/BuyAlan.Initializer.csproj" Id="e3d6f173-bda4-44ce-b23a-07cd5afef5e5" />
