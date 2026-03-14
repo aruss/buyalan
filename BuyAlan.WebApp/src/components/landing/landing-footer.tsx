@@ -1,12 +1,14 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { ReactElement } from "react";
+import { isFeatureEnabled } from "@/lib/feature-flags/server";
 import { NEWSLETTER_CONFIRMATION_COOKIE_NAME } from "./newsletter-constants";
 import { NewsletterSubscriptionForm } from "./newsletter-subscription-form";
 
 export const LandingFooter = async (): Promise<ReactElement> => {
     const cookieStore = await cookies();
     const isSubscribedForSession = cookieStore.get(NEWSLETTER_CONFIRMATION_COOKIE_NAME)?.value === "1";
+    const isPricingEnabled = isFeatureEnabled("landingPricingEnabled");
 
     return (
         <footer className="border-t border-zinc-800 bg-black py-16 text-white">
@@ -34,11 +36,13 @@ export const LandingFooter = async (): Promise<ReactElement> => {
                                 Merchant Dashboard
                             </Link>
                         </li>
-                        <li>
-                            <Link href="#pricing" className="transition-colors hover:text-white">
-                                Pricing
-                            </Link>
-                        </li>
+                        {isPricingEnabled ? (
+                            <li>
+                                <Link href="#pricing" className="transition-colors hover:text-white">
+                                    Pricing
+                                </Link>
+                            </li>
+                        ) : null}
                     </ul>
                 </div>
 

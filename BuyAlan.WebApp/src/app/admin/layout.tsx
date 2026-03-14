@@ -1,6 +1,8 @@
 import localFont from "next/font/local"
 import { cookies } from "next/headers"
 import "../globals.css"
+import { FeatureFlagsProvider } from "@/lib/feature-flags"
+import { getFeatureFlagSnapshot } from "@/lib/feature-flags/server"
 import { AdminShell } from "./admin-shell"
 
 const geistSans = localFont({
@@ -21,6 +23,7 @@ export default async function RootLayout({
 }) {
   const cookieStore = await cookies()
   const defaultOpen = cookieStore.get("sidebar:state")?.value === "true"
+  const featureFlagSnapshot = getFeatureFlagSnapshot()
 
   return (
     <html
@@ -31,7 +34,9 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} h-full bg-white antialiased dark:bg-gray-950`}
       >
-        <AdminShell defaultOpen={defaultOpen}>{children}</AdminShell>
+        <FeatureFlagsProvider snapshot={featureFlagSnapshot}>
+          <AdminShell defaultOpen={defaultOpen}>{children}</AdminShell>
+        </FeatureFlagsProvider>
       </body>
     </html>
   )

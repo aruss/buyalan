@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState, type ReactElement } from "react";
 import { LuMenu } from "react-icons/lu";
 import { PrimaryActionButton } from "@/components/landing/ui/action-buttons";
+import { useFeatureFlag } from "@/lib/feature-flags";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,6 +16,7 @@ import {
 export const LandingNavigation = (): ReactElement => {
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement | null>(null);
+    const isPricingEnabled = useFeatureFlag("landingPricingEnabled");
 
     const handleOpenChange = (open: boolean): void => {
         setIsOpen(open);
@@ -43,9 +45,11 @@ export const LandingNavigation = (): ReactElement => {
                     <Link href="#dashboard" className="transition-colors hover:text-zinc-500">
                         Merchant Dashboard
                     </Link>
-                    <Link href="#pricing" className="transition-colors hover:text-zinc-500">
-                        Pricing
-                    </Link>
+                    {isPricingEnabled ? (
+                        <Link href="#pricing" className="transition-colors hover:text-zinc-500">
+                            Pricing
+                        </Link>
+                    ) : null}
                     <Link href="#compliance" className="transition-colors hover:text-zinc-500">
                         Trust
                     </Link>
@@ -54,9 +58,11 @@ export const LandingNavigation = (): ReactElement => {
                     <Link href="/admin" className="hidden text-sm font-medium transition-colors hover:text-zinc-500 md:block">
                         Log In
                     </Link>
-                    <PrimaryActionButton href="/admin" size="sm" className="hidden md:inline-flex">
-                        Start Free Trial
-                    </PrimaryActionButton>
+                    {isPricingEnabled ? (
+                        <PrimaryActionButton href="/admin" size="sm" className="hidden md:inline-flex">
+                            Start Free Trial
+                        </PrimaryActionButton>
+                    ) : null}
                     <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
                         <DropdownMenuTrigger asChild>
                             <button
@@ -82,16 +88,22 @@ export const LandingNavigation = (): ReactElement => {
                             <DropdownMenuItem asChild onSelect={closeMenu}>
                                 <Link href="#dashboard">Merchant Dashboard</Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild onSelect={closeMenu}>
-                                <Link href="#pricing">Pricing</Link>
-                            </DropdownMenuItem>
+                            {isPricingEnabled ? (
+                                <DropdownMenuItem asChild onSelect={closeMenu}>
+                                    <Link href="#pricing">Pricing</Link>
+                                </DropdownMenuItem>
+                            ) : null}
                             <DropdownMenuItem asChild onSelect={closeMenu}>
                                 <Link href="#compliance">Trust</Link>
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild onSelect={closeMenu}>
-                                <Link href="/admin">Start Free Trial</Link>
-                            </DropdownMenuItem>
+                            {isPricingEnabled ? (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild onSelect={closeMenu}>
+                                        <Link href="/admin">Start Free Trial</Link>
+                                    </DropdownMenuItem>
+                                </>
+                            ) : null}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

@@ -141,6 +141,7 @@ if (runFronend) {
         .WaitFor(webapi)
         .WithOtlpExporter()
         .WithEnvironment("APP_VERSION", "1.2.3")
+        .WithEnvironment("FEATURE_FLAGS", builder.Configuration["FEATURE_FLAGS"])
         .WithEnvironment("WEBAPI_ENDPOINT", webapi.GetEndpoint("http"))
         .WithEnvironment("NODE_OPTIONS", "--inspect=0.0.0.0:9229");
 }
