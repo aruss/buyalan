@@ -12,7 +12,7 @@ export const LandingFooter = async (): Promise<ReactElement> => {
 
     return (
         <footer className="border-t border-zinc-800 bg-black py-16 text-white">
-            <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 md:grid-cols-4">
+            <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 md:gap-12 px-4 md:px-6 md:grid-cols-4">
                 <div className="md:col-span-2">
                     <Link href="/" className="mb-4 text-xl font-bold tracking-tight">
                         <span className="text-zinc-500">Buy</span>Alan
@@ -60,7 +60,7 @@ export const LandingFooter = async (): Promise<ReactElement> => {
                             </Link>
                         </li>
                         <li>
-                            <Link href="/privacy#cookies" className="transition-colors hover:text-white">
+                            <Link href="/cookies" className="transition-colors hover:text-white">
                                 Cookie Policy
                             </Link>
                         </li>
@@ -73,7 +73,7 @@ export const LandingFooter = async (): Promise<ReactElement> => {
                 </div>
             </div>
             <div className="mx-auto mt-16 flex max-w-7xl flex-col items-center justify-between border-t border-zinc-900 px-6 pt-8 md:flex-row">
-                <p className="text-xs text-zinc-400">(c) 2026 BuyAlan. All rights reserved.</p>
+                <p className="text-xs text-zinc-400">&copy; 2026 BuyAlan. A product of Atlas Delivery Software, Inc. All rights reserved.</p>
                 <p className="mt-2 text-xs text-zinc-400 md:mt-0">Not affiliated with Block, Inc.</p>
             </div>
         </footer>

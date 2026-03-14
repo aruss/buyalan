@@ -4,13 +4,13 @@ import { ReactElement } from "react";
 export const LandingPricing = (): ReactElement => {
     return (
         <section id="pricing" className="border-t border-zinc-100 bg-white py-24">
-            <div className="mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-7xl px-4 md:px-6">
                 <div className="mb-16 text-center">
                     <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-5xl">Scalable parameters.</h2>
                     <p className="text-xl font-light text-zinc-600">Bandwidth aligned with revenue growth.</p>
                 </div>
 
-                <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-3">
+                <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 md:gap-8 md:grid-cols-3">
                     <div className="flex flex-col rounded-3xl border border-zinc-200 bg-white p-8">
                         <h3 className="mb-2 text-xl font-bold">Starter</h3>
                         <div className="mb-6 text-4xl font-bold">

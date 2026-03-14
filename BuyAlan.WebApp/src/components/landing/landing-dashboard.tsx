@@ -4,7 +4,7 @@ import { LuCircleCheck } from "react-icons/lu";
 export const LandingDashboard = (): ReactElement => {
     return (
         <section id="dashboard" className="overflow-hidden py-24">
-            <div className="mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-7xl px-4 md:px-6">
                 <div className="flex flex-col items-center gap-16 lg:flex-row">
                     <div className="w-full lg:w-1/2">
                         <h2 className="mb-6 text-3xl font-bold tracking-tight md:text-5xl">Total merchant control.</h2>

@@ -1,10 +1,10 @@
 import { ReactElement } from "react";
-import { PrimaryActionButton, SecondaryActionButton } from "@/components/landing/ui/action-buttons";
+import { PrimaryActionButton } from "@/components/landing/ui/action-buttons";
 import { SiGooglemessages, SiTelegram, SiWhatsapp } from "react-icons/si";
 
 export const LandingHero = (): ReactElement => {
     return (
-        <section className="flex min-h-screen items-center px-6 pb-12 pt-24 md:pt-20">
+        <section className="flex min-h-screen items-center px-4 md:px-6 pb-12 pt-24 md:pt-20">
             <div className="mx-auto max-w-5xl text-center">
                 <h1 className="mb-8 text-5xl leading-tight font-bold tracking-tighter md:text-7xl">
                     Conversational Sales <br className="hidden md:block" /> for your <span className="bg-gradient-to-r from-zinc-900 to-zinc-500 bg-clip-text text-transparent">
@@ -22,20 +22,20 @@ export const LandingHero = (): ReactElement => {
                     >
                         Connect Square
                     </PrimaryActionButton>
-                    <SecondaryActionButton
+                    {/*<SecondaryActionButton
                         href="/admin"
                         className="w-full sm:w-auto"
                     >
                         View Live Demo
-                    </SecondaryActionButton>
+                    </SecondaryActionButton>*/}
                 </div>
 
                 <div className="mt-24 flex flex-col items-center border-t border-zinc-100 pt-10">
                     <p className="mb-6 text-sm font-medium tracking-widest text-zinc-600 uppercase">Supported Channels</p>
-                    <div className="flex space-x-8 grayscale opacity-70">
-                        <SiWhatsapp className="h-8 w-8" aria-hidden="true" />
-                        <SiTelegram className="h-8 w-8" aria-hidden="true" />
-                        <SiGooglemessages className="h-8 w-8" aria-hidden="true" />
+                    <div className="grid grid-cols-3 gap-8 grayscale opacity-70">
+                        <div className="flex flex-col items-center"><SiWhatsapp className="h-8 w-8 mb-1" aria-hidden="true" />WhatsApp</div>
+                        <div className="flex flex-col items-center"><SiTelegram className="h-8 w-8 mb-1" aria-hidden="true" />Telegram</div>
+                        <div className="flex flex-col items-center"><SiGooglemessages className="h-8 w-8 mb-1" aria-hidden="true" />SMS</div>
                     </div>
                 </div>
             </div>

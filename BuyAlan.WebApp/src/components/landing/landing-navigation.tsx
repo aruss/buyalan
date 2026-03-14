@@ -34,7 +34,7 @@ export const LandingNavigation = (): ReactElement => {
 
     return (
         <nav className="fixed top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md">
-            <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+            <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
                 <Link href="/" className="text-xl font-bold tracking-tight">
                     <span className="text-zinc-500">Buy</span>Alan
                 </Link>

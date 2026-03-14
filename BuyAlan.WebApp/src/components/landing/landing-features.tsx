@@ -4,7 +4,7 @@ import { LuCalendarDays, LuCreditCard, LuSearch, LuTrendingUp } from "react-icon
 export const LandingFeatures = (): ReactElement => {
     return (
         <section id="features" className="border-y border-zinc-100 bg-zinc-50 py-24">
-            <div className="mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-7xl px-4 md:px-6">
                 <div className="mb-16 md:w-2/3">
                     <h2 className="mb-6 text-3xl font-bold tracking-tight md:text-5xl">
                         Seamless shopping,
@@ -17,7 +17,7 @@ export const LandingFeatures = (): ReactElement => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
                     <div className="rounded-3xl border border-zinc-100 bg-white p-8 shadow-sm transition-shadow hover:shadow-md">
                         <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-900">
                             <LuSearch className="h-6 w-6" aria-hidden="true" />

@@ -2,6 +2,7 @@
 
 import { ReactElement, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { postNewsletterConfirm } from "@/lib/api";
 import { NEWSLETTER_CONFIRMATION_COOKIE_NAME } from "@/components/landing/newsletter-constants";
 
 const REDIRECT_DELAY_MS = 2500;
@@ -12,12 +13,11 @@ function markNewsletterCookie(): void {
 }
 
 async function confirmSubscriptionAsync(token: string): Promise<void> {
-    await fetch("/api/newsletter/confirmations", {
-        method: "POST",
-        headers: {
-            "content-type": "application/json"
+    await postNewsletterConfirm({
+        body: {
+            token
         },
-        body: JSON.stringify({ token })
+        throwOnError: true
     });
 }
 
