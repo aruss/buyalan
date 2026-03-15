@@ -43,7 +43,7 @@ services:
   tempo:
     image: "grafana/tempo:latest"
     volumes:
-      - "tempo_data:/var/tempo"
+      - "tempo-data:/var/tempo"
     networks:
       - coolify
       - default
@@ -65,3 +65,8 @@ services:
 networks:
   coolify:
     external: true
+
+volumes:
+  grafana-data:
+  loki-data:
+  tempo-data:
