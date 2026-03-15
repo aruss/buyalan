@@ -39,18 +39,18 @@ export const LandingNavigation = (): ReactElement => {
                     <span className="text-zinc-500">Buy</span>Alan
                 </Link>
                 <div className="hidden space-x-8 text-sm font-medium md:flex">
-                    <Link href="#features" className="transition-colors hover:text-zinc-500">
+                    <Link href="/#features" className="transition-colors hover:text-zinc-500">
                         Features
                     </Link>
-                    <Link href="#dashboard" className="transition-colors hover:text-zinc-500">
+                    <Link href="/#dashboard" className="transition-colors hover:text-zinc-500">
                         Merchant Dashboard
                     </Link>
                     {isPricingEnabled ? (
-                        <Link href="#pricing" className="transition-colors hover:text-zinc-500">
+                        <Link href="/#pricing" className="transition-colors hover:text-zinc-500">
                             Pricing
                         </Link>
                     ) : null}
-                    <Link href="#compliance" className="transition-colors hover:text-zinc-500">
+                    <Link href="/#compliance" className="transition-colors hover:text-zinc-500">
                         Trust
                     </Link>
                 </div>
@@ -83,18 +83,18 @@ export const LandingNavigation = (): ReactElement => {
                             }}
                         >
                             <DropdownMenuItem asChild onSelect={closeMenu}>
-                                <Link href="#features">Features</Link>
+                                <Link href="/#features">Features</Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild onSelect={closeMenu}>
-                                <Link href="#dashboard">Merchant Dashboard</Link>
+                                <Link href="/#dashboard">Merchant Dashboard</Link>
                             </DropdownMenuItem>
                             {isPricingEnabled ? (
                                 <DropdownMenuItem asChild onSelect={closeMenu}>
-                                    <Link href="#pricing">Pricing</Link>
+                                    <Link href="/#pricing">Pricing</Link>
                                 </DropdownMenuItem>
                             ) : null}
                             <DropdownMenuItem asChild onSelect={closeMenu}>
-                                <Link href="#compliance">Trust</Link>
+                                <Link href="/#compliance">Trust</Link>
                             </DropdownMenuItem>
                             {isPricingEnabled ? (
                                 <>

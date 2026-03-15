@@ -124,6 +124,14 @@ export type DeleteAgentResult = {
     deleted: boolean;
 };
 
+export type DeleteSubscriptionInvitationResult = {
+    revoked: boolean;
+};
+
+export type DeleteSubscriptionMemberResult = {
+    deleted: boolean;
+};
+
 export type DeleteSubscriptionSquareConnectionResult = {
     disconnected: boolean;
 };
@@ -170,6 +178,22 @@ export type GetExternalLoginProvidersResult = {
     providers: Array<ExternalLoginProviderItem>;
 };
 
+export type GetSubscriptionInvitationByTokenResult = {
+    status: string;
+    invitation: SubscriptionInvitationLookupItem;
+};
+
+export type GetSubscriptionInvitationLinkResult = {
+    invitationUrl: string;
+};
+
+export type GetSubscriptionMembersResult = {
+    subscriptionId: string;
+    invitations: Array<SubscriptionInvitationItem>;
+    members: Array<SubscriptionMemberItem>;
+    availableRoles: Array<SubscriptionUserRole>;
+};
+
 export type GetSubscriptionOnboardingStateResult = {
     status: string;
     currentStep: string;
@@ -178,6 +202,7 @@ export type GetSubscriptionOnboardingStateResult = {
     canFinalize: boolean;
     profilePrefill: OnboardingProfilePrefill;
     channelsPrefill: OnboardingChannelsPrefill;
+    invitations: OnboardingInvitationStepResult;
 };
 
 export type GetSubscriptionSquareCatalogProductsResult = {
@@ -259,6 +284,13 @@ export type OnboardingErrorResult = {
     message: string;
 };
 
+export type OnboardingInvitationStepResult = {
+    invitations: Array<SubscriptionInvitationItem>;
+    members: Array<SubscriptionMemberItem>;
+    suggestions: Array<SquareTeamMemberSuggestionItem>;
+    availableRoles: Array<SubscriptionUserRole>;
+};
+
 export type OnboardingProfilePrefill = {
     name: null | string;
     personality: null | AgentPersonality;
@@ -291,6 +323,17 @@ export type PostAgentInput = {
     whatsappNumber: null | string;
 };
 
+export type PostSubscriptionInvitationAcceptResult = {
+    status: string;
+    subscriptionId: string;
+    membershipCreated: boolean;
+};
+
+export type PostSubscriptionInvitationInput = {
+    email: null | string;
+    role: null | SubscriptionUserRole;
+};
+
 export type PostSubscriptionSquareCatalogSyncResult = {
     enqueued: boolean;
 };
@@ -311,6 +354,10 @@ export type PutAgentSalesZipCodesInput = {
     zipCodes: Array<string>;
 };
 
+export type PutSubscriptionMemberRoleInput = {
+    role: null | SubscriptionUserRole;
+};
+
 export type SortInfo = {
     field: string;
     isAsc: boolean;
@@ -321,12 +368,58 @@ export type SquareConnectionErrorResult = {
     message: string;
 };
 
+export type SquareTeamMemberSuggestionItem = {
+    displayName: string;
+    email: string;
+};
+
 export type StartSubscriptionSquareConnectAuthorizeResult = {
     authorizeUrl: string;
 };
 
 export type SubscriptionCatalogSyncErrorResult = {
     errorCode: string;
+    message: string;
+};
+
+export type SubscriptionInvitationItem = {
+    invitationId: string;
+    email: string;
+    role: SubscriptionUserRole;
+    status: string;
+    sentAtUtc: string;
+    acceptedAtUtc: null | string;
+    revokedAtUtc: null | string;
+    expiresAtUtc: string;
+    invitedByUserId: string;
+    invitedByDisplayName: string;
+    canResend: boolean;
+    canCopyLink: boolean;
+    canRevoke: boolean;
+};
+
+export type SubscriptionInvitationLookupItem = {
+    invitationId: string;
+    subscriptionId: string;
+    maskedEmail: string;
+    role: SubscriptionUserRole;
+    sentAtUtc: string;
+    subscriptionDisplayText: string;
+};
+
+export type SubscriptionMemberItem = {
+    userId: string;
+    email: string;
+    displayName: string;
+    role: SubscriptionUserRole;
+    joinedAtUtc: string;
+    isCurrentUser: boolean;
+    canUpdateRole: boolean;
+    canDelete: boolean;
+};
+
+export type SubscriptionMemberManagementErrorResult = {
+    code: string;
     message: string;
 };
 
@@ -344,6 +437,8 @@ export type SubscriptionSquareCatalogProductItem = {
     squareUpdatedAtUtc: null | string;
     locationCount: number;
 };
+
+export type SubscriptionUserRole = number;
 
 export type TelegramChatInput = {
     id?: number;
@@ -451,6 +546,68 @@ export type GetSubscriptionsSquareCallbackResponses = {
      */
     200: unknown;
 };
+
+export type GetSubscriptionInvitationsByTokenData = {
+    body?: never;
+    path: {
+        token: string;
+    };
+    query?: never;
+    url: '/subscription-invitations/{token}';
+};
+
+export type GetSubscriptionInvitationsByTokenErrors = {
+    /**
+     * Not Found
+     */
+    404: SubscriptionMemberManagementErrorResult;
+};
+
+export type GetSubscriptionInvitationsByTokenError = GetSubscriptionInvitationsByTokenErrors[keyof GetSubscriptionInvitationsByTokenErrors];
+
+export type GetSubscriptionInvitationsByTokenResponses = {
+    /**
+     * OK
+     */
+    200: GetSubscriptionInvitationByTokenResult;
+};
+
+export type GetSubscriptionInvitationsByTokenResponse = GetSubscriptionInvitationsByTokenResponses[keyof GetSubscriptionInvitationsByTokenResponses];
+
+export type PostSubscriptionInvitationsByTokenAcceptData = {
+    body?: never;
+    path: {
+        token: string;
+    };
+    query?: never;
+    url: '/subscription-invitations/{token}/accept';
+};
+
+export type PostSubscriptionInvitationsByTokenAcceptErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubscriptionMemberManagementErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionMemberManagementErrorResult;
+    /**
+     * Not Found
+     */
+    404: SubscriptionMemberManagementErrorResult;
+};
+
+export type PostSubscriptionInvitationsByTokenAcceptError = PostSubscriptionInvitationsByTokenAcceptErrors[keyof PostSubscriptionInvitationsByTokenAcceptErrors];
+
+export type PostSubscriptionInvitationsByTokenAcceptResponses = {
+    /**
+     * OK
+     */
+    200: PostSubscriptionInvitationAcceptResult;
+};
+
+export type PostSubscriptionInvitationsByTokenAcceptResponse = PostSubscriptionInvitationsByTokenAcceptResponses[keyof PostSubscriptionInvitationsByTokenAcceptResponses];
 
 export type IngestTextData = {
     body: IngestTwilioTextInput;
@@ -1337,6 +1494,272 @@ export type DeleteSubscriptionsBySubscriptionIdSquareConnectionResponses = {
 
 export type DeleteSubscriptionsBySubscriptionIdSquareConnectionResponse = DeleteSubscriptionsBySubscriptionIdSquareConnectionResponses[keyof DeleteSubscriptionsBySubscriptionIdSquareConnectionResponses];
 
+export type GetSubscriptionsBySubscriptionIdMembersData = {
+    body?: never;
+    path: {
+        subscriptionId: string;
+    };
+    query?: never;
+    url: '/subscriptions/{subscriptionId}/members';
+};
+
+export type GetSubscriptionsBySubscriptionIdMembersErrors = {
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionMemberManagementErrorResult;
+    /**
+     * Forbidden
+     */
+    403: SubscriptionMemberManagementErrorResult;
+};
+
+export type GetSubscriptionsBySubscriptionIdMembersError = GetSubscriptionsBySubscriptionIdMembersErrors[keyof GetSubscriptionsBySubscriptionIdMembersErrors];
+
+export type GetSubscriptionsBySubscriptionIdMembersResponses = {
+    /**
+     * OK
+     */
+    200: GetSubscriptionMembersResult;
+};
+
+export type GetSubscriptionsBySubscriptionIdMembersResponse = GetSubscriptionsBySubscriptionIdMembersResponses[keyof GetSubscriptionsBySubscriptionIdMembersResponses];
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsData = {
+    body: PostSubscriptionInvitationInput;
+    path: {
+        subscriptionId: string;
+    };
+    query?: never;
+    url: '/subscriptions/{subscriptionId}/members/invitations';
+};
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubscriptionMemberManagementErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionMemberManagementErrorResult;
+    /**
+     * Forbidden
+     */
+    403: SubscriptionMemberManagementErrorResult;
+};
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsError = PostSubscriptionsBySubscriptionIdMembersInvitationsErrors[keyof PostSubscriptionsBySubscriptionIdMembersInvitationsErrors];
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsResponses = {
+    /**
+     * OK
+     */
+    200: SubscriptionInvitationItem;
+};
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsResponse = PostSubscriptionsBySubscriptionIdMembersInvitationsResponses[keyof PostSubscriptionsBySubscriptionIdMembersInvitationsResponses];
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendData = {
+    body?: never;
+    path: {
+        subscriptionId: string;
+        invitationId: string;
+    };
+    query?: never;
+    url: '/subscriptions/{subscriptionId}/members/invitations/{invitationId}/resend';
+};
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubscriptionMemberManagementErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionMemberManagementErrorResult;
+    /**
+     * Forbidden
+     */
+    403: SubscriptionMemberManagementErrorResult;
+    /**
+     * Not Found
+     */
+    404: SubscriptionMemberManagementErrorResult;
+};
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendError = PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendErrors[keyof PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendErrors];
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendResponses = {
+    /**
+     * OK
+     */
+    200: SubscriptionInvitationItem;
+};
+
+export type PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendResponse = PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendResponses[keyof PostSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResendResponses];
+
+export type GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkData = {
+    body?: never;
+    path: {
+        subscriptionId: string;
+        invitationId: string;
+    };
+    query?: never;
+    url: '/subscriptions/{subscriptionId}/members/invitations/{invitationId}/link';
+};
+
+export type GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubscriptionMemberManagementErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionMemberManagementErrorResult;
+    /**
+     * Forbidden
+     */
+    403: SubscriptionMemberManagementErrorResult;
+    /**
+     * Not Found
+     */
+    404: SubscriptionMemberManagementErrorResult;
+};
+
+export type GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkError = GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkErrors[keyof GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkErrors];
+
+export type GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkResponses = {
+    /**
+     * OK
+     */
+    200: GetSubscriptionInvitationLinkResult;
+};
+
+export type GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkResponse = GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkResponses[keyof GetSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdLinkResponses];
+
+export type DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdData = {
+    body?: never;
+    path: {
+        subscriptionId: string;
+        invitationId: string;
+    };
+    query?: never;
+    url: '/subscriptions/{subscriptionId}/members/invitations/{invitationId}';
+};
+
+export type DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubscriptionMemberManagementErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionMemberManagementErrorResult;
+    /**
+     * Forbidden
+     */
+    403: SubscriptionMemberManagementErrorResult;
+    /**
+     * Not Found
+     */
+    404: SubscriptionMemberManagementErrorResult;
+};
+
+export type DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdError = DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdErrors[keyof DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdErrors];
+
+export type DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResponses = {
+    /**
+     * OK
+     */
+    200: DeleteSubscriptionInvitationResult;
+};
+
+export type DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResponse = DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResponses[keyof DeleteSubscriptionsBySubscriptionIdMembersInvitationsByInvitationIdResponses];
+
+export type PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleData = {
+    body: PutSubscriptionMemberRoleInput;
+    path: {
+        subscriptionId: string;
+        memberUserId: string;
+    };
+    query?: never;
+    url: '/subscriptions/{subscriptionId}/members/{memberUserId}/role';
+};
+
+export type PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubscriptionMemberManagementErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionMemberManagementErrorResult;
+    /**
+     * Forbidden
+     */
+    403: SubscriptionMemberManagementErrorResult;
+    /**
+     * Not Found
+     */
+    404: SubscriptionMemberManagementErrorResult;
+};
+
+export type PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleError = PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleErrors[keyof PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleErrors];
+
+export type PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleResponses = {
+    /**
+     * OK
+     */
+    200: SubscriptionMemberItem;
+};
+
+export type PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleResponse = PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleResponses[keyof PutSubscriptionsBySubscriptionIdMembersByMemberUserIdRoleResponses];
+
+export type DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdData = {
+    body?: never;
+    path: {
+        subscriptionId: string;
+        memberUserId: string;
+    };
+    query?: never;
+    url: '/subscriptions/{subscriptionId}/members/{memberUserId}';
+};
+
+export type DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubscriptionMemberManagementErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: SubscriptionMemberManagementErrorResult;
+    /**
+     * Forbidden
+     */
+    403: SubscriptionMemberManagementErrorResult;
+    /**
+     * Not Found
+     */
+    404: SubscriptionMemberManagementErrorResult;
+};
+
+export type DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdError = DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdErrors[keyof DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdErrors];
+
+export type DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdResponses = {
+    /**
+     * OK
+     */
+    200: DeleteSubscriptionMemberResult;
+};
+
+export type DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdResponse = DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdResponses[keyof DeleteSubscriptionsBySubscriptionIdMembersByMemberUserIdResponses];
+
 export type GetOnboardingSubscriptionsActiveData = {
     body?: never;
     path?: never;
@@ -1517,7 +1940,7 @@ export type PatchOnboardingAgentsByAgentIdChannelsResponses = {
 export type PatchOnboardingAgentsByAgentIdChannelsResponse = PatchOnboardingAgentsByAgentIdChannelsResponses[keyof PatchOnboardingAgentsByAgentIdChannelsResponses];
 
 export type PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsData = {
-    body?: never;
+    body: PostSubscriptionInvitationInput;
     path: {
         subscriptionId: string;
     };
@@ -1554,6 +1977,45 @@ export type PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsRespons
 };
 
 export type PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsResponse = PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsResponses[keyof PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsResponses];
+
+export type PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteData = {
+    body?: never;
+    path: {
+        subscriptionId: string;
+    };
+    query?: never;
+    url: '/onboarding/subscriptions/{subscriptionId}/members/invitations/complete';
+};
+
+export type PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteErrors = {
+    /**
+     * Bad Request
+     */
+    400: OnboardingErrorResult;
+    /**
+     * Unauthorized
+     */
+    401: OnboardingErrorResult;
+    /**
+     * Forbidden
+     */
+    403: OnboardingErrorResult;
+    /**
+     * Not Found
+     */
+    404: OnboardingErrorResult;
+};
+
+export type PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteError = PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteErrors[keyof PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteErrors];
+
+export type PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteResponses = {
+    /**
+     * OK
+     */
+    200: GetSubscriptionOnboardingStateResult;
+};
+
+export type PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteResponse = PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteResponses[keyof PostOnboardingSubscriptionsBySubscriptionIdMembersInvitationsCompleteResponses];
 
 export type PostOnboardingSubscriptionsBySubscriptionIdFinalizeData = {
     body?: never;

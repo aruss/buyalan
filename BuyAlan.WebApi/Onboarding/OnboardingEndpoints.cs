@@ -1,11 +1,13 @@
 namespace BuyAlan.WebApi.Onboarding;
 
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using BuyAlan.Data;
 using BuyAlan.Data.Entities;
 using BuyAlan.Onboarding;
+using BuyAlan.Subscriptions;
+using BuyAlan.WebApi.Subscriptions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ServiceCreateAgentResult = BuyAlan.Onboarding.CreateSubscriptionOnboardingAgentResult;
 using ServiceGetStateResult = BuyAlan.Onboarding.GetSubscriptionOnboardingStateResult;
@@ -68,6 +70,16 @@ public static class OnboardingEndpoints
         onboardingGroup
             .MapPost(
                 "/subscriptions/{subscriptionId:guid}/members/invitations",
+                PostOnboardingSubscriptionInvitationAsync)
+            .Produces<GetSubscriptionOnboardingStateResult>(StatusCodes.Status200OK)
+            .Produces<OnboardingErrorResult>(StatusCodes.Status400BadRequest)
+            .Produces<OnboardingErrorResult>(StatusCodes.Status401Unauthorized)
+            .Produces<OnboardingErrorResult>(StatusCodes.Status403Forbidden)
+            .Produces<OnboardingErrorResult>(StatusCodes.Status404NotFound);
+
+        onboardingGroup
+            .MapPost(
+                "/subscriptions/{subscriptionId:guid}/members/invitations/complete",
                 CompleteOnboardingInvitationsAsync)
             .Produces<GetSubscriptionOnboardingStateResult>(StatusCodes.Status200OK)
             .Produces<OnboardingErrorResult>(StatusCodes.Status400BadRequest)
@@ -122,6 +134,8 @@ public static class OnboardingEndpoints
         [FromQuery] bool resumeMode,
         ClaimsPrincipal user,
         ISubscriptionOnboardingService onboardingService,
+        MainDataContext dbContext,
+        BuyAlan.SquareIntegration.ISquareService squareService,
         CancellationToken cancellationToken)
     {
         Guid? userId = user.GetUserId();
@@ -142,13 +156,21 @@ public static class OnboardingEndpoints
         }
 
         ServiceGetStateResult.Success success = (ServiceGetStateResult.Success)result;
-        return TypedResults.Ok(ToEndpointResult(success.State));
+        return TypedResults.Ok(await ToEndpointResultAsync(
+            subscriptionId,
+            userId.Value,
+            success.State,
+            dbContext,
+            squareService,
+            cancellationToken));
     }
 
     private static async Task<IResult> CreateSubscriptionOnboardingAgentAsync(
         [FromRoute] Guid subscriptionId,
         ClaimsPrincipal user,
         ISubscriptionOnboardingService onboardingService,
+        MainDataContext dbContext,
+        BuyAlan.SquareIntegration.ISquareService squareService,
         CancellationToken cancellationToken)
     {
         Guid? userId = user.GetUserId();
@@ -171,7 +193,13 @@ public static class OnboardingEndpoints
 
         return TypedResults.Ok(new BuyAlan.WebApi.Onboarding.CreateSubscriptionOnboardingAgentResult(
             success.AgentId,
-            ToEndpointResult(success.State)));
+            await ToEndpointResultAsync(
+                subscriptionId,
+                userId.Value,
+                success.State,
+                dbContext,
+                squareService,
+                cancellationToken)));
     }
 
     private static async Task<IResult> PatchOnboardingAgentProfileAsync(
@@ -179,12 +207,23 @@ public static class OnboardingEndpoints
         [FromBody] PatchOnboardingAgentProfileInput input,
         ClaimsPrincipal user,
         ISubscriptionOnboardingService onboardingService,
+        MainDataContext dbContext,
+        BuyAlan.SquareIntegration.ISquareService squareService,
         CancellationToken cancellationToken)
     {
         Guid? userId = user.GetUserId();
         if (userId is null)
         {
             return UnauthorizedError("unauthenticated");
+        }
+
+        Agent? agent = await dbContext.Agents
+            .AsNoTracking()
+            .SingleOrDefaultAsync(item => item.Id == agentId, cancellationToken);
+
+        if (agent is null)
+        {
+            return MapError("agent_not_found");
         }
 
         UpdateSubscriptionOnboardingStepResult result = await onboardingService.UpdateProfileAsync(
@@ -197,7 +236,13 @@ public static class OnboardingEndpoints
         }
 
         UpdateSubscriptionOnboardingStepResult.Success success = (UpdateSubscriptionOnboardingStepResult.Success)result;
-        return TypedResults.Ok(ToEndpointResult(success.State));
+        return TypedResults.Ok(await ToEndpointResultAsync(
+            agent.SubscriptionId,
+            userId.Value,
+            success.State,
+            dbContext,
+            squareService,
+            cancellationToken));
     }
 
     private static async Task<IResult> PatchOnboardingAgentChannelsAsync(
@@ -205,12 +250,23 @@ public static class OnboardingEndpoints
         [FromBody] PatchOnboardingAgentChannelsInput input,
         ClaimsPrincipal user,
         ISubscriptionOnboardingService onboardingService,
+        MainDataContext dbContext,
+        BuyAlan.SquareIntegration.ISquareService squareService,
         CancellationToken cancellationToken)
     {
         Guid? userId = user.GetUserId();
         if (userId is null)
         {
             return UnauthorizedError("unauthenticated");
+        }
+
+        Agent? agent = await dbContext.Agents
+            .AsNoTracking()
+            .SingleOrDefaultAsync(item => item.Id == agentId, cancellationToken);
+
+        if (agent is null)
+        {
+            return MapError("agent_not_found");
         }
 
         UpdateSubscriptionOnboardingStepResult result = await onboardingService.UpdateChannelsAsync(
@@ -228,13 +284,73 @@ public static class OnboardingEndpoints
         }
 
         UpdateSubscriptionOnboardingStepResult.Success success = (UpdateSubscriptionOnboardingStepResult.Success)result;
-        return TypedResults.Ok(ToEndpointResult(success.State));
+        return TypedResults.Ok(await ToEndpointResultAsync(
+            agent.SubscriptionId,
+            userId.Value,
+            success.State,
+            dbContext,
+            squareService,
+            cancellationToken));
+    }
+
+    private static async Task<IResult> PostOnboardingSubscriptionInvitationAsync(
+        [FromRoute] Guid subscriptionId,
+        [FromBody] PostSubscriptionInvitationInput input,
+        ClaimsPrincipal user,
+        MainDataContext dbContext,
+        ISubscriptionInvitationService invitationService,
+        ISubscriptionOnboardingService onboardingService,
+        BuyAlan.SquareIntegration.ISquareService squareService,
+        CancellationToken cancellationToken)
+    {
+        Guid? userId = user.GetUserId();
+        if (userId is null)
+        {
+            return UnauthorizedError("unauthenticated");
+        }
+
+        bool isOwner = await dbContext.SubscriptionUsers
+            .AnyAsync(
+                membership =>
+                    membership.SubscriptionId == subscriptionId &&
+                    membership.UserId == userId.Value &&
+                    membership.Role == SubscriptionUserRole.Owner,
+                cancellationToken);
+
+        if (!isOwner)
+        {
+            return MapError("subscription_owner_required");
+        }
+
+        CreateSubscriptionInvitationResult result = await invitationService.CreateAsync(
+            new CreateSubscriptionInvitationInput(
+                subscriptionId,
+                userId.Value,
+                input.Email,
+                input.Role ?? SubscriptionUserRole.Member),
+            cancellationToken);
+
+        if (result is CreateSubscriptionInvitationResult.Failure failure)
+        {
+            return MapError(failure.ErrorCode);
+        }
+
+        OnboardingStateResult state = await onboardingService.RecomputeStateAsync(subscriptionId, cancellationToken);
+        return TypedResults.Ok(await ToEndpointResultAsync(
+            subscriptionId,
+            userId.Value,
+            state,
+            dbContext,
+            squareService,
+            cancellationToken));
     }
 
     private static async Task<IResult> CompleteOnboardingInvitationsAsync(
         [FromRoute] Guid subscriptionId,
         ClaimsPrincipal user,
         ISubscriptionOnboardingService onboardingService,
+        MainDataContext dbContext,
+        BuyAlan.SquareIntegration.ISquareService squareService,
         CancellationToken cancellationToken)
     {
         Guid? userId = user.GetUserId();
@@ -254,7 +370,13 @@ public static class OnboardingEndpoints
         }
 
         UpdateSubscriptionOnboardingStepResult.Success success = (UpdateSubscriptionOnboardingStepResult.Success)result;
-        return TypedResults.Ok(ToEndpointResult(success.State));
+        return TypedResults.Ok(await ToEndpointResultAsync(
+            subscriptionId,
+            userId.Value,
+            success.State,
+            dbContext,
+            squareService,
+            cancellationToken));
     }
 
     private static async Task<IResult> FinalizeOnboardingAsync(
@@ -263,6 +385,8 @@ public static class OnboardingEndpoints
         ISubscriptionOnboardingService onboardingService,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
+        MainDataContext dbContext,
+        BuyAlan.SquareIntegration.ISquareService squareService,
         CancellationToken cancellationToken)
     {
         Guid? userId = user.GetUserId();
@@ -289,11 +413,30 @@ public static class OnboardingEndpoints
         }
 
         UpdateSubscriptionOnboardingStepResult.Success success = (UpdateSubscriptionOnboardingStepResult.Success)result;
-        return TypedResults.Ok(ToEndpointResult(success.State));
+        return TypedResults.Ok(await ToEndpointResultAsync(
+            subscriptionId,
+            userId.Value,
+            success.State,
+            dbContext,
+            squareService,
+            cancellationToken));
     }
 
-    private static GetSubscriptionOnboardingStateResult ToEndpointResult(OnboardingStateResult state)
+    private static async Task<GetSubscriptionOnboardingStateResult> ToEndpointResultAsync(
+        Guid subscriptionId,
+        Guid currentUserId,
+        OnboardingStateResult state,
+        MainDataContext dbContext,
+        BuyAlan.SquareIntegration.ISquareService squareService,
+        CancellationToken cancellationToken)
     {
+        OnboardingInvitationStepResult invitationStep = await SubscriptionMemberReadModelBuilder.BuildOnboardingInvitationStepResultAsync(
+            subscriptionId,
+            currentUserId,
+            dbContext,
+            squareService,
+            cancellationToken);
+
         return new GetSubscriptionOnboardingStateResult(
             state.Status,
             state.CurrentStep,
@@ -301,7 +444,8 @@ public static class OnboardingEndpoints
             state.PrimaryAgentId,
             state.CanFinalize,
             state.ProfilePrefill,
-            state.ChannelsPrefill);
+            state.ChannelsPrefill,
+            invitationStep);
     }
 
     private static IResult UnauthorizedError(string errorCode)
@@ -317,6 +461,7 @@ public static class OnboardingEndpoints
         int statusCode = errorCode switch
         {
             "subscription_member_required" => StatusCodes.Status403Forbidden,
+            "subscription_owner_required" => StatusCodes.Status403Forbidden,
             "agent_not_found" => StatusCodes.Status404NotFound,
             _ => StatusCodes.Status400BadRequest
         };
@@ -329,6 +474,7 @@ public static class OnboardingEndpoints
         return errorCode switch
         {
             "subscription_member_required" => "You must be a member of the subscription.",
+            "subscription_owner_required" => "Subscription owner permissions are required.",
             "agent_not_found" => "The requested agent was not found.",
             "agent_name_required" => "Agent name is required.",
             "agent_personality_required" => "Agent personality is required.",
@@ -338,6 +484,9 @@ public static class OnboardingEndpoints
             "telegram_bot_token_invalid" => "Telegram rejected the bot token. Verify the token from BotFather and try again.",
             "onboarding_invitations_blocked" => "Complete square connection, profile, and channels before invitations.",
             "onboarding_finalize_incomplete" => "All required onboarding steps must be completed before finalize.",
+            "email_invalid" => "A valid email address is required.",
+            "role_invalid" => "A supported role is required.",
+            "subscription_user_exists" => "That email already belongs to a current subscription member.",
             _ => "Onboarding request failed."
         };
     }

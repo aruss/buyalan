@@ -42,20 +42,20 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - [x] Extend `Subscription` with invitation navigation.
 - [ ] Add reusable `ITokenService` to generate high-entropy URL-safe opaque tokens for invitation links and future link-based flows.
 - [ ] Extend `ISquareService` with a `GetTeamMembersAsync` read operation returning minimal team-member data.
-- [ ] Add invitation-oriented DTOs following the existing `Input` / `Result` naming pattern:
-  - [ ] create invitation
-  - [ ] list invitations and members
-  - [ ] resend invitation
-  - [ ] copy invitation link
-  - [ ] revoke invitation
-  - [ ] accept invitation
-  - [ ] update member role
-  - [ ] delete member
-- [ ] Extend onboarding state/read DTOs so step 4 can render:
-  - [ ] current invitations
-  - [ ] current members
-  - [ ] Square team-member suggestions
-  - [ ] available roles
+- [x] Add invitation-oriented DTOs following the existing `Input` / `Result` naming pattern:
+  - [x] create invitation
+  - [x] list invitations and members
+  - [x] resend invitation
+  - [x] copy invitation link
+  - [x] revoke invitation
+  - [x] accept invitation
+  - [x] update member role
+  - [x] delete member
+- [x] Extend onboarding state/read DTOs so step 4 can render:
+  - [x] current invitations
+  - [x] current members
+  - [x] Square team-member suggestions
+  - [x] available roles
 - [ ] Extend `EmailTemplateKey` and SendGrid template resolution with a new invitation template key.
   - [ ] Keep SendGrid mapping optional; supported invitation keys may fall back to the generic template id when no dedicated config is present.
 
@@ -132,26 +132,26 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - [x] Team-member reads reuse the consolidated Square service instead of duplicating client logic.
 
 ## Gate D - WebApi Invitation and Member Management
-- [ ] Add owner-authorized subscription member-management endpoints for:
-  - [ ] listing invitations and current members
-  - [ ] creating invitations
-  - [ ] resending invitations
-  - [ ] copying invitation links
-  - [ ] revoking invitations
-  - [ ] updating member role
-  - [ ] deleting a member
-- [ ] Add public or anonymous-safe invite lookup endpoint by token.
-- [ ] Add authenticated invite acceptance endpoint by token.
-- [ ] Extend onboarding state endpoint payload with invitation-step read data.
-- [ ] Replace the current onboarding invitations placeholder behavior with real invitation work plus explicit onboarding-step completion semantics.
-- [ ] Keep endpoint error mapping consistent with current WebApi patterns.
-- [ ] Prevent role changes or deletions that would remove the last owner from a subscription.
+- [x] Add owner-authorized subscription member-management endpoints for:
+  - [x] listing invitations and current members
+  - [x] creating invitations
+  - [x] resending invitations
+  - [x] copying invitation links
+  - [x] revoking invitations
+  - [x] updating member role
+  - [x] deleting a member
+- [x] Add public or anonymous-safe invite lookup endpoint by token.
+- [x] Add authenticated invite acceptance endpoint by token.
+- [x] Extend onboarding state endpoint payload with invitation-step read data.
+- [x] Replace the current onboarding invitations placeholder behavior with real invitation work plus explicit onboarding-step completion semantics.
+- [x] Keep endpoint error mapping consistent with current WebApi patterns.
+- [x] Prevent role changes or deletions that would remove the last owner from a subscription.
 
 ### Gate D Acceptance Criteria
-- [ ] Owners can fully manage invitations and members through stable WebApi contracts.
-- [ ] Invite acceptance is API-backed and idempotent enough for browser retries.
-- [ ] Onboarding step 4 now performs real invitation work instead of placeholder completion only.
-- [ ] Owner-safety rules are enforced by the API.
+- [x] Owners can fully manage invitations and members through stable WebApi contracts.
+- [x] Invite acceptance is API-backed and idempotent enough for browser retries.
+- [x] Onboarding step 4 now performs real invitation work instead of placeholder completion only.
+- [x] Owner-safety rules are enforced by the API.
 
 ## Gate E - Auth and Invitation Redemption Flow
 - [ ] Add a WebApp invite route, e.g. `/invite/[token]`.
@@ -175,9 +175,9 @@ Implement subscription-scoped team invitations across onboarding, member setting
 ## Gate F - Onboarding Invitations Step
 - [ ] Replace the disabled placeholder UI in onboarding step 4 with real invitation UX.
 - [ ] Render:
-  - [ ] Square team-member suggestions
+  - [x] Square team-member suggestions
   - [ ] pending invitations
-  - [ ] current members
+  - [x] current members
   - [ ] invite form with email and role
 - [ ] Submit invitation creation through the real invitation/member-management API.
 - [ ] Keep the step dependency that invitations require completed Square connection.
@@ -197,12 +197,12 @@ Implement subscription-scoped team invitations across onboarding, member setting
   - [ ] role dropdown
 - [ ] Add invitations table with actions:
   - [ ] delete
-  - [ ] resend invitation
-  - [ ] copy invitation link
+  - [x] resend invitation
+  - [x] copy invitation link
 - [ ] Implement delete-invitation confirmation in a drawer.
 - [ ] Add current-members table with actions:
   - [ ] change role
-  - [ ] delete member
+  - [x] delete member
 - [ ] Wire all mutations to refresh the page state cleanly.
 
 ### Gate G Acceptance Criteria
@@ -232,7 +232,7 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - [ ] 1) Gate A: data model and persisted active subscription.
 - [ ] 2) Gate B: reusable token service, invitation domain service, and email enqueue integration.
 - [x] 3) Gate C: Square team-member read support.
-- [ ] 4) Gate D: WebApi invitation and member-management endpoints.
+- [x] 4) Gate D: WebApi invitation and member-management endpoints.
 - [ ] 5) Gate E: auth and invite redemption flow.
 - [ ] 6) Gate F: onboarding invitations step.
 - [ ] 7) Gate G: admin settings members page.
@@ -245,3 +245,4 @@ Implement subscription-scoped team invitations across onboarding, member setting
 - [ ] After WebApi interface changes that affect the generated client, hand off for OpenAPI client regeneration.
 - [ ] Keep logs free of raw invite tokens, full invite links, and unnecessary PII.
 - [ ] Retention cleanup for old accepted/revoked invitations is future work and not part of M32.
+

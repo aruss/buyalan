@@ -27,18 +27,18 @@ export const LandingFooter = async (): Promise<ReactElement> => {
                     <p className="mb-4 text-sm font-semibold tracking-wider text-zinc-300 uppercase">Platform</p>
                     <ul className="space-y-3 text-sm text-zinc-300">
                         <li>
-                            <Link href="#features" className="transition-colors hover:text-white">
+                            <Link href="/#features" className="transition-colors hover:text-white">
                                 Features
                             </Link>
                         </li>
                         <li>
-                            <Link href="#dashboard" className="transition-colors hover:text-white">
+                            <Link href="/#dashboard" className="transition-colors hover:text-white">
                                 Merchant Dashboard
                             </Link>
                         </li>
                         {isPricingEnabled ? (
                             <li>
-                                <Link href="#pricing" className="transition-colors hover:text-white">
+                                <Link href="/#pricing" className="transition-colors hover:text-white">
                                     Pricing
                                 </Link>
                             </li>

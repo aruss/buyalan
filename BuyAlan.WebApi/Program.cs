@@ -11,6 +11,7 @@ using BuyAlan.WebApi.Infrastructure;
 using BuyAlan.WebApi.Newsletter;
 using BuyAlan.WebApi.Onboarding;
 using BuyAlan.WebApi.SquareIntegration;
+using BuyAlan.WebApi.Subscriptions;
 using BuyAlan.WebApi.TwilioIntegration;
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -166,6 +167,7 @@ app.MapAuthEndpoints();
 app.MapAgentEndpoints();
 app.MapConversationEndpoints();
 app.MapSquareConnectionEndpoints();
+app.MapSubscriptionMemberEndpoints();
 app.MapOnboardingEndpoints();
 app.MapNewsletterEndpoints();
 
