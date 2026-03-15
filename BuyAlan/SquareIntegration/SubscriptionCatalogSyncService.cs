@@ -1,5 +1,6 @@
-namespace BuyAlan.SquareIntegration;
+﻿namespace BuyAlan.SquareIntegration;
 
+using BuyAlan;
 using System.Collections.Concurrent;
 using BuyAlan.Configuration;
 using BuyAlan.Data;
@@ -389,7 +390,7 @@ public sealed class SubscriptionCatalogSyncService : ISubscriptionCatalogSyncSer
                     projection.Items[itemObject.Id] = new CatalogItemChange(
                         itemObject.Id,
                         itemData.Name?.Trim() ?? itemObject.Id,
-                        NormalizeOptional(itemData.Description),
+                        itemData.Description.TrimToNull(),
                         itemObject.IsDeleted == true);
                 }
 
@@ -407,7 +408,7 @@ public sealed class SubscriptionCatalogSyncService : ISubscriptionCatalogSyncSer
                 continue;
             }
 
-            string squareItemId = variationData.ItemId?.Trim() ?? String.Empty;
+            string squareItemId = variationData.ItemId.TrimOrEmpty();
             if (String.IsNullOrWhiteSpace(squareItemId))
             {
                 continue;
@@ -417,7 +418,7 @@ public sealed class SubscriptionCatalogSyncService : ISubscriptionCatalogSyncSer
                 squareItemId,
                 variationObject.Id,
                 NormalizeVariationName(variationData.Name, variationObject.Id),
-                NormalizeOptional(variationData.Sku),
+                variationData.Sku.TrimToNull(),
                 variationData.PriceMoney?.Amount,
                 variationData.PriceMoney?.Currency?.ToString(),
                 variationData.Sellable != false,
@@ -442,7 +443,7 @@ public sealed class SubscriptionCatalogSyncService : ISubscriptionCatalogSyncSer
 
         foreach (ItemVariationLocationOverrides overrideData in variationData.LocationOverrides)
         {
-            string? locationId = NormalizeOptional(overrideData.LocationId);
+            string? locationId = overrideData.LocationId.TrimToNull();
             if (String.IsNullOrWhiteSpace(locationId))
             {
                 continue;
@@ -531,9 +532,7 @@ public sealed class SubscriptionCatalogSyncService : ISubscriptionCatalogSyncSer
             parts.Add(sku);
         }
 
-        return String.Join(' ', parts)
-            .Trim()
-            .ToLowerInvariant();
+        return String.Join(' ', parts).NormalizeSearchQuery() ?? String.Empty;
     }
 
     private static string ResolveItemName(
@@ -568,22 +567,11 @@ public sealed class SubscriptionCatalogSyncService : ISubscriptionCatalogSyncSer
     {
         if (!String.IsNullOrWhiteSpace(variationName))
         {
-            return variationName.Trim();
+            return variationName.TrimOrEmpty();
         }
 
         return squareVariationId;
     }
-
-    private static string? NormalizeOptional(string? value)
-    {
-        if (String.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim();
-    }
-
     private static DateTime? ParseSquareTimestamp(string? value)
     {
         if (String.IsNullOrWhiteSpace(value))
@@ -653,3 +641,4 @@ public sealed class SubscriptionCatalogSyncService : ISubscriptionCatalogSyncSer
         bool IsAvailableForSale,
         bool IsSoldOut);
 }
+

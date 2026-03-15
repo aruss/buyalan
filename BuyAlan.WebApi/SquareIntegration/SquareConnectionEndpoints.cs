@@ -1,5 +1,6 @@
-namespace BuyAlan.WebApi.SquareIntegration;
+﻿namespace BuyAlan.WebApi.SquareIntegration;
 
+using BuyAlan;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -227,7 +228,7 @@ public static class SquareConnectionEndpoints
             return authorizationError;
         }
 
-        string? normalizedQuery = NormalizeCatalogQuery(input.Query);
+        string? normalizedQuery = input.Query.NormalizeSearchQuery();
 
         IQueryable<SubscriptionCatalogProduct> query = dbContext.SubscriptionCatalogProducts
             .AsNoTracking()
@@ -412,19 +413,9 @@ public static class SquareConnectionEndpoints
 
         return "not_started";
     }
-
-    private static string? NormalizeCatalogQuery(string? query)
-    {
-        if (String.IsNullOrWhiteSpace(query))
-        {
-            return null;
-        }
-
-        return query.Trim().ToLowerInvariant();
-    }
-
     private sealed record CatalogProductCountsResult(
         int CachedProductCount,
         int SellableProductCount,
         int DeletedProductCount);
 }
+

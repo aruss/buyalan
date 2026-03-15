@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -15,6 +16,9 @@ using System.Linq;
 
 public static class StringExtensions
 {
+    private static readonly string[] Booleans = ["true", "yes", "on", "1"];
+    private static readonly string[] UglyBase64 = ["+", "/", "="];
+
     [DebuggerStepThrough]
     public static string ToSnakeCase(this string text)
     {
@@ -26,9 +30,6 @@ public static class StringExtensions
         // Matches lower-case/digit followed by upper-case
         return Regex.Replace(text, "([a-z0-9])([A-Z])", "$1_$2").ToLowerInvariant();
     }
-
-    private static readonly string[] Booleans =
-           new string[] { "true", "yes", "on", "1" };
 
     [DebuggerStepThrough]
     public static bool ToBoolean(
@@ -111,6 +112,128 @@ public static class StringExtensions
     public static bool IsPresent(this string value)
     {
         return !string.IsNullOrWhiteSpace(value);
+    }
+
+    [DebuggerStepThrough]
+    public static string? TrimToNull(this string? value)
+    {
+        if (String.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return value.Trim();
+    }
+
+    [DebuggerStepThrough]
+    public static string TrimOrEmpty(this string? value)
+    {
+        return value.TrimToNull() ?? String.Empty;
+    }
+
+    [DebuggerStepThrough]
+    public static string? NormalizeSearchQuery(this string? value)
+    {
+        string? normalizedValue = value.TrimToNull();
+        if (normalizedValue is null)
+        {
+            return null;
+        }
+
+        return normalizedValue.ToLowerInvariant();
+    }
+
+    [DebuggerStepThrough]
+    public static string RedactEmail(this string? value)
+    {
+        string? normalizedValue = value.TrimToNull();
+        if (normalizedValue is null)
+        {
+            return "<empty>";
+        }
+
+        int atIndex = normalizedValue.IndexOf('@');
+        if (atIndex <= 1)
+        {
+            return "***";
+        }
+
+        string prefix = normalizedValue[..1];
+        string domain = normalizedValue[atIndex..];
+        return $"{prefix}***{domain}";
+    }
+
+    [DebuggerStepThrough]
+    public static string RedactToken(this string? value)
+    {
+        string? normalizedValue = value.TrimToNull();
+        if (normalizedValue is null)
+        {
+            return "<empty>";
+        }
+
+        if (normalizedValue.Length <= 6)
+        {
+            return "***";
+        }
+
+        return $"{normalizedValue[..3]}***{normalizedValue[^3..]}";
+    }
+
+    [DebuggerStepThrough]
+    public static bool TryNormalizeEmail(this string? value, out string normalizedEmail)
+    {
+        normalizedEmail = String.Empty;
+
+        string? trimmedValue = value.TrimToNull();
+        if (trimmedValue is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            MailAddress parsedAddress = new(trimmedValue);
+            if (!String.Equals(parsedAddress.Address, trimmedValue, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            normalizedEmail = parsedAddress.Address;
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
+    [DebuggerStepThrough]
+    public static bool TryNormalizeLocalUrl(this string? value, out string normalizedUrl)
+    {
+        normalizedUrl = String.Empty;
+
+        string? trimmedValue = value.TrimToNull();
+        if (trimmedValue is null || !trimmedValue.IsLocalUrl())
+        {
+            return false;
+        }
+
+        normalizedUrl = trimmedValue;
+        return true;
+    }
+
+    [DebuggerStepThrough]
+    public static string NormalizeLocalUrlOrDefault(this string? value, string fallback)
+    {
+        if (!fallback.IsLocalUrl())
+        {
+            throw new ArgumentException("Fallback must be a local URL.", nameof(fallback));
+        }
+
+        return value.TryNormalizeLocalUrl(out string normalizedUrl)
+            ? normalizedUrl
+            : fallback;
     }
 
     [DebuggerStepThrough]
@@ -330,8 +453,6 @@ public static class StringExtensions
 
         return Path.GetFullPath(path);
     }
-
-    private static readonly string[] UglyBase64 = { "+", "/", "=" };
 
     [DebuggerStepThrough]
     public static string StripUglyBase64(this string s)

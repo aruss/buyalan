@@ -1,5 +1,6 @@
-namespace BuyAlan.Subscriptions;
+﻿namespace BuyAlan.Subscriptions;
 
+using BuyAlan;
 using BuyAlan.Configuration;
 using BuyAlan.Data;
 using BuyAlan.Data.Entities;
@@ -8,7 +9,6 @@ using BuyAlan.Tokens;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Net.Mail;
 
 public sealed class SubscriptionInvitationService : ISubscriptionInvitationService
 {
@@ -41,7 +41,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
         CreateSubscriptionInvitationInput input,
         CancellationToken cancellationToken = default)
     {
-        if (!TryNormalizeEmail(input.Email, out string normalizedEmail))
+        if (!input.Email.TryNormalizeEmail(out string normalizedEmail))
         {
             return new CreateSubscriptionInvitationResult.Failure("email_invalid");
         }
@@ -104,7 +104,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
             "Subscription invitation queued. InvitationId={InvitationId} SubscriptionId={SubscriptionId} To={MaskedEmail} Reused={WasReused}",
             invitation.Id,
             invitation.SubscriptionId,
-            MaskEmail(invitation.Email),
+            invitation.Email.RedactEmail(),
             wasReusedExistingInvitation);
 
         return new CreateSubscriptionInvitationResult.Success(result, wasReusedExistingInvitation);
@@ -145,7 +145,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
             "Subscription invitation resent. InvitationId={InvitationId} SubscriptionId={SubscriptionId} To={MaskedEmail}",
             invitation.Id,
             invitation.SubscriptionId,
-            MaskEmail(invitation.Email));
+            invitation.Email.RedactEmail());
 
         return new ResendSubscriptionInvitationResult.Success(result);
     }
@@ -212,7 +212,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
             "Subscription invitation revoked. InvitationId={InvitationId} SubscriptionId={SubscriptionId} To={MaskedEmail}",
             invitation.Id,
             invitation.SubscriptionId,
-            MaskEmail(invitation.Email));
+            invitation.Email.RedactEmail());
 
         return new RevokeSubscriptionInvitationResult.Success();
     }
@@ -221,7 +221,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
         string? token,
         CancellationToken cancellationToken = default)
     {
-        string normalizedToken = NormalizeToken(token);
+        string normalizedToken = token.TrimOrEmpty();
         if (String.IsNullOrWhiteSpace(normalizedToken))
         {
             return new GetSubscriptionInvitationByTokenResult.Failure("invitation_invalid");
@@ -260,7 +260,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
         AcceptSubscriptionInvitationInput input,
         CancellationToken cancellationToken = default)
     {
-        string normalizedToken = NormalizeToken(input.Token);
+        string normalizedToken = input.Token.TrimOrEmpty();
         if (String.IsNullOrWhiteSpace(normalizedToken))
         {
             return new AcceptSubscriptionInvitationResult.Failure("invitation_invalid");
@@ -274,7 +274,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
             return new AcceptSubscriptionInvitationResult.Failure("user_not_found");
         }
 
-        if (!TryNormalizeEmail(user.Email, out string normalizedUserEmail))
+        if (!user.Email.TryNormalizeEmail(out string normalizedUserEmail))
         {
             return new AcceptSubscriptionInvitationResult.Failure("user_email_invalid");
         }
@@ -366,7 +366,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
             String.IsNullOrWhiteSpace(normalizedBasePath)
                 ? PathString.Empty
                 : new PathString(normalizedBasePath);
-        PathString invitationPath = basePath.Add("/invite").Add($"/{token.Trim()}");
+        PathString invitationPath = basePath.Add("/invite").Add($"/{token.TrimOrEmpty()}");
 
         UriBuilder uriBuilder = new(publicBaseUrl)
         {
@@ -377,66 +377,11 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
 
         return uriBuilder.Uri.ToString();
     }
-
-    private static string NormalizeToken(string? token)
-    {
-        return String.IsNullOrWhiteSpace(token)
-            ? String.Empty
-            : token.Trim();
-    }
-
-    private static bool TryNormalizeEmail(string? value, out string normalizedEmail)
-    {
-        normalizedEmail = String.Empty;
-
-        if (String.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        string trimmedValue = value.Trim();
-
-        try
-        {
-            MailAddress parsedAddress = new(trimmedValue);
-            if (!String.Equals(parsedAddress.Address, trimmedValue, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            normalizedEmail = parsedAddress.Address;
-            return true;
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
-    }
-
     private static bool IsSupportedRole(SubscriptionUserRole role)
     {
         return Enum.IsDefined(role) &&
             (role == SubscriptionUserRole.Owner || role == SubscriptionUserRole.Member);
     }
-
-    private static string MaskEmail(string email)
-    {
-        if (String.IsNullOrWhiteSpace(email))
-        {
-            return "<empty>";
-        }
-
-        int atIndex = email.IndexOf('@');
-        if (atIndex <= 1)
-        {
-            return "***";
-        }
-
-        string prefix = email.Substring(0, 1);
-        string domain = email.Substring(atIndex);
-        return $"{prefix}***{domain}";
-    }
-
     private static string? GetInvitationInactiveErrorCode(SubscriptionInvitation invitation, DateTime utcNow)
     {
         if (invitation.RevokedAtUtc.HasValue)
@@ -462,7 +407,7 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
         return new SubscriptionInvitationLookupResult(
             invitation.Id,
             invitation.SubscriptionId,
-            MaskEmail(invitation.Email),
+            invitation.Email.RedactEmail(),
             invitation.Role,
             invitation.SentAtUtc,
             BuildSubscriptionDisplayText(invitation.SubscriptionId));
@@ -546,3 +491,5 @@ public sealed class SubscriptionInvitationService : ISubscriptionInvitationServi
             subscriptionDisplayText);
     }
 }
+
+

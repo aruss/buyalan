@@ -1,5 +1,6 @@
-namespace BuyAlan.SquareIntegration;
+﻿namespace BuyAlan.SquareIntegration;
 
+using BuyAlan;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using BuyAlan.Configuration;
@@ -130,7 +131,7 @@ public sealed class SquareService : ISquareService
 
         string callbackUrl = BuildAbsoluteCallbackUrl(this.appOptions.PublicBaseUrl, SquareIntegrationRules.ConnectCallbackPath);
         SquareTokenExchangeResult tokenExchange = await this.ExchangeAuthorizationCodeAsync(
-            input.AuthorizationCode.Trim(),
+            input.AuthorizationCode.TrimOrEmpty(),
             callbackUrl,
             cancellationToken);
 
@@ -258,7 +259,7 @@ public sealed class SquareService : ISquareService
             {
                 SubscriptionId = input.SubscriptionId,
                 ConnectedByUserId = input.ConnectedByUserId,
-                SquareMerchantId = input.MerchantId.Trim(),
+                SquareMerchantId = input.MerchantId.TrimOrEmpty(),
                 EncryptedAccessToken = encryptedAccessToken,
                 EncryptedRefreshToken = encryptedRefreshToken,
                 AccessTokenExpiresAtUtc = input.AccessTokenExpiresAtUtc,
@@ -271,7 +272,7 @@ public sealed class SquareService : ISquareService
         else
         {
             existingConnection.ConnectedByUserId = input.ConnectedByUserId;
-            existingConnection.SquareMerchantId = input.MerchantId.Trim();
+            existingConnection.SquareMerchantId = input.MerchantId.TrimOrEmpty();
             existingConnection.EncryptedAccessToken = encryptedAccessToken;
             existingConnection.EncryptedRefreshToken = encryptedRefreshToken;
             existingConnection.AccessTokenExpiresAtUtc = input.AccessTokenExpiresAtUtc;
@@ -382,7 +383,7 @@ public sealed class SquareService : ISquareService
 
             if (!String.IsNullOrWhiteSpace(payload.MerchantId))
             {
-                lockedConnection.SquareMerchantId = payload.MerchantId.Trim();
+                lockedConnection.SquareMerchantId = payload.MerchantId.TrimOrEmpty();
             }
 
             await this.dbContext.SaveChangesAsync(cancellationToken);
@@ -806,7 +807,7 @@ public sealed class SquareService : ISquareService
 
         foreach (JsonElement teamMemberElement in teamMembersElement.EnumerateArray())
         {
-            string? email = NormalizeOptional(TryGetString(teamMemberElement, "email_address"));
+            string? email = TryGetString(teamMemberElement, "email_address").TrimToNull();
             if (String.IsNullOrWhiteSpace(email))
             {
                 continue;
@@ -842,30 +843,7 @@ public sealed class SquareService : ISquareService
 
     private static bool TryNormalizeReturnUrl(string rawReturnUrl, out string safeReturnUrl)
     {
-        safeReturnUrl = String.Empty;
-        if (String.IsNullOrWhiteSpace(rawReturnUrl))
-        {
-            return false;
-        }
-
-        string trimmed = rawReturnUrl.Trim();
-        if (!trimmed.StartsWith('/'))
-        {
-            return false;
-        }
-
-        if (trimmed.StartsWith("//", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        if (Uri.TryCreate(trimmed, UriKind.Absolute, out _))
-        {
-            return false;
-        }
-
-        safeReturnUrl = trimmed;
-        return true;
+        return rawReturnUrl.TryNormalizeLocalUrl(out safeReturnUrl);
     }
 
     private static string BuildAbsoluteCallbackUrl(Uri publicBaseUrl, string callbackPath)
@@ -881,27 +859,13 @@ public sealed class SquareService : ISquareService
 
     private static string? NormalizeOAuthError(string? rawOAuthError)
     {
-        if (String.IsNullOrWhiteSpace(rawOAuthError))
-        {
-            return null;
-        }
-
-        return rawOAuthError.Trim();
+        return rawOAuthError.TrimToNull();
     }
 
-    private static string? NormalizeOptional(string? value)
-    {
-        if (String.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim();
-    }
     private static string ResolveTeamMemberDisplayName(string? givenName, string? familyName, string email)
     {
-        string? normalizedGivenName = NormalizeOptional(givenName);
-        string? normalizedFamilyName = NormalizeOptional(familyName);
+        string? normalizedGivenName = givenName.TrimToNull();
+        string? normalizedFamilyName = familyName.TrimToNull();
         string displayName = String.Join(
             ' ',
             new[] { normalizedGivenName, normalizedFamilyName }.Where(item => !String.IsNullOrWhiteSpace(item)));
@@ -976,3 +940,5 @@ public sealed class SquareService : ISquareService
         string ReasonCode,
         RefreshTokenApiPayload? Payload = null);
 }
+
+

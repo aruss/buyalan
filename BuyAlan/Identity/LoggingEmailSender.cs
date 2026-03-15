@@ -1,5 +1,6 @@
-namespace BuyAlan.Identity;
+﻿namespace BuyAlan.Identity;
 
+using BuyAlan;
 using BuyAlan.Email;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -66,29 +67,13 @@ public sealed class LoggingEmailSender : IEmailSender<ApplicationUser>
 
     private void LogEmail(string templateKey, string email)
     {
-        string maskedEmail = MaskEmail(email);
+        string maskedEmail = email.RedactEmail();
 
         this.logger.LogInformation(
             "Queued identity email. TemplateKey={TemplateKey} To={MaskedEmail}",
             templateKey,
             maskedEmail);
     }
-
-    private static string MaskEmail(string email)
-    {
-        if (String.IsNullOrWhiteSpace(email))
-        {
-            return "<empty>";
-        }
-
-        int atIndex = email.IndexOf('@');
-        if (atIndex <= 1)
-        {
-            return "***";
-        }
-
-        string prefix = email.Substring(0, 1);
-        string domain = email.Substring(atIndex);
-        return $"{prefix}***{domain}";
-    }
 }
+
+

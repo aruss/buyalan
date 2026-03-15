@@ -1,5 +1,6 @@
-namespace BuyAlan.Email;
+﻿namespace BuyAlan.Email;
 
+using BuyAlan;
 using Microsoft.Extensions.Logging;
 using Wolverine;
 
@@ -35,7 +36,7 @@ public sealed class EmailQueuingService : IEmailQueuingService
         this.logger.LogInformation(
             "Queued transactional email. TemplateKey={TemplateKey} To={MaskedEmail} TemplateFieldCount={TemplateFieldCount}",
             normalizedTemplateKey,
-            MaskEmail(normalizedRecipientEmail),
+            normalizedRecipientEmail.RedactEmail(),
             normalizedTemplateData.Count);
 
         return this.messageBus.SendAsync(normalizedMessage).AsTask();
@@ -48,7 +49,7 @@ public sealed class EmailQueuingService : IEmailQueuingService
             throw new ArgumentException("Recipient email is required.", nameof(recipientEmail));
         }
 
-        return recipientEmail.Trim();
+        return recipientEmail.TrimOrEmpty();
     }
 
     private static string NormalizeRequiredTemplateKey(string? templateKey)
@@ -58,7 +59,7 @@ public sealed class EmailQueuingService : IEmailQueuingService
             throw new ArgumentException("Template key is required.", nameof(templateKey));
         }
 
-        string normalizedTemplateKey = templateKey.Trim();
+        string normalizedTemplateKey = templateKey.TrimOrEmpty();
         if (!EmailTemplateKey.IsSupported(normalizedTemplateKey))
         {
             throw new ArgumentException(
@@ -93,22 +94,12 @@ public sealed class EmailQueuingService : IEmailQueuingService
                     nameof(templateData));
             }
 
-            normalizedTemplateData[pair.Key.Trim()] = pair.Value;
+            normalizedTemplateData[pair.Key.TrimOrEmpty()] = pair.Value;
         }
 
         return normalizedTemplateData;
     }
-
-    private static string MaskEmail(string email)
-    {
-        int atIndex = email.IndexOf('@');
-        if (atIndex <= 1)
-        {
-            return "***";
-        }
-
-        string prefix = email.Substring(0, 1);
-        string domain = email.Substring(atIndex);
-        return $"{prefix}***{domain}";
-    }
 }
+
+
+

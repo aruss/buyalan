@@ -1,5 +1,6 @@
-namespace BuyAlan.SquareIntegration;
+﻿namespace BuyAlan.SquareIntegration;
 
+using BuyAlan;
 using BuyAlan.Data;
 using BuyAlan.Data.Entities;
 using BuyAlan.Extensions;
@@ -23,7 +24,7 @@ public sealed class SubscriptionCatalogReadService : ISubscriptionCatalogReadSer
             input.AgentId,
             cancellationToken);
 
-        string? normalizedQuery = NormalizeQuery(input.Query);
+        string? normalizedQuery = input.Query.NormalizeSearchQuery();
         if (!String.IsNullOrWhiteSpace(normalizedQuery))
         {
             baseQuery = baseQuery.Where(product => product.SearchText.Contains(normalizedQuery));
@@ -78,7 +79,7 @@ public sealed class SubscriptionCatalogReadService : ISubscriptionCatalogReadSer
             return null;
         }
 
-        string normalizedVariationId = squareVariationId.Trim();
+        string normalizedVariationId = squareVariationId.TrimOrEmpty();
         IQueryable<SubscriptionCatalogProduct> baseQuery = await this.BuildAgentFilteredQueryAsync(
             subscriptionId,
             agentId,
@@ -189,14 +190,5 @@ public sealed class SubscriptionCatalogReadService : ISubscriptionCatalogReadSer
             product.SquareVersion,
             locations);
     }
-
-    private static string? NormalizeQuery(string? query)
-    {
-        if (String.IsNullOrWhiteSpace(query))
-        {
-            return null;
-        }
-
-        return query.Trim().ToLowerInvariant();
-    }
 }
+

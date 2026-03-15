@@ -1,5 +1,6 @@
-namespace BuyAlan.Agents;
+﻿namespace BuyAlan.Agents;
 
+using BuyAlan;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -116,11 +117,11 @@ public sealed class SubscriptionAgentService : ISubscriptionAgentService
             return new UpdateAgentResult.Failure("agent_personality_required");
         }
 
-        string? normalizedTwilioPhoneNumber = NormalizeOptionalValue(input.TwilioPhoneNumber);
-        string? normalizedWhatsappNumber = NormalizeOptionalValue(input.WhatsappNumber);
-        string? normalizedTelegramBotToken = NormalizeOptionalValue(input.TelegramBotToken);
-        string? normalizedPersonalityPromptRaw = NormalizeOptionalValue(input.PersonalityPromptRaw);
-        string normalizedName = input.Name.Trim();
+        string? normalizedTwilioPhoneNumber = input.TwilioPhoneNumber.TrimToNull();
+        string? normalizedWhatsappNumber = input.WhatsappNumber.TrimToNull();
+        string? normalizedTelegramBotToken = input.TelegramBotToken.TrimToNull();
+        string? normalizedPersonalityPromptRaw = input.PersonalityPromptRaw.TrimToNull();
+        string normalizedName = input.Name.TrimOrEmpty();
 
         string? originalTwilioPhoneNumber = agent.TwilioPhoneNumber;
         string? originalWhatsappNumber = agent.WhatsappNumber;
@@ -225,17 +226,6 @@ public sealed class SubscriptionAgentService : ISubscriptionAgentService
 
         return isMember;
     }
-
-    private static string? NormalizeOptionalValue(string? value)
-    {
-        if (String.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim();
-    }
-
     private static bool IsTelegramTokenUniqueConstraintViolation(DbUpdateException exception)
     {
         if (exception.InnerException is not PostgresException postgresException)
@@ -272,3 +262,4 @@ public sealed class SubscriptionAgentService : ISubscriptionAgentService
             !String.IsNullOrWhiteSpace(agent.WhatsappNumber);
     }
 }
+

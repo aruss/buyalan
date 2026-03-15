@@ -1,5 +1,6 @@
 ﻿namespace BuyAlan.Configuration;
 
+using BuyAlan;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 public record AppOptions
@@ -38,13 +39,13 @@ public static class AppOptionsConfigurationExtensions
         AppOptions options = new()
         {
             PublicBaseUrl = endpoint,
-            AuthGoogleClientId = NormalizeOptional(configuration["AUTH_GOOGLE_CLIENT_ID"]),
-            AuthGoogleClientSecret = NormalizeOptional(configuration["AUTH_GOOGLE_CLIENT_SECRET"]),
-            AuthSquareClientId = NormalizeOptional(configuration["AUTH_SQUARE_CLIENT_ID"]),
-            AuthSquareClientSecret = NormalizeOptional(configuration["AUTH_SQUARE_CLIENT_SECRET"]),
-            SquareClientId = NormalizeOptional(configuration["SQUARE_CLIENT_ID"]),
-            SquareClientSecret = NormalizeOptional(configuration["SQUARE_CLIENT_SECRET"]),
-            SquareWebhookSignatureKey = NormalizeOptional(configuration["SQUARE_WEBHOOK_SIGNATURE_KEY"])
+            AuthGoogleClientId = configuration["AUTH_GOOGLE_CLIENT_ID"].TrimToNull(),
+            AuthGoogleClientSecret = configuration["AUTH_GOOGLE_CLIENT_SECRET"].TrimToNull(),
+            AuthSquareClientId = configuration["AUTH_SQUARE_CLIENT_ID"].TrimToNull(),
+            AuthSquareClientSecret = configuration["AUTH_SQUARE_CLIENT_SECRET"].TrimToNull(),
+            SquareClientId = configuration["SQUARE_CLIENT_ID"].TrimToNull(),
+            SquareClientSecret = configuration["SQUARE_CLIENT_SECRET"].TrimToNull(),
+            SquareWebhookSignatureKey = configuration["SQUARE_WEBHOOK_SIGNATURE_KEY"].TrimToNull()
         };
 
         ValidatePair(
@@ -75,14 +76,6 @@ public static class AppOptionsConfigurationExtensions
             throw ConfigurationErrors.Invalid(errorMessage);
         }
     }
-
-    private static string? NormalizeOptional(string? value)
-    {
-        if (String.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim();
-    }
 }
+
+

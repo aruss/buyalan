@@ -1,5 +1,6 @@
-namespace BuyAlan.WebApi.Agents;
+﻿namespace BuyAlan.WebApi.Agents;
 
+using BuyAlan;
 using BuyAlan.Data;
 using BuyAlan.Data.Entities;
 using BuyAlan.Extensions;
@@ -280,7 +281,7 @@ public static class AgentEndpoints
         IQueryable<SubscriptionCatalogProduct> query = dbContext.SubscriptionCatalogProducts
             .Where(item => item.SubscriptionId == authorizedAgent.Agent!.SubscriptionId);
 
-        string? normalizedQuery = NormalizeCatalogQuery(input.Query);
+        string? normalizedQuery = input.Query.NormalizeSearchQuery();
         if (!String.IsNullOrWhiteSpace(normalizedQuery))
         {
             query = query.Where(item => item.SearchText.Contains(normalizedQuery));
@@ -552,17 +553,6 @@ public static class AgentEndpoints
             _ => "Agent request failed."
         };
     }
-
-    private static string? NormalizeCatalogQuery(string? query)
-    {
-        if (String.IsNullOrWhiteSpace(query))
-        {
-            return null;
-        }
-
-        return query.Trim().ToLowerInvariant();
-    }
-
     private static async Task<AuthorizedAgentResult> GetAuthorizedAgentAsync(
         Guid agentId,
         ClaimsPrincipal user,
@@ -602,3 +592,4 @@ public static class AgentEndpoints
         Agent? Agent,
         IResult? ErrorResult);
 }
+

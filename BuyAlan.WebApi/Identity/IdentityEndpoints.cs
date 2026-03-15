@@ -1,5 +1,6 @@
-namespace BuyAlan.WebApi.Identity;
+﻿namespace BuyAlan.WebApi.Identity;
 
+using BuyAlan;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -198,7 +199,7 @@ public static class IdentityEndpoints
                 return TypedResults.Redirect(BuildLoginRedirectUrl(safeReturnUrl, "external_email_not_verified"));
             }
 
-            string normalizedEmail = emailClaim.Trim();
+            string normalizedEmail = emailClaim.TrimOrEmpty();
 
             ApplicationUser? applicationUser =
                 await userManager.FindByEmailAsync(normalizedEmail);
@@ -377,29 +378,7 @@ public static class IdentityEndpoints
 
     internal static string NormalizeReturnUrl(string? returnUrl)
     {
-        if (String.IsNullOrWhiteSpace(returnUrl))
-        {
-            return DefaultReturnUrl;
-        }
-
-        string trimmedReturnUrl = returnUrl.Trim();
-
-        if (!trimmedReturnUrl.StartsWith('/'))
-        {
-            return DefaultReturnUrl;
-        }
-
-        if (trimmedReturnUrl.StartsWith("//", StringComparison.Ordinal))
-        {
-            return DefaultReturnUrl;
-        }
-
-        if (Uri.TryCreate(trimmedReturnUrl, UriKind.Absolute, out _))
-        {
-            return DefaultReturnUrl;
-        }
-
-        return trimmedReturnUrl;
+        return returnUrl.NormalizeLocalUrlOrDefault(DefaultReturnUrl);
     }
 
     internal static string RemoveAuthErrorFromReturnUrl(string returnUrl)
@@ -459,7 +438,7 @@ public static class IdentityEndpoints
 
         if (!String.IsNullOrWhiteSpace(displayName))
         {
-            return displayName.Trim();
+            return displayName.TrimOrEmpty();
         }
 
         return fallbackEmail;
@@ -525,7 +504,7 @@ public static class IdentityEndpoints
             return false;
         }
 
-        string normalizedReturnUrl = returnUrl.Trim();
+        string normalizedReturnUrl = returnUrl.TrimOrEmpty();
         int queryIndex = normalizedReturnUrl.IndexOfAny(['?', '#']);
         string path = queryIndex >= 0
             ? normalizedReturnUrl.Substring(0, queryIndex)
@@ -660,3 +639,5 @@ public static class IdentityEndpoints
         await signInManager.SignInWithClaimsAsync(user, false, [onboardingClaim]);
     }
 }
+
+

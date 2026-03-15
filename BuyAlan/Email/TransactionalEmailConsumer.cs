@@ -1,5 +1,6 @@
-namespace BuyAlan.Email;
+﻿namespace BuyAlan.Email;
 
+using BuyAlan;
 using Microsoft.Extensions.Logging;
 
 public sealed class TransactionalEmailConsumer
@@ -25,7 +26,7 @@ public sealed class TransactionalEmailConsumer
         this.logger.LogInformation(
             "Processing queued transactional email. TemplateKey={TemplateKey} To={MaskedEmail} TemplateFieldCount={TemplateFieldCount}",
             message.TemplateKey,
-            MaskEmail(message.RecipientEmail),
+            message.RecipientEmail.RedactEmail(),
             message.TemplateData.Count);
 
         await this.transactionalEmailService.SendTemplateAsync(
@@ -34,22 +35,6 @@ public sealed class TransactionalEmailConsumer
             message.TemplateData,
             cancellationToken);
     }
-
-    private static string MaskEmail(string email)
-    {
-        if (String.IsNullOrWhiteSpace(email))
-        {
-            return "<empty>";
-        }
-
-        int atIndex = email.IndexOf('@');
-        if (atIndex <= 1)
-        {
-            return "***";
-        }
-
-        string prefix = email.Substring(0, 1);
-        string domain = email.Substring(atIndex);
-        return $"{prefix}***{domain}";
-    }
 }
+
+

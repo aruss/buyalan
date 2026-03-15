@@ -1,11 +1,11 @@
-namespace BuyAlan.WebApi.Newsletter;
+﻿namespace BuyAlan.WebApi.Newsletter;
 
+using BuyAlan;
 using BuyAlan.Configuration;
 using BuyAlan.Email;
 using BuyAlan.Newsletter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -42,7 +42,7 @@ public static class NewsletterEndpoints
         INewsletterConfirmationTokenService confirmationTokenService,
         CancellationToken ct)
     {
-        if (!TryNormalizeEmail(input.Email, out string normalizedEmail))
+        if (!input.Email.TryNormalizeEmail(out string normalizedEmail))
         {
             return TypedResults.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
@@ -103,32 +103,6 @@ public static class NewsletterEndpoints
         await newsletterUpsertService.UpsertNewsletterContactAsync(confirmedEmail, ct);
         return TypedResults.Ok(new ConfirmNewsletterSubscriptionResult(true));
     }
-
-    private static bool TryNormalizeEmail(string? value, out string normalizedEmail)
-    {
-        normalizedEmail = String.Empty;
-
-        if (String.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        string trimmed = value.Trim();
-        try
-        {
-            MailAddress parsed = new(trimmed);
-
-            if (!String.Equals(parsed.Address, trimmed, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            normalizedEmail = parsed.Address;
-            return true;
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
-    }
 }
+
+

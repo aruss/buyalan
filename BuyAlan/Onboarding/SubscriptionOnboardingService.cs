@@ -1,5 +1,6 @@
-namespace BuyAlan.Onboarding;
+﻿namespace BuyAlan.Onboarding;
 
+using BuyAlan;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -159,9 +160,9 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
             return new UpdateSubscriptionOnboardingStepResult.Failure("subscription_member_required");
         }
 
-        string? twilioPhoneNumber = NormalizeOptionalChannel(input.TwilioPhoneNumber);
-        string? telegramBotToken = NormalizeOptionalChannel(input.TelegramBotToken);
-        string? whatsappNumber = NormalizeOptionalChannel(input.WhatsappNumber);
+        string? twilioPhoneNumber = input.TwilioPhoneNumber.TrimToNull();
+        string? telegramBotToken = input.TelegramBotToken.TrimToNull();
+        string? whatsappNumber = input.WhatsappNumber.TrimToNull();
 
         SubscriptionOnboardingState onboardingState = await this.GetOrCreateStateAsync(agent.SubscriptionId, cancellationToken);
         onboardingState.PrimaryAgentId = agent.Id;
@@ -646,17 +647,6 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
                 !String.IsNullOrWhiteSpace(agent.WhatsappNumber)
             );
     }
-
-    private static string? NormalizeOptionalChannel(string? value)
-    {
-        if (String.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim();
-    }
-
     private static OnboardingStepDefinition? GetStepDefinition(string step)
     {
         return StepDefinitions.SingleOrDefault(item =>
@@ -796,3 +786,4 @@ public sealed class SubscriptionOnboardingService : ISubscriptionOnboardingServi
         OnboardingProfilePrefill ProfilePrefill,
         OnboardingChannelsPrefill ChannelsPrefill);
 }
+

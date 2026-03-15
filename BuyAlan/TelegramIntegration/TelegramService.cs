@@ -1,5 +1,6 @@
-namespace BuyAlan.TelegramIntegration;
+﻿namespace BuyAlan.TelegramIntegration;
 
+using BuyAlan;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
@@ -45,7 +46,7 @@ public sealed class TelegramService : ITelegramService
             throw new ArgumentException("Telegram bot token is required.", nameof(botToken));
         }  
 
-        string normalizedBotToken = botToken.Trim();
+        string normalizedBotToken = botToken.TrimOrEmpty();
 
         Uri webhookUri = new(
             this.appOptions.PublicBaseUrl,
@@ -92,8 +93,8 @@ public sealed class TelegramService : ITelegramService
         string? nextBotToken,
         CancellationToken ct = default)
     {
-        string? normalizedPreviousBotToken = NormalizeOptionalToken(previousBotToken);
-        string? normalizedNextBotToken = NormalizeOptionalToken(nextBotToken);
+        string? normalizedPreviousBotToken = previousBotToken.TrimToNull();
+        string? normalizedNextBotToken = nextBotToken.TrimToNull();
 
         if (String.IsNullOrWhiteSpace(normalizedNextBotToken) ||
             String.Equals(normalizedNextBotToken, normalizedPreviousBotToken, StringComparison.Ordinal))
@@ -137,8 +138,8 @@ public sealed class TelegramService : ITelegramService
             throw new ArgumentException("Telegram message text is required.", nameof(text));
         }
 
-        string normalizedBotToken = botToken.Trim();
-        string trimmedText = text.Trim();
+        string normalizedBotToken = botToken.TrimOrEmpty();
+        string trimmedText = text.TrimOrEmpty();
 
         this.logger.LogInformation(
             "Sending Telegram message for bot id {BotId} to chat {ChatId}.",
@@ -152,17 +153,6 @@ public sealed class TelegramService : ITelegramService
                 text: trimmedText,
                 cancellationToken: ct);
     }
-
-    private static string? NormalizeOptionalToken(string? value)
-    {
-        if (String.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim();
-    }
-
     private static string ResolveWebhookRegistrationErrorCode(ApiRequestException exception)
     {
         if (exception.ErrorCode == (int)HttpStatusCode.Unauthorized)
@@ -185,3 +175,5 @@ public sealed class TelegramService : ITelegramService
         return botToken[..separatorIndex];
     }
 }
+
+
